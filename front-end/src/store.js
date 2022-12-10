@@ -1,11 +1,14 @@
-import { createStore } from 'vuex'
-import axios from "axios";
+import Vue from 'vue'
+import Vuex from 'vuex'
+import axios from "axios"
+
+Vue.use(Vuex)
 
 const API_ROUTES = {
   HELLO: '/api/hello'
 }
 
-export default createStore({
+export default new Vuex.Store({
   state: {
     msg: "",
     error: undefined

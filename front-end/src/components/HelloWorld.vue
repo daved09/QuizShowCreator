@@ -11,7 +11,6 @@ import {mapActions, mapState} from "vuex";
 export default {
   name: 'HelloWorld',
   props: {
-    msg: String
   },
   computed:{
     ...mapState({
