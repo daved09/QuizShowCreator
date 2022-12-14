@@ -11,7 +11,11 @@ const API_ROUTES = {
 export default new Vuex.Store({
   state: {
     msg: "",
-    error: undefined
+    error: undefined,
+    buzzer: {
+      enabled: true,
+      activated: true
+    }
   },
   getters: {
   },
@@ -21,6 +25,9 @@ export default new Vuex.Store({
     },
     setError(state, error){
       state.error = error
+    },
+    setBuzzerAttributes(state, buzzer) {
+      state.buzzer = buzzer
     }
   },
   actions: {
