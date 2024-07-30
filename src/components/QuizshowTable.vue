@@ -9,19 +9,19 @@
       <tbody>
         <td>
           <tr>
-            <point-button points="100"></point-button>
+            <PointButton points="100"></PointButton>
           </tr>
           <tr>
-            <point-button points="200"></point-button>
+            <PointButton points="200"></PointButton>
           </tr>
           <tr>
-            <point-button points="300"></point-button>
+            <PointButton points="300"></PointButton>
           </tr>
           <tr>
-            <point-button points="400"></point-button>
+            <PointButton points="400"></PointButton>
           </tr>
           <tr>
-            <point-button points="500"></point-button>
+            <PointButton points="500"></PointButton>
           </tr>
         </td>
       </tbody>
