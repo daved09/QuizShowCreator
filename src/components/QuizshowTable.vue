@@ -1,47 +1,26 @@
 <template>
   <div>
-    <table>
-      <thead>
-        <th>
-          Test
-        </th>
-      </thead>
-      <tbody>
-        <td>
-          <tr>
-            <PointButton points="100"></PointButton>
-          </tr>
-          <tr>
-            <PointButton points="200"></PointButton>
-          </tr>
-          <tr>
-            <PointButton points="300"></PointButton>
-          </tr>
-          <tr>
-            <PointButton points="400"></PointButton>
-          </tr>
-          <tr>
-            <PointButton points="500"></PointButton>
-          </tr>
-        </td>
-      </tbody>
-    </table>
+    <div class="row-container">
+      <ThemeColumn header-text="Test"></ThemeColumn>
+      <ThemeColumn header-text="Test"></ThemeColumn>
+      <ThemeColumn header-text="Test"></ThemeColumn>
+      <ThemeColumn header-text="Test"></ThemeColumn>
+    </div>
   </div>
 </template>
 
-<script>
-import PointButton from "@/components/PointButton.vue";
+<script setup>
+import ThemeColumn from './ThemeColumn.vue';
 
-export default {
-  name: "PointTable",
-  components: {PointButton}
-}
+
 </script>
 
 <style scoped>
-  table {
+  .row-container {
     text-align: center;
     /*width: 100%;*/
-    display: inline-block;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
   }
 </style>

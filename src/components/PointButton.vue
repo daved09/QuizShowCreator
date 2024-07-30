@@ -1,6 +1,6 @@
 <template>
   <div>
-    <button @click="emit('clicked')" variant="primary">{{ points }}</button>
+    <button @click="test">{{ points }}</button>
      <!-- <button>test</button> -->
   </div>
 </template>
@@ -9,6 +9,10 @@
 defineProps({
   points: String
 })
+
+function test(){
+  alert("Test")
+}
 // export default {
 //   name: "PointButton",
 //   props: {
@@ -23,5 +27,14 @@ defineProps({
 </script>
 
 <style scoped>
-
+button {
+  width: 5rem;
+  height: 3rem;
+  margin: 0.5rem;
+  border-color: black;
+  background-color: lightgray;
+  &:hover{
+    background-color: yellow;
+  }
+}
 </style>

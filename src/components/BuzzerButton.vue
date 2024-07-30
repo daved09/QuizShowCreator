@@ -4,44 +4,43 @@
   </div>
 </template>
 
-<script>
+<script setup>
 
-import {mapMutations, mapState} from "vuex";
 
-export default {
-  name: "BuzzerButton",
-  data() {
-    return {
-    }
-  },
-  methods: {
-    ...mapMutations(['setBuzzerAttributes']),
-    buzzerClicked() {
-      this.setBuzzerAttributes({
-        enabled: false,
-        activated: true
-      })
-      this.$emit('buzzerClicked')
-    }
-  },
-  computed: {
-    ...mapState({
-      buzzer: state => state.buzzer
-    }),
-    buzzerClasses() {
-      if(!this.buzzer.activated){
-        return "disabled"
-      }
-      if(!this.buzzer.enabled){
-        return "used"
-      }
-      return "enabled"
-    },
-    buzzerClickable(){
-      return this.buzzer.activated && this.buzzer.enabled
-    }
-  }
-}
+// export default {
+//   name: "BuzzerButton",
+//   data() {
+//     return {
+//     }
+//   },
+//   methods: {
+//     ...mapMutations(['setBuzzerAttributes']),
+//     buzzerClicked() {
+//       this.setBuzzerAttributes({
+//         enabled: false,
+//         activated: true
+//       })
+//       this.$emit('buzzerClicked')
+//     }
+//   },
+//   computed: {
+//     ...mapState({
+//       buzzer: state => state.buzzer
+//     }),
+//     buzzerClasses() {
+//       if(!this.buzzer.activated){
+//         return "disabled"
+//       }
+//       if(!this.buzzer.enabled){
+//         return "used"
+//       }
+//       return "enabled"
+//     },
+//     buzzerClickable(){
+//       return this.buzzer.activated && this.buzzer.enabled
+//     }
+//   }
+// }
 </script>
 
 <style scoped>

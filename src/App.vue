@@ -5,9 +5,9 @@ import QuizshowTable from './components/QuizshowTable.vue'
 </script>
 
 <template>
-  <header>
+  <!-- <header>
     <img alt="Vue logo" class="logo" src="./assets/logo.svg" width="125" height="125" />
-  </header>
+  </header> -->
 
   <main>
     <QuizshowTable></QuizshowTable>
@@ -15,23 +15,23 @@ import QuizshowTable from './components/QuizshowTable.vue'
 </template>
 
 <style scoped>
-header {
+/* header {
   line-height: 1.5;
 }
 
 .logo {
   display: block;
   margin: 0 auto 2rem;
-}
+} */
 
-@media (min-width: 1024px) {
+/* @media (min-width: 1024px) {
   header {
     display: flex;
     place-items: center;
     padding-right: calc(var(--section-gap) / 2);
-  }
+  } */
 
-  .logo {
+  /* .logo {
     margin: 0 2rem 0 0;
   }
 
@@ -39,6 +39,6 @@ header {
     display: flex;
     place-items: flex-start;
     flex-wrap: wrap;
-  }
-}
+  } */
+/* } */
 </style>
