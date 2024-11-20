@@ -6,12 +6,14 @@
 </template>
 
 <script setup>
-defineProps({
+const props = defineProps({
   points: String
 })
 
+const emit = defineEmits('pointButtonClicked')
+
 function test(){
-  alert("Test")
+  emit('pointButtonClicked', props.points)
 }
 // export default {
 //   name: "PointButton",

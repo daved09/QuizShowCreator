@@ -2,7 +2,7 @@
     <div>
         <h3>{{headerText}}</h3>
         <div v-for="(point) in points" :key="point" class="column-container">
-            <PointButton :points="point"></PointButton>
+            <PointButton @pointButtonClicked="pointButtonClicked" :points="point"></PointButton>
         </div>
     </div>
 </template>
@@ -12,6 +12,11 @@ defineProps({
     headerText: String
 })
 const points = [100, 200,300,400,500]
+
+const pointButtonClicked = (points) => {
+    alert(points + " points")
+}
+
 </script>
 <style scoped>
 .column-container {
