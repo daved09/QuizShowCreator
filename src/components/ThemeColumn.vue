@@ -2,7 +2,7 @@
     <div>
         <h3>{{headerText}}</h3>
         <div v-for="(point) in points" :key="point" class="column-container">
-            <PointButton @pointButtonClicked="pointButtonClicked" :points="point"></PointButton>
+            <point-button @pointButtonClicked="pointButtonClicked" :points="point"></point-button>
         </div>
     </div>
 </template>

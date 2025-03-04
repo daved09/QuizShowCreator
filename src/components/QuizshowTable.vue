@@ -1,20 +1,20 @@
 <template>
   <div class="row-container">
-    <div v-for="(item) in themes" :key="item">
-      <ThemeColumn :header-text="item"></ThemeColumn>
+    <div v-for="(theme) in quizStore.themes" :key="theme">
+      <theme-column :header-text="theme"></theme-column>
     </div>
     <button class="addColumnButton" @click="addColumn">+</button>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
 import ThemeColumn from './ThemeColumn.vue';
+import { useQuizStore } from '@/stores/quiz.store';
 
-const themes = ref(["Test", "Test2"])
+const quizStore = useQuizStore();
 
 function addColumn(){
-  themes.value.push("new");
+	quizStore.addColumn("New from store");
 }
 
 </script>
@@ -22,7 +22,7 @@ function addColumn(){
 <style scoped>
   .row-container {
     text-align: center;
-    /*width: 100%;*/
+    /* width: 100%; */
     display: flex;
     flex-direction: row;
     justify-content: space-around;
