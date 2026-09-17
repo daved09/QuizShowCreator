@@ -1,6 +1,9 @@
 <template>
     <div>
-        <h3 v-if="!editingHeader" class="theme-header" @click="startEditingHeader">{{ theme.themeText }}</h3>
+        <div v-if="!editingHeader" class="theme-header-row">
+            <h3 class="theme-header" @click="startEditingHeader">{{ theme.themeText }}</h3>
+            <button class="delete-button" @click="deleteTheme" title="Thema löschen">✖</button>
+        </div>
         <input
             v-else
             ref="headerInputEl"
@@ -101,15 +104,41 @@ const cancelQuestion = () => {
     questionDraft.value = ""
 }
 
+const deleteTheme = () => {
+    if (confirm(`'${props.theme.themeText}' wirklich löschen?`)) {
+        quizStore.removeTheme(props.theme.id)
+    }
+}
+
 </script>
 <style scoped>
 .column-container {
     display: flex;
     flex-direction: column;
     align-items: center;
+    gap: 0.75rem;
+}
+.theme-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
 }
 .theme-header {
     cursor: pointer;
+    margin-bottom: 0.75rem;
+}
+.delete-button {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 0.9rem;
+    padding: 0;
+    margin-bottom: 0.75rem;
+    color: var(--color-text);
+}
+.delete-button:hover {
+    color: red;
 }
 .theme-header:hover {
     text-decoration: underline;
@@ -127,13 +156,13 @@ const cancelQuestion = () => {
     display: flex;
     align-items: center;
     gap: 0.3rem;
-    width: 5rem;
-    min-height: 2.5rem;
+    width: 6rem;
+    min-height: 3rem;
     background: var(--color-background-soft);
     border: 1px solid var(--color-border);
     border-radius: 0.25rem;
-    padding: 0.25rem 0.5rem;
-    margin-bottom: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    margin-bottom: 0.75rem;
     color: var(--color-text);
 }
 .category-text {

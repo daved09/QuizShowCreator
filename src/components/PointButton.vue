@@ -30,9 +30,10 @@ function test(){
 
 <style scoped>
 button {
-  width: 5rem;
-  height: 3rem;
+  width: 6rem;
+  height: 3.5rem;
   margin: 0.5rem;
+  font-size: 1.15rem;
   border-color: black;
   background-color: lightgray;
   &:hover{

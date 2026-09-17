@@ -33,6 +33,10 @@ export const useQuizStore = defineStore('quizshow', () => {
 		themes.value.push(createTheme(themeText));
 	}
 
+	function removeTheme(id: string) {
+		themes.value = themes.value.filter(t => t.id !== id);
+	}
+
 	function updateThemeText(id: string, themeText: string) {
 		const theme = themes.value.find(t => t.id === id);
 		if (theme) {
@@ -51,5 +55,5 @@ export const useQuizStore = defineStore('quizshow', () => {
 		}
 	}
 
-	return { addColumn, updateThemeText, updateQuestion, themes }
+	return { addColumn, removeTheme, updateThemeText, updateQuestion, themes }
 })

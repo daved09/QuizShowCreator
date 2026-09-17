@@ -26,9 +26,11 @@ function addColumn(){
     display: flex;
     flex-direction: row;
     justify-content: space-around;
+    gap: 2rem;
+    padding: 0.5rem 1rem;
   }
   .addColumnButton{
-    height: 2rem;
-    width: 2rem;
+    height: 3rem;
+    width: 3rem;
   }
 </style>
