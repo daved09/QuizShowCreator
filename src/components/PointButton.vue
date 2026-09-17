@@ -5,12 +5,12 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 const props = defineProps({
-  points: String
+  points: Number
 })
 
-const emit = defineEmits('pointButtonClicked')
+const emit = defineEmits(['pointButtonClicked'])
 
 function test(){
   emit('pointButtonClicked', props.points)

@@ -1,7 +1,7 @@
 <template>
   <div class="row-container">
-    <div v-for="(theme) in quizStore.themes" :key="theme">
-      <theme-column :header-text="theme"></theme-column>
+    <div v-for="(theme) in quizStore.themes" :key="theme.id">
+      <theme-column :theme="theme"></theme-column>
     </div>
     <button class="addColumnButton" @click="addColumn">+</button>
   </div>
