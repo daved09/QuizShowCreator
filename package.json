@@ -10,33 +10,36 @@
     "build": "vue-tsc --noEmit && vite build",
     "type-check": "vue-tsc --noEmit",
     "preview": "vite preview",
-    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts --fix --ignore-path .gitignore",
-    "format": "prettier --write src/",
     "dist": "npm run build && electron-builder",
-    "dist:dir": "npm run build && electron-builder --dir"
+    "dist:dir": "npm run build && electron-builder --dir",
+    "lint": "eslint . --fix",
+    "format": "prettier --write src/"
   },
   "dependencies": {
-    "bootstrap": "^5.3.3",
-    "pinia": "^2.1.7",
-    "vue": "^3.4.29"
+    "bootstrap": "^5.3.8",
+    "pinia": "^4.1.0",
+    "vue": "^3.5.44"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@rushstack/eslint-patch": "^1.8.0",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
     "@types/node": "^26.6.5",
     "@vitejs/plugin-vue": "^6.0.10",
-    "@vue/eslint-config-prettier": "^9.0.0",
+    "@vue/eslint-config-prettier": "^10.2.0",
+    "@vue/eslint-config-typescript": "^14.9.0",
+    "eslint": "^10.12.0",
+    "eslint-plugin-vue": "^10.11.1",
+    "globals": "^17.13.0",
+    "prettier": "^3.9.10",
     "electron": "^41.7.1",
     "electron-builder": "^26.15.3",
-    "eslint": "^8.57.0",
-    "eslint-plugin-vue": "^9.23.0",
-    "prettier": "^3.2.5",
     "typescript": "^5.9.3",
     "vite": "^8.3.4",
+    "vue-tsc": "^3.3.13",
     "vite-plugin-electron": "^1.1.2",
-    "vite-plugin-electron-renderer": "^1.0.0",
-    "vue-tsc": "^3.3.11"
+    "vite-plugin-electron-renderer": "^1.0.0"
   },
   "build": {
     "appId": "de.quizshow.creator",
