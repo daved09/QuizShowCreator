@@ -17,6 +17,6 @@
     },
     "types": ["vite/client"]
   },
-  "include": ["src/**/*.ts", "src/**/*.vue"],
+  "include": ["src/**/*.ts", "src/**/*.vue", "electron/**/*.ts"],
   "exclude": ["node_modules", "dist"]
 }
