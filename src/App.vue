@@ -10,19 +10,32 @@ function onToggleEditMode(event: Event): void {
     quizStore.setEditMode(input.checked)
   }
 }
+
+function addColumn(): void {
+  quizStore.addColumn("New from store")
+}
 </script>
 
 <template>
   <header class="app-header">
     <h1 class="app-title">QuizShowCreator</h1>
-    <label class="edit-toggle">
-      <input
-        type="checkbox"
-        :checked="quizStore.isEditMode"
-        @change="onToggleEditMode"
-      />
-      <span>Edit Mode</span>
-    </label>
+    <div class="header-actions">
+      <button
+        v-if="quizStore.isEditMode"
+        class="add-column-button"
+        @click="addColumn"
+      >
+        Spalte hinzufügen
+      </button>
+      <label class="edit-toggle">
+        <input
+          type="checkbox"
+          :checked="quizStore.isEditMode"
+          @change="onToggleEditMode"
+        />
+        <span>Edit Mode</span>
+      </label>
+    </div>
   </header>
 
   <main>
@@ -57,5 +70,10 @@ function onToggleEditMode(event: Event): void {
   width: 1.1rem;
   height: 1.1rem;
   cursor: pointer;
+}
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 </style>

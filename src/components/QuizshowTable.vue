@@ -3,7 +3,6 @@
     <div v-for="(theme) in quizStore.themes" :key="theme.id">
       <ThemeColumn :theme="theme" @cardClicked="openCard"></ThemeColumn>
     </div>
-    <button class="addColumnButton" @click="addColumn">+</button>
   </div>
 
   <QuestionModal
@@ -58,10 +57,6 @@ function saveCard(data: { points: number; question: string; answer: string }): v
   closeCard();
 }
 
-function addColumn(): void {
-	quizStore.addColumn("New from store");
-}
-
 </script>
 
 <style scoped>
@@ -73,9 +68,5 @@ function addColumn(): void {
     justify-content: space-around;
     gap: 2rem;
     padding: 0.5rem 1rem;
-  }
-  .addColumnButton{
-    height: 3rem;
-    width: 3rem;
   }
 </style>
