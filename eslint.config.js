@@ -6,7 +6,7 @@ import tseslint from '@vue/eslint-config-typescript'
 
 export default [
   {
-    ignores: ['node_modules/', 'dist/', 'public/']
+    ignores: ['node_modules/', 'dist/', 'dist-electron/', 'release/', 'public/']
   },
   js.configs.recommended,
   ...pluginVue.configs['flat/essential'],
@@ -23,8 +23,8 @@ export default [
   },
   {
     rules: {
-      // Project mixes plain JS and TS SFCs (main.js is JS); don't force lang="ts"
-      'vue/block-lang': 'off'
+      // Alles ist TypeScript (inkl. SFCs mit lang="ts")
+      'vue/block-lang': ['error', { script: { lang: 'ts' } }]
     }
   },
   skipFormatting

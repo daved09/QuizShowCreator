@@ -1,19 +1,19 @@
 <template>
   <div class="row-container">
     <div v-for="(theme) in quizStore.themes" :key="theme.id">
-      <theme-column :theme="theme"></theme-column>
+      <ThemeColumn :theme="theme"></ThemeColumn>
     </div>
     <button class="addColumnButton" @click="addColumn">+</button>
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import ThemeColumn from './ThemeColumn.vue';
 import { useQuizStore } from '@/stores/quiz.store';
 
 const quizStore = useQuizStore();
 
-function addColumn(){
+function addColumn(): void {
 	quizStore.addColumn("New from store");
 }
 
