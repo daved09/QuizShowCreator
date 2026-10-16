@@ -12,13 +12,14 @@ export type Theme = {
 export type Question = {
 	points: number;
 	question: string;
+	answer: string;
 }
 
 function createTheme(themeText: string): Theme {
 	return {
 		id: crypto.randomUUID(),
 		themeText,
-		questions: DEFAULT_POINTS.map(points => ({ points, question: "" })),
+		questions: DEFAULT_POINTS.map(points => ({ points, question: "", answer: "" })),
 	};
 }
 
@@ -28,6 +29,16 @@ export const useQuizStore = defineStore('quizshow', () => {
 		createTheme("Test"),
 		createTheme("Test2"),
 	]);
+
+	const isEditMode = ref<boolean>(false);
+
+	function setEditMode(value: boolean) {
+		isEditMode.value = value;
+	}
+
+	function toggleEditMode() {
+		isEditMode.value = !isEditMode.value;
+	}
   
 	function addColumn(themeText: string) {
 		themes.value.push(createTheme(themeText));
@@ -51,9 +62,25 @@ export const useQuizStore = defineStore('quizshow', () => {
 		if (existing) {
 			existing.question = question;
 		} else {
-			theme.questions.push({ points, question });
+			theme.questions.push({ points, question, answer: "" });
 		}
 	}
 
-	return { addColumn, removeTheme, updateThemeText, updateQuestion, themes }
+	function updateQuestionFull(themeId: string, oldPoints: number, data: { points: number; question: string; answer: string }): boolean {
+		const theme = themes.value.find(t => t.id === themeId);
+		if (!theme) return false;
+		const target = theme.questions.find(q => q.points === oldPoints);
+		if (!target) return false;
+		if (!Number.isInteger(data.points)) return false;
+		if (data.points !== oldPoints && theme.questions.some(q => q.points === data.points)) {
+			return false;
+		}
+		target.points = data.points;
+		target.question = data.question;
+		target.answer = data.answer;
+		theme.questions.sort((a, b) => a.points - b.points);
+		return true;
+	}
+
+	return { addColumn, removeTheme, updateThemeText, updateQuestion, updateQuestionFull, themes, isEditMode, setEditMode, toggleEditMode }
 })

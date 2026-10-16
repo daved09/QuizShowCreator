@@ -1,11 +1,29 @@
 <script setup lang="ts">
 import QuizshowTable from './components/QuizshowTable.vue'
+import { useQuizStore } from '@/stores/quiz.store'
+
+const quizStore = useQuizStore()
+
+function onToggleEditMode(event: Event): void {
+  const input = event.target as HTMLInputElement | null
+  if (input) {
+    quizStore.setEditMode(input.checked)
+  }
+}
 </script>
 
 <template>
-  <!-- <header>
-    <img alt="Vue logo" class="logo" src="./assets/logo.svg" width="125" height="125" />
-  </header> -->
+  <header class="app-header">
+    <h1 class="app-title">QuizShowCreator</h1>
+    <label class="edit-toggle">
+      <input
+        type="checkbox"
+        :checked="quizStore.isEditMode"
+        @change="onToggleEditMode"
+      />
+      <span>Edit Mode</span>
+    </label>
+  </header>
 
   <main>
     <QuizshowTable></QuizshowTable>
@@ -13,30 +31,31 @@ import QuizshowTable from './components/QuizshowTable.vue'
 </template>
 
 <style scoped>
-/* header {
-  line-height: 1.5;
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  padding: 0.75rem 1.5rem;
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: 1rem;
 }
-
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-} */
-
-/* @media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  } */
-
-  /* .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  } */
-/* } */
+.app-title {
+  font-size: 1.25rem;
+  margin: 0;
+}
+.edit-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  user-select: none;
+  font-weight: bold;
+}
+.edit-toggle input {
+  width: 1.1rem;
+  height: 1.1rem;
+  cursor: pointer;
+}
 </style>

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <button @click="test">{{ points }}</button>
+    <button :class="{ 'edit-mode': editMode }" @click="test">{{ editMode ? `${points} ✏️` : points }}</button>
      <!-- <button>test</button> -->
   </div>
 </template>
@@ -8,6 +8,7 @@
 <script setup lang="ts">
 const props = defineProps<{
   points: number
+  editMode?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -30,5 +31,9 @@ button {
   &:hover{
     background-color: yellow;
   }
+}
+button.edit-mode {
+  border-style: dashed;
+  background-color: #eef4ff;
 }
 </style>
