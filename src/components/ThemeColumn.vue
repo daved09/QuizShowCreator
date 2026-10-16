@@ -22,7 +22,7 @@
                 </template>
                 <input
                     v-else
-                    ref="questionInputEl"
+                    :ref="setQuestionInputEl"
                     v-model="questionDraft"
                     class="question-input"
                     @keydown.enter="saveQuestion"
@@ -42,23 +42,27 @@ const props = defineProps<{ theme: Theme }>()
 const quizStore = useQuizStore()
 
 // Header-Edit
-const editingHeader = ref(false)
-const headerDraft = ref(props.theme.themeText)
+const editingHeader = ref<boolean>(false)
+const headerDraft = ref<string>(props.theme.themeText)
 const headerInputEl = ref<HTMLInputElement | null>(null)
 
 // Kategorie-Aufdecken + Edit
 const revealedPoints = ref<number | null>(null)
 const editingPoints = ref<number | null>(null)
-const questionDraft = ref("")
-const questionInputEl = ref<HTMLInputElement | null>(null)
+const questionDraft = ref<string>("")
+let questionInputEl: HTMLInputElement | null = null
 
-const startEditingHeader = () => {
+function setQuestionInputEl(el: unknown): void {
+  questionInputEl = el as HTMLInputElement | null
+}
+
+const startEditingHeader = (): void => {
     headerDraft.value = props.theme.themeText
     editingHeader.value = true
     nextTick(() => headerInputEl.value?.focus())
 }
 
-const saveHeader = () => {
+const saveHeader = (): void => {
     if (!editingHeader.value) return
     const newText = headerDraft.value.trim()
     if (newText && newText !== props.theme.themeText) {
@@ -67,12 +71,12 @@ const saveHeader = () => {
     editingHeader.value = false
 }
 
-const cancelHeader = () => {
+const cancelHeader = (): void => {
     editingHeader.value = false
     headerDraft.value = props.theme.themeText
 }
 
-const pointButtonClicked = (point: number) => {
+const pointButtonClicked = (point: number): void => {
     if (revealedPoints.value === point) {
         revealedPoints.value = null
         editingPoints.value = null
@@ -82,13 +86,13 @@ const pointButtonClicked = (point: number) => {
     }
 }
 
-const startEditingQuestion = (q: Question) => {
+const startEditingQuestion = (q: Question): void => {
     questionDraft.value = q.question
     editingPoints.value = q.points
-    nextTick(() => questionInputEl.value?.focus())
+    nextTick(() => questionInputEl?.focus())
 }
 
-const saveQuestion = () => {
+const saveQuestion = (): void => {
     if (editingPoints.value === null) return
     const points = editingPoints.value
     const question = props.theme.questions.find(q => q.points === points)
@@ -99,12 +103,12 @@ const saveQuestion = () => {
     editingPoints.value = null
 }
 
-const cancelQuestion = () => {
+const cancelQuestion = (): void => {
     editingPoints.value = null
     questionDraft.value = ""
 }
 
-const deleteTheme = () => {
+const deleteTheme = (): void => {
     if (confirm(`'${props.theme.themeText}' wirklich löschen?`)) {
         quizStore.removeTheme(props.theme.id)
     }

@@ -6,26 +6,17 @@
 </template>
 
 <script setup lang="ts">
-const props = defineProps({
-  points: Number
-})
+const props = defineProps<{
+  points: number
+}>()
 
-const emit = defineEmits(['pointButtonClicked'])
+const emit = defineEmits<{
+  (e: 'pointButtonClicked', value: number): void
+}>()
 
-function test(){
+function test(): void {
   emit('pointButtonClicked', props.points)
 }
-// export default {
-//   name: "PointButton",
-//   props: {
-//     points: String
-//   },
-//   methods: {
-//     clicked(){
-//       this.$emit("click", this.points);
-//     }
-//   }
-// }
 </script>
 
 <style scoped>
