@@ -4,14 +4,14 @@ import { useQuizStore } from '@/stores/quiz.store'
 
 const quizStore = useQuizStore()
 
-function onToggleEditMode(event: Event): void {
+const onToggleEditMode = (event: Event): void => {
   const input = event.target as HTMLInputElement | null
   if (input) {
     quizStore.setEditMode(input.checked)
   }
 }
 
-function addColumn(): void {
+const addColumn = (): void => {
   quizStore.addColumn()
 }
 </script>

@@ -15,47 +15,44 @@ export type Question = {
 	answer: string;
 }
 
-function createTheme(themeText: string): Theme {
+const createTheme = (themeText: string): Theme => {
 	return {
 		id: crypto.randomUUID(),
 		themeText,
 		questions: DEFAULT_POINTS.map(points => ({ points, question: "", answer: "" })),
 	};
-}
+};
 
 export const useQuizStore = defineStore('quizshow', () => {
 
-	const themes = ref<Theme[]>([
-		createTheme("Test"),
-		createTheme("Test2"),
-	]);
+	const themes = ref<Theme[]>([]);
 
-	const isEditMode = ref<boolean>(false);
+	const isEditMode = ref<boolean>(true);
 
-	function setEditMode(value: boolean) {
+	const setEditMode = (value: boolean) => {
 		isEditMode.value = value;
-	}
+	};
 
-	function toggleEditMode() {
+	const toggleEditMode = () => {
 		isEditMode.value = !isEditMode.value;
-	}
+	};
   
-	function addColumn() {
+	const addColumn = () => {
 		themes.value.push(createTheme("New Theme"));
-	}
+	};
 
-	function removeTheme(id: string) {
+	const removeTheme = (id: string) => {
 		themes.value = themes.value.filter(t => t.id !== id);
-	}
+	};
 
-	function updateThemeText(id: string, themeText: string) {
+	const updateThemeText = (id: string, themeText: string) => {
 		const theme = themes.value.find(t => t.id === id);
 		if (theme) {
 			theme.themeText = themeText;
 		}
-	}
+	};
 
-	function updateQuestion(themeId: string, points: number, question: string) {
+	const updateQuestion = (themeId: string, points: number, question: string) => {
 		const theme = themes.value.find(t => t.id === themeId);
 		if (!theme) return;
 		const existing = theme.questions.find(q => q.points === points);
@@ -64,9 +61,9 @@ export const useQuizStore = defineStore('quizshow', () => {
 		} else {
 			theme.questions.push({ points, question, answer: "" });
 		}
-	}
+	};
 
-	function updateQuestionFull(themeId: string, oldPoints: number, data: { points: number; question: string; answer: string }): boolean {
+	const updateQuestionFull = (themeId: string, oldPoints: number, data: { points: number; question: string; answer: string }): boolean => {
 		const theme = themes.value.find(t => t.id === themeId);
 		if (!theme) return false;
 		const target = theme.questions.find(q => q.points === oldPoints);
@@ -80,7 +77,7 @@ export const useQuizStore = defineStore('quizshow', () => {
 		target.answer = data.answer;
 		theme.questions.sort((a, b) => a.points - b.points);
 		return true;
-	}
+	};
 
 	return { addColumn, removeTheme, updateThemeText, updateQuestion, updateQuestionFull, themes, isEditMode, setEditMode, toggleEditMode }
 })

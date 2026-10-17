@@ -36,17 +36,17 @@ const selected = computed(() => {
   return { theme, question };
 });
 
-function openCard(themeId: string, points: number): void {
+const openCard = (themeId: string, points: number): void => {
   selectedThemeId.value = themeId;
   selectedPoints.value = points;
 }
 
-function closeCard(): void {
+const closeCard = (): void => {
   selectedThemeId.value = null;
   selectedPoints.value = null;
 }
 
-function saveCard(data: { points: number; question: string; answer: string }): void {
+const saveCard = (data: { points: number; question: string; answer: string }): void => {
   if (selectedThemeId.value === null || selectedPoints.value === null) return;
   const ok = quizStore.updateQuestionFull(selectedThemeId.value, selectedPoints.value, data);
   if (!ok) {

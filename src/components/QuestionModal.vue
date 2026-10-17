@@ -88,7 +88,7 @@ const error = ref<string>("")
 const firstFieldEl = ref<HTMLInputElement | null>(null)
 const closeButtonEl = ref<HTMLButtonElement | null>(null)
 
-function onSave(): void {
+const onSave = (): void => {
   error.value = ""
   if (!Number.isInteger(draft.points)) {
     error.value = "Bitte eine ganze Punktzahl eingeben."
@@ -101,7 +101,7 @@ function onSave(): void {
   })
 }
 
-function onKeydown(event: KeyboardEvent): void {
+const onKeydown = (event: KeyboardEvent): void => {
   if (event.key === 'Escape') {
     emit('close')
   }
