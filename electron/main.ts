@@ -1,4 +1,5 @@
-import { app, BrowserWindow } from 'electron'
+import { app, BrowserWindow, dialog, ipcMain } from 'electron'
+import { readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -42,4 +43,43 @@ app.on('activate', () => {
   if (BrowserWindow.getAllWindows().length === 0) createWindow()
 })
 
-app.whenReady().then(createWindow)
+const registerIpcHandlers = () => {
+  ipcMain.handle('quiz:export', async (_event, json: string) => {
+    const result = await dialog.showSaveDialog({
+      title: 'Quiz exportieren',
+      defaultPath: 'quizshow.json',
+      filters: [{ name: 'JSON', extensions: ['json'] }],
+    })
+    if (result.canceled || !result.filePath) {
+      return { success: false, canceled: true }
+    }
+    try {
+      await writeFile(result.filePath, json, 'utf-8')
+      return { success: true, canceled: false, path: result.filePath }
+    } catch (error) {
+      return { success: false, canceled: false, error: (error as Error).message }
+    }
+  })
+
+  ipcMain.handle('quiz:import', async () => {
+    const result = await dialog.showOpenDialog({
+      title: 'Quiz importieren',
+      properties: ['openFile'],
+      filters: [{ name: 'JSON', extensions: ['json'] }],
+    })
+    if (result.canceled || result.filePaths.length === 0) {
+      return { success: false, canceled: true }
+    }
+    try {
+      const data = await readFile(result.filePaths[0], 'utf-8')
+      return { success: true, canceled: false, data }
+    } catch (error) {
+      return { success: false, canceled: false, error: (error as Error).message }
+    }
+  })
+}
+
+app.whenReady().then(() => {
+  registerIpcHandlers()
+  createWindow()
+})
