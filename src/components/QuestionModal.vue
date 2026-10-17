@@ -157,11 +157,28 @@ onUnmounted(() => {
   margin: 0;
 }
 .modal-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.9rem;
+  height: 1.9rem;
   border: none;
+  border-radius: var(--radius-pill);
   background: transparent;
   cursor: pointer;
-  font-size: 1rem;
+  font-size: 0.95rem;
   color: var(--color-text);
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast);
+}
+.modal-close:hover {
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+}
+.modal-close:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
 }
 .modal-body {
   display: flex;
@@ -206,10 +223,43 @@ onUnmounted(() => {
   margin-top: 0.5rem;
 }
 .modal-actions button {
-  padding: 0.5rem 1rem;
+  font: inherit;
+  padding: 0.55rem 1.15rem;
+  font-weight: 600;
+  color: var(--color-text);
+  background: var(--color-background-soft);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
   cursor: pointer;
+  transition:
+    background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast),
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+.modal-actions button:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+.modal-actions button:active {
+  transform: translateY(1px) scale(0.99);
+}
+.modal-actions button:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
 }
 .modal-actions .primary {
-  font-weight: bold;
+  color: var(--color-on-primary);
+  background: var(--color-primary);
+  border-color: transparent;
+  box-shadow: var(--shadow-sm);
+}
+.modal-actions .primary:hover {
+  color: var(--color-on-primary);
+  background: var(--color-primary-hover);
+  border-color: transparent;
+  box-shadow: var(--shadow-md);
 }
 </style>
