@@ -4,7 +4,7 @@ A quiz show app built with Vue 3 and Electron, using Pinia for state management.
 
 ## Prerequisites
 
-- Node.js (tested with v20; `@electron/rebuild` recommends >= 22)
+- Node.js >= 22.12 (required by Electron 44 for install/CLI; the app itself bundles Node 24.22)
 - npm
 
 ## Project setup
@@ -41,6 +41,6 @@ release/        # Packaged app artifacts, e.g. the AppImage (generated)
 
 - Vue 3.5 + Pinia 4
 - Vite 8 + `@vitejs/plugin-vue`
-- Electron 41 + electron-builder
+- Electron 44 (Chromium 152, Node 24.22) + electron-builder
 - TypeScript + vue-tsc
 - ESLint 10 (flat config) + Prettier
