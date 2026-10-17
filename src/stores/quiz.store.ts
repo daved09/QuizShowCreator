@@ -40,8 +40,8 @@ export const useQuizStore = defineStore('quizshow', () => {
 		isEditMode.value = !isEditMode.value;
 	}
   
-	function addColumn(themeText: string) {
-		themes.value.push(createTheme(themeText));
+	function addColumn() {
+		themes.value.push(createTheme("New Theme"));
 	}
 
 	function removeTheme(id: string) {

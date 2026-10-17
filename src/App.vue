@@ -12,7 +12,7 @@ function onToggleEditMode(event: Event): void {
 }
 
 function addColumn(): void {
-  quizStore.addColumn("New from store")
+  quizStore.addColumn()
 }
 </script>
 
