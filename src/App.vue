@@ -11,19 +11,65 @@ const modeIcon = computed(() => (quizStore.isEditMode ? '▶' : '✏️'))
 const addColumn = (): void => {
   quizStore.addColumn()
 }
+
+const exportQuiz = async (): Promise<void> => {
+  if (!window.electronAPI) return
+  const json = JSON.stringify(quizStore.exportQuiz(), null, 2)
+  const result = await window.electronAPI.exportQuiz(json)
+  if (!result.success && !result.canceled) {
+    alert(`Export fehlgeschlagen: ${result.error ?? 'Unbekannter Fehler'}`)
+  }
+}
+
+const importQuiz = async (): Promise<void> => {
+  if (!window.electronAPI) return
+  if (quizStore.themes.length > 0) {
+    const confirmed = confirm('Vorhandene Themen werden ersetzt. Fortfahren?')
+    if (!confirmed) return
+  }
+  const result = await window.electronAPI.importQuiz()
+  if (!result.success) {
+    if (!result.canceled) {
+      alert(`Import fehlgeschlagen: ${result.error ?? 'Unbekannter Fehler'}`)
+    }
+    return
+  }
+  try {
+    const data = JSON.parse(result.data ?? '')
+    const importResult = quizStore.importQuiz(data)
+    if (!importResult.ok) {
+      alert(`Import fehlgeschlagen: ${importResult.error}`)
+    }
+  } catch {
+    alert('Import fehlgeschlagen: Die Datei enthält kein gültiges JSON.')
+  }
+}
 </script>
 
 <template>
   <header class="app-header">
     <h1 class="app-title">QuizShowCreator</h1>
     <div class="header-actions">
-      <button
-        v-if="quizStore.isEditMode"
-        class="add-column-button"
-        @click="addColumn"
-      >
-        Spalte hinzufügen
-      </button>
+      <template v-if="quizStore.isEditMode">
+        <button
+          class="add-column-button"
+          @click="importQuiz"
+        >
+          Importieren
+        </button>
+        <button
+          class="add-column-button"
+          @click="exportQuiz"
+        >
+          Exportieren
+        </button>
+        <button
+          class="add-column-button"
+          @click="addColumn"
+        >
+          Spalte hinzufügen
+        </button>
+      </template>
       <button
         class="mode-toggle"
         :class="{ 'is-edit': quizStore.isEditMode }"
