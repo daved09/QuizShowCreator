@@ -14,7 +14,7 @@ let win: BrowserWindow | null = null
 // Set by vite-plugin-electron during dev
 const VITE_DEV_SERVER_URL = process.env['VITE_DEV_SERVER_URL']
 
-function createWindow() {
+const createWindow = () => {
   win = new BrowserWindow({
     width: 1280,
     height: 800,

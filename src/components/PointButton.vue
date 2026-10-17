@@ -15,7 +15,7 @@ const emit = defineEmits<{
   (e: 'pointButtonClicked', value: number): void
 }>()
 
-function test(): void {
+const test = (): void => {
   emit('pointButtonClicked', props.points)
 }
 </script>
