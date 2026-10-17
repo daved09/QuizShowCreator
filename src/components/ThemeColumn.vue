@@ -1,8 +1,8 @@
 <template>
     <div>
         <div v-if="!editingHeader" class="theme-header-row">
-            <h3 class="theme-header" @click="startEditingHeader">{{ theme.themeText }}</h3>
-            <button class="delete-button" @click="deleteTheme" title="Thema löschen">✖</button>
+            <h3 class="theme-header" :class="{ editable: quizStore.isEditMode }" @click="startEditingHeader">{{ theme.themeText }}</h3>
+            <button v-if="quizStore.isEditMode" class="delete-button" @click="deleteTheme" title="Thema löschen">✖</button>
         </div>
         <input
             v-else
@@ -23,7 +23,7 @@
     </div>
 </template>
 <script setup lang="ts">
-import { nextTick, ref } from 'vue'
+import { nextTick, ref, watch } from 'vue'
 import PointButton from './PointButton.vue';
 import { useQuizStore, type Theme } from "@/stores"
 const props = defineProps<{ theme: Theme }>()
@@ -40,6 +40,7 @@ const headerDraft = ref<string>(props.theme.themeText)
 const headerInputEl = ref<HTMLInputElement | null>(null)
 
 const startEditingHeader = (): void => {
+    if (!quizStore.isEditMode) return
     headerDraft.value = props.theme.themeText
     editingHeader.value = true
     nextTick(() => headerInputEl.value?.focus())
@@ -58,6 +59,13 @@ const cancelHeader = (): void => {
     editingHeader.value = false
     headerDraft.value = props.theme.themeText
 }
+
+// Laufende Bearbeitung verwerfen, wenn der Edit Mode verlassen wird
+watch(() => quizStore.isEditMode, (isEdit) => {
+    if (!isEdit && editingHeader.value) {
+        cancelHeader()
+    }
+})
 
 const deleteTheme = (): void => {
     if (confirm(`'${props.theme.themeText}' wirklich löschen?`)) {
@@ -80,8 +88,10 @@ const deleteTheme = (): void => {
     gap: 0.5rem;
 }
 .theme-header {
-    cursor: pointer;
     margin-bottom: 0.75rem;
+}
+.theme-header.editable {
+    cursor: pointer;
 }
 .delete-button {
     border: none;
@@ -95,7 +105,7 @@ const deleteTheme = (): void => {
 .delete-button:hover {
     color: red;
 }
-.theme-header:hover {
+.theme-header.editable:hover {
     text-decoration: underline;
 }
 .theme-header-input {
