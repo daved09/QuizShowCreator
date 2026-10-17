@@ -20,17 +20,6 @@
       <!-- Edit-Modus: Fragetext + Punkte + Antwort formulieren -->
       <form v-else class="modal-body" @submit.prevent="onSave">
         <label class="field">
-          <span class="label">Punkte</span>
-          <input
-            ref="firstFieldEl"
-            v-model.number="draft.points"
-            type="number"
-            step="1"
-            required
-            class="text-input"
-          />
-        </label>
-        <label class="field">
           <span class="label">Frage</span>
           <textarea
             v-model="draft.question"

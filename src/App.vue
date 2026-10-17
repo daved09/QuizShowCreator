@@ -1,3 +1,46 @@
+<template>
+  <header class="app-header">
+    <h1 class="app-title">Quizshow Creator</h1>
+    <div class="header-actions">
+      <template v-if="quizStore.isEditMode">
+        <button
+          class="add-column-button"
+          @click="importQuiz"
+        >
+          Importieren
+        </button>
+        <button
+          class="add-column-button"
+          @click="exportQuiz"
+        >
+          Exportieren
+        </button>
+        <button
+          class="add-column-button"
+          @click="addColumn"
+        >
+          Spalte hinzufügen
+        </button>
+      </template>
+      <button
+        class="mode-toggle"
+        :class="{ 'is-edit': quizStore.isEditMode }"
+        type="button"
+        role="switch"
+        :aria-checked="quizStore.isEditMode"
+        @click="quizStore.toggleEditMode()"
+      >
+        <span class="mode-toggle__icon" aria-hidden="true">{{ modeIcon }}</span>
+        <span>{{ modeLabel }}</span>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <QuizshowTable></QuizshowTable>
+  </main>
+</template>
+
 <script setup lang="ts">
 import { computed } from 'vue'
 import QuizshowTable from './components/QuizshowTable.vue'
@@ -45,49 +88,6 @@ const importQuiz = async (): Promise<void> => {
   }
 }
 </script>
-
-<template>
-  <header class="app-header">
-    <h1 class="app-title">QuizShowCreator</h1>
-    <div class="header-actions">
-      <template v-if="quizStore.isEditMode">
-        <button
-          class="add-column-button"
-          @click="importQuiz"
-        >
-          Importieren
-        </button>
-        <button
-          class="add-column-button"
-          @click="exportQuiz"
-        >
-          Exportieren
-        </button>
-        <button
-          class="add-column-button"
-          @click="addColumn"
-        >
-          Spalte hinzufügen
-        </button>
-      </template>
-      <button
-        class="mode-toggle"
-        :class="{ 'is-edit': quizStore.isEditMode }"
-        type="button"
-        role="switch"
-        :aria-checked="quizStore.isEditMode"
-        @click="quizStore.toggleEditMode()"
-      >
-        <span class="mode-toggle__icon" aria-hidden="true">{{ modeIcon }}</span>
-        <span>{{ modeLabel }}</span>
-      </button>
-    </div>
-  </header>
-
-  <main>
-    <QuizshowTable></QuizshowTable>
-  </main>
-</template>
 
 <style scoped>
 .app-header {
