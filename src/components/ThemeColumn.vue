@@ -94,16 +94,30 @@ const deleteTheme = (): void => {
     cursor: pointer;
 }
 .delete-button {
-    border: none;
-    background: transparent;
-    cursor: pointer;
-    font-size: 0.9rem;
-    padding: 0;
-    margin-bottom: 0.75rem;
-    color: var(--color-text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.8rem;
+  padding: 0;
+  margin-bottom: 0.75rem;
+  color: var(--color-text);
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast);
 }
 .delete-button:hover {
-    color: red;
+  color: var(--color-danger);
+  background: var(--color-danger-soft);
+}
+.delete-button:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
 }
 .theme-header.editable:hover {
     text-decoration: underline;
