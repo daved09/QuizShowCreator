@@ -6,7 +6,7 @@ import tseslint from '@vue/eslint-config-typescript'
 
 export default [
   {
-    ignores: ['node_modules/', 'dist/', 'dist-electron/', 'release/', 'public/']
+    ignores: ['node_modules/', 'dist/', 'dist-electron/', 'release/', 'public/', 'coverage/']
   },
   js.configs.recommended,
   ...pluginVue.configs['flat/essential'],
