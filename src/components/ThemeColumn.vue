@@ -21,6 +21,7 @@
                 :answered="quizStore.isAnswered(theme.id, q.points)"
                 :answered-by="quizStore.getAnsweredBy(theme.id, q.points)"
                 :has-image="!!q.image"
+                :has-audio="!!q.audio"
             ></point-button>
         </div>
     </div>

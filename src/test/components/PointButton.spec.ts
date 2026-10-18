@@ -48,6 +48,13 @@ describe('PointButton', () => {
     expect(wrapper.find('.image-badge').attributes('title')).toBe('Mit Bild')
   })
 
+  it('kennzeichnet Karten mit Audio', () => {
+    const wrapper = mountButton({ hasAudio: true })
+
+    expect(wrapper.text()).toContain('🔊')
+    expect(wrapper.find('.audio-badge').attributes('title')).toBe('Mit Audio')
+  })
+
   it('zeigt ohne Zustände keine Markierungen', () => {
     const wrapper = mountButton()
 

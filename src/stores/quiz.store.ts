@@ -15,6 +15,8 @@ export type Question = {
 	answer: string;
 	// Optionales Frage-Bild als Base64-Data-URL (z. B. "data:image/png;base64,...").
 	image?: string;
+	// Optionales Frage-Audio als Base64-Data-URL (z. B. "data:audio/mpeg;base64,...").
+	audio?: string;
 }
 
 export type Player = {
@@ -23,7 +25,7 @@ export type Player = {
 	score: number;
 }
 
-export const QUIZ_FILE_VERSION = 3;
+export const QUIZ_FILE_VERSION = 4;
 
 export type QuizFile = {
 	app: 'QuizShowCreator';
@@ -89,7 +91,7 @@ export const useQuizStore = defineStore('quizshow', () => {
 		}
 	};
 
-	const updateQuestionFull = (themeId: string, oldPoints: number, data: { points: number; question: string; answer: string; image?: string }): boolean => {
+	const updateQuestionFull = (themeId: string, oldPoints: number, data: { points: number; question: string; answer: string; image?: string; audio?: string }): boolean => {
 		const theme = themes.value.find(t => t.id === themeId);
 		if (!theme) return false;
 		const target = theme.questions.find(q => q.points === oldPoints);
@@ -102,6 +104,7 @@ export const useQuizStore = defineStore('quizshow', () => {
 		target.question = data.question;
 		target.answer = data.answer;
 		target.image = data.image ? data.image : undefined;
+		target.audio = data.audio ? data.audio : undefined;
 		theme.questions.sort((a, b) => a.points - b.points);
 		return true;
 	};
@@ -184,7 +187,7 @@ export const useQuizStore = defineStore('quizshow', () => {
 				if (typeof rawQuestion !== 'object' || rawQuestion === null) {
 					return { ok: false, error: 'Ungültige Frage in der Datei.' };
 				}
-				const { points, question, answer, image } = rawQuestion as Record<string, unknown>;
+				const { points, question, answer, image, audio } = rawQuestion as Record<string, unknown>;
 				if (typeof points !== 'number' || !Number.isFinite(points)) {
 					return { ok: false, error: 'Eine Frage hat eine ungültige Punktzahl.' };
 				}
@@ -194,7 +197,10 @@ export const useQuizStore = defineStore('quizshow', () => {
 				// Bild ist optional (ältere Dateien ohne Bild bleiben lesbar).
 				const parsedImage =
 					typeof image === 'string' && image.startsWith('data:image/') ? image : undefined;
-				questions.push({ points, question, answer, image: parsedImage });
+				// Audio ist optional (ältere Dateien ohne Audio bleiben lesbar).
+				const parsedAudio =
+					typeof audio === 'string' && audio.startsWith('data:audio/') ? audio : undefined;
+				questions.push({ points, question, answer, image: parsedImage, audio: parsedAudio });
 			}
 			questions.sort((a, b) => a.points - b.points);
 			parsed.push({ id: crypto.randomUUID(), themeText, questions });
