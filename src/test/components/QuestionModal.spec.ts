@@ -4,10 +4,18 @@ import QuestionModal from '@/components/QuestionModal.vue'
 import { useQuizStore, type Question } from '@/stores/quiz.store'
 import { createTestPinia } from '@/test/helpers'
 
-// Die Bildverarbeitung wird gemockt, damit die Drag&Drop-/Paste-Pfade ohne
-// echte FileReader-/Canvas-Implementierung getestet werden können.
-const { fileToImageDataUrl } = vi.hoisted(() => ({ fileToImageDataUrl: vi.fn() }))
-vi.mock('@/utils/image', () => ({ fileToImageDataUrl }))
+// Die Bild-/Audioverarbeitung wird gemockt, damit die Drag&Drop-/Paste-Pfade
+// ohne echte FileReader-/Canvas-Implementierung getestet werden können.
+const { fileToImageDataUrl, isImageFile } = vi.hoisted(() => ({
+  fileToImageDataUrl: vi.fn(),
+  isImageFile: vi.fn()
+}))
+const { fileToAudioDataUrl, isAudioFile } = vi.hoisted(() => ({
+  fileToAudioDataUrl: vi.fn(),
+  isAudioFile: vi.fn()
+}))
+vi.mock('@/utils/image', () => ({ fileToImageDataUrl, isImageFile }))
+vi.mock('@/utils/audio', () => ({ fileToAudioDataUrl, isAudioFile }))
 
 const dispatchEscape = () => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
 
@@ -18,6 +26,8 @@ describe('QuestionModal', () => {
   beforeEach(() => {
     pinia = createTestPinia()
     store = useQuizStore()
+    isImageFile.mockImplementation((file: File) => file.type.startsWith('image/'))
+    isAudioFile.mockImplementation((file: File) => file.type.startsWith('audio/'))
   })
 
   describe('Edit-Modus', () => {
@@ -46,7 +56,15 @@ describe('QuestionModal', () => {
       await wrapper.find('form').trigger('submit')
 
       expect(wrapper.emitted('save')).toEqual([
-        [{ points: 100, question: 'Neue Frage', answer: 'Neue Antwort', image: undefined }]
+        [
+          {
+            points: 100,
+            question: 'Neue Frage',
+            answer: 'Neue Antwort',
+            image: undefined,
+            audio: undefined
+          }
+        ]
       ])
     })
 
@@ -194,6 +212,20 @@ describe('QuestionModal', () => {
 
       expect(wrapper.emitted('close')).toHaveLength(1)
     })
+
+    it('zeigt das Frage-Audio zur Wiedergabe', () => {
+      const wrapper = mountView({
+        question: { ...question, audio: 'data:audio/mpeg;base64,AAAA' }
+      })
+
+      const audio = wrapper.find('.view-audio')
+      expect(audio.exists()).toBe(true)
+      expect(audio.attributes('src')).toBe('data:audio/mpeg;base64,AAAA')
+    })
+
+    it('zeigt kein Audio ohne Audiodatei', () => {
+      expect(mountView().find('.view-audio').exists()).toBe(false)
+    })
   })
 
   describe('Bild einfügen', () => {
@@ -285,6 +317,99 @@ describe('QuestionModal', () => {
       await flushPromises()
 
       expect(wrapper.find('.error').text()).toBe('Bitte eine Bilddatei auswählen.')
+    })
+  })
+
+  describe('Audio einfügen', () => {
+    const question: Question = { points: 100, question: 'Frage', answer: 'Antwort' }
+
+    const mountEdit = (overrides: Partial<Question> = {}) =>
+      mount(QuestionModal, {
+        props: { mode: 'edit' as const, themeText: 'Thema', question: { ...question, ...overrides } },
+        global: { plugins: [pinia] }
+      })
+
+    const makeFile = () => new File(['x'], 'song.mp3', { type: 'audio/mpeg' })
+
+    beforeEach(() => {
+      fileToAudioDataUrl.mockReset()
+    })
+
+    it('übernimmt eine per Drop abgelegte Audiodatei', async () => {
+      fileToAudioDataUrl.mockResolvedValue('data:audio/mpeg;base64,NEU')
+      const wrapper = mountEdit()
+
+      await wrapper.find('textarea').trigger('drop', { dataTransfer: { files: [makeFile()] } })
+      await flushPromises()
+
+      expect(fileToAudioDataUrl).toHaveBeenCalledTimes(1)
+      expect(wrapper.find('.audio-preview').attributes('src')).toBe('data:audio/mpeg;base64,NEU')
+    })
+
+    it('übernimmt eine eingefügte Audiodatei aus der Zwischenablage', async () => {
+      fileToAudioDataUrl.mockResolvedValue('data:audio/mpeg;base64,PASTE')
+      const wrapper = mountEdit()
+
+      await wrapper.find('textarea').trigger('paste', {
+        clipboardData: {
+          items: [{ kind: 'file', type: 'audio/mpeg', getAsFile: () => makeFile() }]
+        }
+      })
+      await flushPromises()
+
+      expect(fileToAudioDataUrl).toHaveBeenCalledTimes(1)
+      expect(wrapper.find('.audio-preview').attributes('src')).toBe('data:audio/mpeg;base64,PASTE')
+    })
+
+    it('zeigt eine Audio-Vorschau und entfernt das Audio', async () => {
+      const wrapper = mountEdit({ audio: 'data:audio/mpeg;base64,AAAA' })
+
+      expect(wrapper.find('.audio-preview').exists()).toBe(true)
+
+      await wrapper.find('.remove-audio').trigger('click')
+
+      expect(wrapper.find('.audio-preview').exists()).toBe(false)
+    })
+
+    it('sendet das Audio beim Speichern mit', async () => {
+      const wrapper = mountEdit({ audio: 'data:audio/mpeg;base64,AAAA' })
+
+      await wrapper.find('form').trigger('submit')
+
+      expect(wrapper.emitted('save')).toEqual([
+        [
+          {
+            points: 100,
+            question: 'Frage',
+            answer: 'Antwort',
+            image: undefined,
+            audio: 'data:audio/mpeg;base64,AAAA'
+          }
+        ]
+      ])
+    })
+
+    it('zeigt einen Fehler, wenn das Audio nicht gelesen werden kann', async () => {
+      fileToAudioDataUrl.mockRejectedValue(new Error('Die Audiodatei ist zu groß (max. 10 MB).'))
+      const wrapper = mountEdit()
+
+      await wrapper.find('textarea').trigger('drop', { dataTransfer: { files: [makeFile()] } })
+      await flushPromises()
+
+      expect(wrapper.find('.error').text()).toBe('Die Audiodatei ist zu groß (max. 10 MB).')
+    })
+
+    it('lehnt unbekannte Dateitypen mit einem Hinweis ab', async () => {
+      const wrapper = mountEdit()
+
+      await wrapper.find('textarea').trigger('drop', {
+        dataTransfer: { files: [new File(['x'], 'text.txt', { type: 'text/plain' })] }
+      })
+      await flushPromises()
+
+      expect(fileToAudioDataUrl).not.toHaveBeenCalled()
+      expect(fileToImageDataUrl).not.toHaveBeenCalled()
+      expect(wrapper.find('.error').text()).toBe('Bitte eine Bild- oder Audiodatei auswählen.')
     })
   })
 })

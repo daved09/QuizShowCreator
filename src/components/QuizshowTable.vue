@@ -53,7 +53,7 @@ const closeCard = (): void => {
   selectedPoints.value = null;
 }
 
-const saveCard = (data: { points: number; question: string; answer: string; image?: string }): void => {
+const saveCard = (data: { points: number; question: string; answer: string; image?: string; audio?: string }): void => {
   if (selectedThemeId.value === null || selectedPoints.value === null) return;
   const ok = quizStore.updateQuestionFull(selectedThemeId.value, selectedPoints.value, data);
   if (!ok) {

@@ -18,6 +18,12 @@
           title="Zum Vergrößern klicken"
           @click="showLightbox = true"
         />
+        <audio
+          v-if="question.audio"
+          :src="question.audio"
+          controls
+          class="view-audio"
+        ></audio>
         <p class="label">Antwort:</p>
         <p v-if="revealed" class="view-text">{{ question.answer || "—" }}</p>
         <button
@@ -69,8 +75,8 @@
             @drop="onDrop"
             @paste="onPaste"
           />
-          <small v-if="!draft.image" class="image-hint">
-            Bild zum Hinzufügen hierher ziehen oder einfügen.
+          <small v-if="!draft.image && !draft.audio" class="image-hint">
+            Bild oder Audiodatei zum Hinzufügen hierher ziehen oder einfügen.
           </small>
         </label>
         <p v-if="imageError" class="error">{{ imageError }}</p>
@@ -79,6 +85,14 @@
           <img :src="draft.image" alt="Bildvorschau" class="image-preview" />
           <button type="button" class="remove-image" @click="removeImage">
             Bild entfernen
+          </button>
+        </div>
+        <p v-if="audioError" class="error">{{ audioError }}</p>
+        <div v-if="draft.audio" class="field">
+          <span class="label">Audio</span>
+          <audio :src="draft.audio" controls class="audio-preview"></audio>
+          <button type="button" class="remove-audio" @click="removeAudio">
+            Audio entfernen
           </button>
         </div>
         <label class="field">
@@ -116,7 +130,8 @@
 import { nextTick, onMounted, onUnmounted, reactive, ref, computed } from 'vue'
 import type { Question } from '@/stores/quiz.store'
 import { useQuizStore } from '@/stores/quiz.store'
-import { fileToImageDataUrl } from '@/utils/image'
+import { fileToImageDataUrl, isImageFile } from '@/utils/image'
+import { fileToAudioDataUrl, isAudioFile } from '@/utils/audio'
 
 const props = defineProps<{
   mode: 'view' | 'edit'
@@ -127,7 +142,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'close'): void
-  (e: 'save', value: { points: number; question: string; answer: string; image?: string }): void
+  (e: 'save', value: { points: number; question: string; answer: string; image?: string; audio?: string }): void
   (e: 'award', playerId: string): void
 }>()
 
@@ -144,9 +159,11 @@ const draft = reactive({
   question: props.question.question,
   answer: props.question.answer,
   image: props.question.image ?? "",
+  audio: props.question.audio ?? "",
 })
 const error = ref<string>("")
 const imageError = ref<string>("")
+const audioError = ref<string>("")
 const isDragging = ref<boolean>(false)
 const showLightbox = ref<boolean>(false)
 const firstFieldEl = ref<HTMLInputElement | null>(null)
@@ -163,6 +180,27 @@ const setImageFromFile = async (file: File | undefined): Promise<void> => {
     draft.image = await fileToImageDataUrl(file)
   } catch (err) {
     imageError.value = err instanceof Error ? err.message : "Bild konnte nicht geladen werden."
+  }
+}
+
+const setAudioFromFile = async (file: File | undefined): Promise<void> => {
+  if (!file) return
+  audioError.value = ""
+  try {
+    draft.audio = await fileToAudioDataUrl(file)
+  } catch (err) {
+    audioError.value = err instanceof Error ? err.message : "Audiodatei konnte nicht geladen werden."
+  }
+}
+
+// Abgelegte/eingefügte Datei nach Typ auf Bild oder Audio verteilen.
+const applyFile = (file: File): void => {
+  if (isImageFile(file)) {
+    void setImageFromFile(file)
+  } else if (isAudioFile(file)) {
+    void setAudioFromFile(file)
+  } else {
+    imageError.value = "Bitte eine Bild- oder Audiodatei auswählen."
   }
 }
 
@@ -186,7 +224,7 @@ const onDrop = (event: DragEvent): void => {
   const files = event.dataTransfer?.files
   if (!files || files.length === 0) return
   event.preventDefault()
-  void setImageFromFile(files[0])
+  applyFile(files[0])
 }
 
 const onPaste = (event: ClipboardEvent): void => {
@@ -194,11 +232,14 @@ const onPaste = (event: ClipboardEvent): void => {
   if (!items) return
   for (let i = 0; i < items.length; i++) {
     const item = items[i]
-    if (item.kind === 'file' && item.type.startsWith('image/')) {
+    if (
+      item.kind === 'file' &&
+      (item.type.startsWith('image/') || item.type.startsWith('audio/'))
+    ) {
       const file = item.getAsFile()
       if (file) {
         event.preventDefault()
-        void setImageFromFile(file)
+        applyFile(file)
         return
       }
     }
@@ -208,6 +249,11 @@ const onPaste = (event: ClipboardEvent): void => {
 const removeImage = (): void => {
   draft.image = ""
   imageError.value = ""
+}
+
+const removeAudio = (): void => {
+  draft.audio = ""
+  audioError.value = ""
 }
 
 const onSave = (): void => {
@@ -221,6 +267,7 @@ const onSave = (): void => {
     question: draft.question.trim(),
     answer: draft.answer.trim(),
     image: draft.image || undefined,
+    audio: draft.audio || undefined,
   })
 }
 
@@ -456,7 +503,8 @@ onUnmounted(() => {
   font-size: 0.8rem;
   opacity: 0.7;
 }
-.remove-image {
+.remove-image,
+.remove-audio {
   font: inherit;
   font-size: 0.85rem;
   padding: 0.35rem 0.75rem;
@@ -467,8 +515,13 @@ onUnmounted(() => {
   cursor: pointer;
   transition: border-color var(--transition-fast);
 }
-.remove-image:hover {
+.remove-image:hover,
+.remove-audio:hover {
   border-color: var(--color-danger);
+}
+.audio-preview,
+.view-audio {
+  width: 100%;
 }
 .lightbox {
   position: fixed;

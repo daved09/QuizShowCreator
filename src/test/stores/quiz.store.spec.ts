@@ -129,6 +129,23 @@ describe('quiz store', () => {
       expect(store.themes[0].questions.find(q => q.points === 100)?.image).toBeUndefined()
     })
 
+    it('setzt und entfernt Audio wie das Bild', () => {
+      const id = store.themes[0].id
+
+      store.updateQuestionFull(id, 100, {
+        points: 100,
+        question: 'q',
+        answer: 'a',
+        audio: 'data:audio/mpeg;base64,AAAA'
+      })
+      expect(store.themes[0].questions.find(q => q.points === 100)?.audio).toBe(
+        'data:audio/mpeg;base64,AAAA'
+      )
+
+      store.updateQuestionFull(id, 100, { points: 100, question: 'q', answer: 'a' })
+      expect(store.themes[0].questions.find(q => q.points === 100)?.audio).toBeUndefined()
+    })
+
     it('gibt false bei unbekanntem Thema zurück', () => {
       expect(
         store.updateQuestionFull('missing', 100, { points: 100, question: '', answer: '' })
@@ -358,6 +375,7 @@ describe('quiz store', () => {
       expect(result).toEqual({ ok: true })
       expect(store.players).toEqual([])
       expect(store.themes[0].questions[0].image).toBeUndefined()
+      expect(store.themes[0].questions[0].audio).toBeUndefined()
     })
 
     it.each([
@@ -419,6 +437,23 @@ describe('quiz store', () => {
       })
 
       expect(store.themes[0].questions[0].image).toBeUndefined()
+    })
+
+    it('importiert Audio und verwirft Nicht-data:audio-URLs', () => {
+      store.importQuiz({
+        themes: [
+          {
+            themeText: 'T',
+            questions: [
+              { points: 100, question: 'q', answer: 'a', audio: 'data:audio/mpeg;base64,AAAA' },
+              { points: 200, question: 'q', answer: 'a', audio: 'https://evil/x.mp3' }
+            ]
+          }
+        ]
+      })
+
+      expect(store.themes[0].questions[0].audio).toBe('data:audio/mpeg;base64,AAAA')
+      expect(store.themes[0].questions[1].audio).toBeUndefined()
     })
 
     it('nutzt 0 als Punkte-Fallback bei ungültigem Spieler-Score', () => {

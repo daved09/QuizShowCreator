@@ -8,6 +8,7 @@
     <span v-if="answered" class="answered-badge" aria-hidden="true">✔</span>
     <span v-else-if="editMode" class="edit-badge" aria-hidden="true">✏️</span>
     <span v-if="hasImage" class="image-badge" aria-hidden="true" title="Mit Bild">🖼</span>
+    <span v-if="hasAudio" class="audio-badge" aria-hidden="true" title="Mit Audio">🔊</span>
   </button>
 </template>
 
@@ -18,6 +19,7 @@ const props = defineProps<{
   answered?: boolean
   answeredBy?: string | null
   hasImage?: boolean
+  hasAudio?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -95,6 +97,7 @@ button.is-answered:disabled:hover {
   font-size: 0.75em;
   line-height: 1;
 }
+.audio-badge
 .image-badge {
   font-size: 0.75em;
   line-height: 1;
