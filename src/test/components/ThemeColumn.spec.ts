@@ -21,14 +21,14 @@ describe('ThemeColumn', () => {
   const mountColumn = () =>
     mount(ThemeColumn, { props: { theme }, global: { plugins: [pinia] } })
 
-  it('zeigt den Thementitel und eine Karte je Frage', () => {
+  it('shows the theme title and one card per question', () => {
     const wrapper = mountColumn()
 
     expect(wrapper.find('.theme-header').text()).toBe('New Theme')
     expect(wrapper.findAllComponents(PointButton)).toHaveLength(theme.questions.length)
   })
 
-  it('leitet Klicks auf eine Karte als cardClicked weiter', async () => {
+  it('forwards clicks on a card as cardClicked', async () => {
     const wrapper = mountColumn()
 
     await wrapper.findAllComponents(PointButton)[2].trigger('click')
@@ -36,7 +36,7 @@ describe('ThemeColumn', () => {
     expect(wrapper.emitted('cardClicked')).toEqual([[theme.id, 300]])
   })
 
-  it('bearbeitet den Thementitel per Klick und Enter', async () => {
+  it('edits the theme title via click and Enter', async () => {
     const wrapper = mountColumn()
 
     await wrapper.find('.theme-header').trigger('click')
@@ -50,7 +50,7 @@ describe('ThemeColumn', () => {
     expect(wrapper.find('.theme-header-input').exists()).toBe(false)
   })
 
-  it('speichert den Thementitel beim Blur', async () => {
+  it('saves the theme title on blur', async () => {
     const wrapper = mountColumn()
 
     await wrapper.find('.theme-header').trigger('click')
@@ -60,7 +60,7 @@ describe('ThemeColumn', () => {
     expect(store.themes[0].themeText).toBe('Geschichte')
   })
 
-  it('verwirft die Titeländerung mit Escape', async () => {
+  it('discards the title change with Escape', async () => {
     const wrapper = mountColumn()
 
     await wrapper.find('.theme-header').trigger('click')
@@ -71,7 +71,7 @@ describe('ThemeColumn', () => {
     expect(wrapper.find('.theme-header-input').exists()).toBe(false)
   })
 
-  it('verwirft eine laufende Bearbeitung beim Verlassen des Edit-Modus', async () => {
+  it('discards an in-progress edit when leaving edit mode', async () => {
     const wrapper = mountColumn()
     await wrapper.find('.theme-header').trigger('click')
     expect(wrapper.find('.theme-header-input').exists()).toBe(true)
@@ -82,7 +82,7 @@ describe('ThemeColumn', () => {
     expect(wrapper.find('.theme-header-input').exists()).toBe(false)
   })
 
-  it('startet außerhalb des Edit-Modus keine Titelbearbeitung', async () => {
+  it('does not start title editing outside of edit mode', async () => {
     store.setEditMode(false)
     const wrapper = mountColumn()
 
@@ -91,7 +91,7 @@ describe('ThemeColumn', () => {
     expect(wrapper.find('.theme-header-input').exists()).toBe(false)
   })
 
-  it('löscht ein Thema nach Bestätigung', async () => {
+  it('deletes a theme after confirmation', async () => {
     const wrapper = mountColumn()
 
     await wrapper.find('.delete-button').trigger('click')
@@ -100,7 +100,7 @@ describe('ThemeColumn', () => {
     expect(store.themes).toHaveLength(0)
   })
 
-  it('behält das Thema, wenn das Löschen nicht bestätigt wird', async () => {
+  it('keeps the theme when the deletion is not confirmed', async () => {
     vi.mocked(window.confirm).mockReturnValueOnce(false)
     const wrapper = mountColumn()
 
@@ -109,7 +109,7 @@ describe('ThemeColumn', () => {
     expect(store.themes).toHaveLength(1)
   })
 
-  it('blendet den Löschen-Button außerhalb des Edit-Modus aus', () => {
+  it('hides the delete button outside of edit mode', () => {
     store.setEditMode(false)
     const wrapper = mountColumn()
 

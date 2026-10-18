@@ -41,14 +41,14 @@ describe('App', () => {
   const buttonByText = (wrapper: VueWrapper, text: string) =>
     wrapper.findAll('button').find(button => button.text() === text)!
 
-  it('zeigt den Titel und den Umschalter für den Spielmodus', () => {
+  it('shows the title and the game mode toggle', () => {
     const wrapper = mountApp()
 
     expect(wrapper.find('.app-title').text()).toBe('Quizshow Creator')
     expect(wrapper.find('.mode-toggle').text()).toContain('Spielen')
   })
 
-  it('wechselt zwischen Bearbeiten und Spielen', async () => {
+  it('switches between edit and play mode', async () => {
     const wrapper = mountApp()
 
     await wrapper.find('.mode-toggle').trigger('click')
@@ -57,7 +57,7 @@ describe('App', () => {
     expect(wrapper.find('.mode-toggle').text()).toContain('Bearbeiten')
   })
 
-  it('blendet Import/Export/Spalte nur im Edit-Modus ein', async () => {
+  it('shows import/export/add column only in edit mode', async () => {
     const wrapper = mountApp()
     expect(wrapper.text()).toContain('Importieren')
     expect(wrapper.text()).toContain('Exportieren')
@@ -70,7 +70,7 @@ describe('App', () => {
     expect(wrapper.text()).not.toContain('Spalte hinzufügen')
   })
 
-  it('fügt über den Button eine Spalte hinzu', async () => {
+  it('adds a column via the button', async () => {
     const wrapper = mountApp()
 
     await buttonByText(wrapper, 'Spalte hinzufügen').trigger('click')
@@ -79,7 +79,7 @@ describe('App', () => {
   })
 
   describe('Export', () => {
-    it('schreibt das Quiz über die Electron-API', async () => {
+    it('writes the quiz via the Electron API', async () => {
       exportQuiz.mockResolvedValue({ success: true, canceled: false, path: '/tmp/quiz.json' })
       store.addColumn()
       const wrapper = mountApp()
@@ -93,7 +93,7 @@ describe('App', () => {
       expect(payload.themes).toHaveLength(1)
     })
 
-    it('meldet einen Fehler beim Export', async () => {
+    it('reports an error on export', async () => {
       exportQuiz.mockResolvedValue({ success: false, canceled: false, error: 'kaputt' })
       const wrapper = mountApp()
 
@@ -103,7 +103,7 @@ describe('App', () => {
       expect(window.alert).toHaveBeenCalledWith('Export fehlgeschlagen: kaputt')
     })
 
-    it('schweigt, wenn der Export abgebrochen wird', async () => {
+    it('stays silent when the export is canceled', async () => {
       exportQuiz.mockResolvedValue({ success: false, canceled: true })
       const wrapper = mountApp()
 
@@ -113,7 +113,7 @@ describe('App', () => {
       expect(window.alert).not.toHaveBeenCalled()
     })
 
-    it('tut nichts ohne Electron-API', async () => {
+    it('does nothing without the Electron API', async () => {
       Reflect.deleteProperty(window, 'electronAPI')
       const wrapper = mountApp()
 
@@ -131,7 +131,7 @@ describe('App', () => {
       players: [{ name: 'Anna', score: 0 }]
     })
 
-    it('importiert eine gültige Datei', async () => {
+    it('imports a valid file', async () => {
       importQuiz.mockResolvedValue({ success: true, canceled: false, data: validFile })
       const wrapper = mountApp()
 
@@ -143,7 +143,7 @@ describe('App', () => {
       expect(store.players).toHaveLength(1)
     })
 
-    it('fragt vor dem Ersetzen vorhandener Themen nach', async () => {
+    it('asks before replacing existing themes', async () => {
       store.addColumn()
       vi.mocked(window.confirm).mockReturnValueOnce(true)
       importQuiz.mockResolvedValue({ success: true, canceled: false, data: validFile })
@@ -158,7 +158,7 @@ describe('App', () => {
       expect(store.themes[0].themeText).toBe('Import')
     })
 
-    it('bricht ab, wenn das Ersetzen nicht bestätigt wird', async () => {
+    it('aborts when the replacement is not confirmed', async () => {
       store.addColumn()
       vi.mocked(window.confirm).mockReturnValueOnce(false)
       const wrapper = mountApp()
@@ -170,7 +170,7 @@ describe('App', () => {
       expect(store.themes[0].themeText).toBe('New Theme')
     })
 
-    it('meldet ungültiges JSON', async () => {
+    it('reports invalid JSON', async () => {
       importQuiz.mockResolvedValue({ success: true, canceled: false, data: 'kein json' })
       const wrapper = mountApp()
 
@@ -182,7 +182,7 @@ describe('App', () => {
       )
     })
 
-    it('meldet eine inhaltlich ungültige Datei', async () => {
+    it('reports a file with invalid content', async () => {
       importQuiz.mockResolvedValue({
         success: true,
         canceled: false,
@@ -198,7 +198,7 @@ describe('App', () => {
       )
     })
 
-    it('schweigt beim Abbruch des Dialogs', async () => {
+    it('stays silent when the dialog is canceled', async () => {
       importQuiz.mockResolvedValue({ success: false, canceled: true })
       const wrapper = mountApp()
 
@@ -209,7 +209,7 @@ describe('App', () => {
       expect(store.themes).toHaveLength(0)
     })
 
-    it('meldet einen Lesefehler', async () => {
+    it('reports a read error', async () => {
       importQuiz.mockResolvedValue({ success: false, canceled: false, error: 'kaputt' })
       const wrapper = mountApp()
 

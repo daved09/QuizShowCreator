@@ -4,8 +4,8 @@ import QuestionModal from '@/components/QuestionModal.vue'
 import { useQuizStore, type Question } from '@/stores/quiz.store'
 import { createTestPinia } from '@/test/helpers'
 
-// Die Bild-/Audioverarbeitung wird gemockt, damit die Drag&Drop-/Paste-Pfade
-// ohne echte FileReader-/Canvas-Implementierung getestet werden können.
+// Image/audio processing is mocked so the drag & drop / paste paths can be
+// tested without a real FileReader / canvas implementation.
 const { fileToImageDataUrl, isImageFile } = vi.hoisted(() => ({
   fileToImageDataUrl: vi.fn(),
   isImageFile: vi.fn()
@@ -30,7 +30,7 @@ describe('QuestionModal', () => {
     isAudioFile.mockImplementation((file: File) => file.type.startsWith('audio/'))
   })
 
-  describe('Edit-Modus', () => {
+  describe('Edit mode', () => {
     const question: Question = { points: 100, question: 'Alte Frage', answer: 'Alte Antwort' }
 
     const mountEdit = (overrides: Partial<Question> = {}) =>
@@ -43,11 +43,11 @@ describe('QuestionModal', () => {
         global: { plugins: [pinia] }
       })
 
-    it('zeigt einen passenden Dialogtitel', () => {
+    it('shows a matching dialog title', () => {
       expect(mountEdit().find('.modal-header h2').text()).toBe('Karte bearbeiten – Thema (100)')
     })
 
-    it('sendet die getrimmten Eingaben beim Speichern', async () => {
+    it('emits the trimmed inputs on save', async () => {
       const wrapper = mountEdit()
 
       const [questionInput, answerInput] = wrapper.findAll('textarea')
@@ -68,7 +68,7 @@ describe('QuestionModal', () => {
       ])
     })
 
-    it('verhindert das Speichern bei nicht-ganzzahliger Punktzahl', async () => {
+    it('prevents saving with a non-integer point value', async () => {
       const wrapper = mountEdit({ points: 100.5 })
 
       await wrapper.find('form').trigger('submit')
@@ -77,7 +77,7 @@ describe('QuestionModal', () => {
       expect(wrapper.emitted('save')).toBeUndefined()
     })
 
-    it('zeigt eine Bildvorschau und entfernt das Bild', async () => {
+    it('shows an image preview and removes the image', async () => {
       const wrapper = mountEdit({ image: 'data:image/png;base64,AAAA' })
 
       expect(wrapper.find('.image-preview').exists()).toBe(true)
@@ -87,7 +87,7 @@ describe('QuestionModal', () => {
       expect(wrapper.find('.image-preview').exists()).toBe(false)
     })
 
-    it('sendet close über den Abbrechen-Button', async () => {
+    it('emits close via the cancel button', async () => {
       const wrapper = mountEdit()
 
       const buttons = wrapper.findAll('.modal-actions button')
@@ -96,7 +96,7 @@ describe('QuestionModal', () => {
       expect(wrapper.emitted('close')).toHaveLength(1)
     })
 
-    it('sendet close über das Schließen-Kreuz und den Hintergrund', async () => {
+    it('emits close via the close cross and the backdrop', async () => {
       const viaCross = mountEdit()
       await viaCross.find('.modal-close').trigger('click')
       expect(viaCross.emitted('close')).toHaveLength(1)
@@ -106,7 +106,7 @@ describe('QuestionModal', () => {
       expect(viaBackdrop.emitted('close')).toHaveLength(1)
     })
 
-    it('sendet close bei Escape', async () => {
+    it('emits close on Escape', async () => {
       const wrapper = mountEdit()
       await wrapper.find('form').trigger('submit')
 
@@ -116,7 +116,7 @@ describe('QuestionModal', () => {
     })
   })
 
-  describe('View-Modus', () => {
+  describe('View mode', () => {
     const question: Question = { points: 300, question: 'Hauptstadt von Frankreich?', answer: 'Paris' }
 
     const mountView = (props: Record<string, unknown> = {}) =>
@@ -131,11 +131,11 @@ describe('QuestionModal', () => {
         global: { plugins: [pinia] }
       })
 
-    it('zeigt den Dialogtitel mit Punkten', () => {
+    it('shows the dialog title with points', () => {
       expect(mountView().find('.modal-header h2').text()).toBe('Geografie – 300 Punkte')
     })
 
-    it('verdeckt die Antwort zunächst und zeigt sie nach dem Aufdecken', async () => {
+    it('hides the answer initially and shows it after revealing', async () => {
       const wrapper = mountView()
 
       expect(wrapper.text()).toContain('Hauptstadt von Frankreich?')
@@ -150,7 +150,7 @@ describe('QuestionModal', () => {
       expect(wrapper.find('.award-section').exists()).toBe(true)
     })
 
-    it('zeigt einen Hinweis, wenn noch keine Spieler existieren', async () => {
+    it('shows a hint when no players exist yet', async () => {
       const wrapper = mountView()
       await wrapper.find('.reveal-button').trigger('click')
 
@@ -158,7 +158,7 @@ describe('QuestionModal', () => {
       expect(wrapper.find('.award-list').exists()).toBe(false)
     })
 
-    it('vergibt Punkte an den gewählten Spieler', async () => {
+    it('awards points to the selected player', async () => {
       store.addPlayer('Anna')
       store.addPlayer('Bob')
       const wrapper = mountView()
@@ -174,14 +174,14 @@ describe('QuestionModal', () => {
       expect(wrapper.emitted('award')).toEqual([[store.players[0].id]])
     })
 
-    it('zeigt die Antwort direkt, wenn die Karte bereits beantwortet wurde', () => {
+    it('shows the answer directly when the card was already answered', () => {
       const wrapper = mountView({ answeredBy: 'Anna' })
 
       expect(wrapper.text()).toContain('Paris')
       expect(wrapper.find('.award-hint').text()).toBe('✔ Bereits beantwortet von Anna')
     })
 
-    it('öffnet und schließt die Bild-Vollbildansicht', async () => {
+    it('opens and closes the image fullscreen view', async () => {
       const wrapper = mountView({ question: { ...question, image: 'data:image/png;base64,AAAA' } })
 
       await wrapper.find('.view-image').trigger('click')
@@ -191,7 +191,7 @@ describe('QuestionModal', () => {
       expect(wrapper.find('.lightbox').exists()).toBe(false)
     })
 
-    it('schließt bei Escape zuerst nur die Vollbildansicht', async () => {
+    it('on Escape closes only the fullscreen view first', async () => {
       const wrapper = mountView({ question: { ...question, image: 'data:image/png;base64,AAAA' } })
       await wrapper.find('.view-image').trigger('click')
 
@@ -205,7 +205,7 @@ describe('QuestionModal', () => {
       expect(wrapper.emitted('close')).toHaveLength(1)
     })
 
-    it('sendet close über den Schließen-Button', async () => {
+    it('emits close via the close button', async () => {
       const wrapper = mountView()
 
       await wrapper.find('.modal-actions .primary').trigger('click')
@@ -213,7 +213,7 @@ describe('QuestionModal', () => {
       expect(wrapper.emitted('close')).toHaveLength(1)
     })
 
-    it('zeigt das Frage-Audio zur Wiedergabe', () => {
+    it('shows the question audio for playback', () => {
       const wrapper = mountView({
         question: { ...question, audio: 'data:audio/mpeg;base64,AAAA' }
       })
@@ -223,12 +223,12 @@ describe('QuestionModal', () => {
       expect(audio.attributes('src')).toBe('data:audio/mpeg;base64,AAAA')
     })
 
-    it('zeigt kein Audio ohne Audiodatei', () => {
+    it('shows no audio without an audio file', () => {
       expect(mountView().find('.view-audio').exists()).toBe(false)
     })
   })
 
-  describe('Bild einfügen', () => {
+  describe('Inserting an image', () => {
     const question: Question = { points: 100, question: 'Frage', answer: 'Antwort' }
 
     const mountEdit = () =>
@@ -243,7 +243,7 @@ describe('QuestionModal', () => {
       fileToImageDataUrl.mockReset()
     })
 
-    it('übernimmt ein per Drop abgelegtes Bild', async () => {
+    it('takes over an image dropped in', async () => {
       fileToImageDataUrl.mockResolvedValue('data:image/png;base64,NEU')
       const wrapper = mountEdit()
       const textarea = wrapper.find('textarea')
@@ -258,7 +258,7 @@ describe('QuestionModal', () => {
       expect(wrapper.find('.image-preview').attributes('src')).toBe('data:image/png;base64,NEU')
     })
 
-    it('ignoriert Drags ohne Dateien', async () => {
+    it('ignores drags without files', async () => {
       const wrapper = mountEdit()
       const textarea = wrapper.find('textarea')
 
@@ -271,7 +271,7 @@ describe('QuestionModal', () => {
       expect(fileToImageDataUrl).not.toHaveBeenCalled()
     })
 
-    it('hebt die Drag-Markierung beim Verlassen wieder auf', async () => {
+    it('clears the drag highlight on leave', async () => {
       const wrapper = mountEdit()
       const textarea = wrapper.find('textarea')
 
@@ -281,7 +281,7 @@ describe('QuestionModal', () => {
       expect(textarea.classes()).not.toContain('is-dragging')
     })
 
-    it('übernimmt ein eingefügtes Bild aus der Zwischenablage', async () => {
+    it('takes over a pasted image from the clipboard', async () => {
       fileToImageDataUrl.mockResolvedValue('data:image/png;base64,PASTE')
       const wrapper = mountEdit()
 
@@ -296,7 +296,7 @@ describe('QuestionModal', () => {
       expect(wrapper.find('.image-preview').attributes('src')).toBe('data:image/png;base64,PASTE')
     })
 
-    it('ignoriert eingefügten Text', async () => {
+    it('ignores pasted text', async () => {
       const wrapper = mountEdit()
 
       await wrapper.find('textarea').trigger('paste', {
@@ -309,7 +309,7 @@ describe('QuestionModal', () => {
       expect(fileToImageDataUrl).not.toHaveBeenCalled()
     })
 
-    it('zeigt einen Fehler, wenn das Bild nicht gelesen werden kann', async () => {
+    it('shows an error when the image cannot be read', async () => {
       fileToImageDataUrl.mockRejectedValue(new Error('Bitte eine Bilddatei auswählen.'))
       const wrapper = mountEdit()
 
@@ -320,7 +320,7 @@ describe('QuestionModal', () => {
     })
   })
 
-  describe('Audio einfügen', () => {
+  describe('Inserting audio', () => {
     const question: Question = { points: 100, question: 'Frage', answer: 'Antwort' }
 
     const mountEdit = (overrides: Partial<Question> = {}) =>
@@ -335,7 +335,7 @@ describe('QuestionModal', () => {
       fileToAudioDataUrl.mockReset()
     })
 
-    it('übernimmt eine per Drop abgelegte Audiodatei', async () => {
+    it('takes over an audio file dropped in', async () => {
       fileToAudioDataUrl.mockResolvedValue('data:audio/mpeg;base64,NEU')
       const wrapper = mountEdit()
 
@@ -346,7 +346,7 @@ describe('QuestionModal', () => {
       expect(wrapper.find('.audio-preview').attributes('src')).toBe('data:audio/mpeg;base64,NEU')
     })
 
-    it('übernimmt eine eingefügte Audiodatei aus der Zwischenablage', async () => {
+    it('takes over a pasted audio file from the clipboard', async () => {
       fileToAudioDataUrl.mockResolvedValue('data:audio/mpeg;base64,PASTE')
       const wrapper = mountEdit()
 
@@ -361,7 +361,7 @@ describe('QuestionModal', () => {
       expect(wrapper.find('.audio-preview').attributes('src')).toBe('data:audio/mpeg;base64,PASTE')
     })
 
-    it('zeigt eine Audio-Vorschau und entfernt das Audio', async () => {
+    it('shows an audio preview and removes the audio', async () => {
       const wrapper = mountEdit({ audio: 'data:audio/mpeg;base64,AAAA' })
 
       expect(wrapper.find('.audio-preview').exists()).toBe(true)
@@ -371,7 +371,7 @@ describe('QuestionModal', () => {
       expect(wrapper.find('.audio-preview').exists()).toBe(false)
     })
 
-    it('sendet das Audio beim Speichern mit', async () => {
+    it('includes the audio on save', async () => {
       const wrapper = mountEdit({ audio: 'data:audio/mpeg;base64,AAAA' })
 
       await wrapper.find('form').trigger('submit')
@@ -389,7 +389,7 @@ describe('QuestionModal', () => {
       ])
     })
 
-    it('zeigt einen Fehler, wenn das Audio nicht gelesen werden kann', async () => {
+    it('shows an error when the audio cannot be read', async () => {
       fileToAudioDataUrl.mockRejectedValue(new Error('Die Audiodatei ist zu groß (max. 10 MB).'))
       const wrapper = mountEdit()
 
@@ -399,7 +399,7 @@ describe('QuestionModal', () => {
       expect(wrapper.find('.error').text()).toBe('Die Audiodatei ist zu groß (max. 10 MB).')
     })
 
-    it('lehnt unbekannte Dateitypen mit einem Hinweis ab', async () => {
+    it('rejects unknown file types with a hint', async () => {
       const wrapper = mountEdit()
 
       await wrapper.find('textarea').trigger('drop', {

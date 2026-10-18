@@ -8,11 +8,11 @@ const mountButton = (props: Record<string, unknown> = {}) =>
   })
 
 describe('PointButton', () => {
-  it('zeigt die Punktzahl an', () => {
+  it('shows the point value', () => {
     expect(mountButton().text()).toContain('100')
   })
 
-  it('sendet pointButtonClicked mit der Punktzahl beim Klick', async () => {
+  it('emits pointButtonClicked with the point value on click', async () => {
     const wrapper = mountButton({ points: 300 })
 
     await wrapper.trigger('click')
@@ -20,14 +20,14 @@ describe('PointButton', () => {
     expect(wrapper.emitted('pointButtonClicked')).toEqual([[300]])
   })
 
-  it('zeigt im Edit-Modus die Bearbeitungs-Markierung', () => {
+  it('shows the edit marker in edit mode', () => {
     const wrapper = mountButton({ editMode: true })
 
     expect(wrapper.classes()).toContain('edit-mode')
     expect(wrapper.text()).toContain('✏️')
   })
 
-  it('markiert beantwortete Karten und nennt den Spieler', () => {
+  it('marks answered cards and names the player', () => {
     const wrapper = mountButton({ answered: true, answeredBy: 'Anna', editMode: true })
 
     expect(wrapper.classes()).toContain('is-answered')
@@ -35,27 +35,27 @@ describe('PointButton', () => {
     expect(wrapper.attributes('title')).toBe('Beantwortet von Anna')
   })
 
-  it('zeigt keinen Titel ohne Spielernamen', () => {
+  it('shows no title without a player name', () => {
     const wrapper = mountButton({ answered: true, answeredBy: null })
 
     expect(wrapper.attributes('title')).toBeUndefined()
   })
 
-  it('kennzeichnet Karten mit Bild', () => {
+  it('marks cards with an image', () => {
     const wrapper = mountButton({ hasImage: true })
 
     expect(wrapper.text()).toContain('🖼')
     expect(wrapper.find('.image-badge').attributes('title')).toBe('Mit Bild')
   })
 
-  it('kennzeichnet Karten mit Audio', () => {
+  it('marks cards with audio', () => {
     const wrapper = mountButton({ hasAudio: true })
 
     expect(wrapper.text()).toContain('🔊')
     expect(wrapper.find('.audio-badge').attributes('title')).toBe('Mit Audio')
   })
 
-  it('zeigt ohne Zustände keine Markierungen', () => {
+  it('shows no markers without states', () => {
     const wrapper = mountButton()
 
     expect(wrapper.classes()).not.toContain('edit-mode')

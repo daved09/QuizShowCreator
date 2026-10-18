@@ -15,8 +15,8 @@ describe('quiz store', () => {
     store = useQuizStore()
   })
 
-  describe('Themen / Spalten', () => {
-    it('legt mit addColumn ein Thema mit Standardpunkten an', () => {
+  describe('Themes / columns', () => {
+    it('creates a theme with default points via addColumn', () => {
       store.addColumn()
 
       expect(store.themes).toHaveLength(1)
@@ -28,13 +28,13 @@ describe('quiz store', () => {
       expect(theme.questions.every(q => q.question === '' && q.answer === '')).toBe(true)
     })
 
-    it('vergibt eindeutige IDs für mehrere Themen', () => {
+    it('assigns unique IDs for multiple themes', () => {
       store.addColumn()
       store.addColumn()
       expect(store.themes[0].id).not.toBe(store.themes[1].id)
     })
 
-    it('entfernt ein Thema anhand der ID', () => {
+    it('removes a theme by its ID', () => {
       store.addColumn()
       store.addColumn()
       const [first, second] = store.themes
@@ -45,7 +45,7 @@ describe('quiz store', () => {
       expect(store.themes[0].id).toBe(second.id)
     })
 
-    it('aktualisiert den Thementext und ignoriert unbekannte IDs', () => {
+    it('updates the theme text and ignores unknown IDs', () => {
       store.addColumn()
       const id = store.themes[0].id
 
@@ -58,7 +58,7 @@ describe('quiz store', () => {
   })
 
   describe('updateQuestion', () => {
-    it('aktualisiert den Fragetext einer bestehenden Punktzahl', () => {
+    it('updates the question text of an existing point value', () => {
       store.addColumn()
       const id = store.themes[0].id
 
@@ -69,7 +69,7 @@ describe('quiz store', () => {
       expect(question?.answer).toBe('')
     })
 
-    it('fügt eine Frage mit neuer Punktzahl hinzu', () => {
+    it('adds a question with a new point value', () => {
       store.addColumn()
       const id = store.themes[0].id
 
@@ -83,7 +83,7 @@ describe('quiz store', () => {
       })
     })
 
-    it('tut nichts bei unbekanntem Thema', () => {
+    it('does nothing for an unknown theme', () => {
       expect(() => store.updateQuestion('missing', 100, 'x')).not.toThrow()
       expect(store.themes).toHaveLength(0)
     })
@@ -94,7 +94,7 @@ describe('quiz store', () => {
       store.addColumn()
     })
 
-    it('aktualisiert Punkte, Frage, Antwort und Bild und sortiert neu', () => {
+    it('updates points, question, answer and image and re-sorts', () => {
       const id = store.themes[0].id
 
       const ok = store.updateQuestionFull(id, 100, {
@@ -115,7 +115,7 @@ describe('quiz store', () => {
       })
     })
 
-    it('entfernt das Bild, wenn keines übergeben wird', () => {
+    it('removes the image when none is passed', () => {
       const id = store.themes[0].id
       store.updateQuestionFull(id, 100, {
         points: 100,
@@ -129,7 +129,7 @@ describe('quiz store', () => {
       expect(store.themes[0].questions.find(q => q.points === 100)?.image).toBeUndefined()
     })
 
-    it('setzt und entfernt Audio wie das Bild', () => {
+    it('sets and removes audio like the image', () => {
       const id = store.themes[0].id
 
       store.updateQuestionFull(id, 100, {
@@ -146,13 +146,13 @@ describe('quiz store', () => {
       expect(store.themes[0].questions.find(q => q.points === 100)?.audio).toBeUndefined()
     })
 
-    it('gibt false bei unbekanntem Thema zurück', () => {
+    it('returns false for an unknown theme', () => {
       expect(
         store.updateQuestionFull('missing', 100, { points: 100, question: '', answer: '' })
       ).toBe(false)
     })
 
-    it('gibt false bei unbekannter alter Punktzahl zurück', () => {
+    it('returns false for an unknown old point value', () => {
       expect(
         store.updateQuestionFull(store.themes[0].id, 1234, {
           points: 1234,
@@ -162,7 +162,7 @@ describe('quiz store', () => {
       ).toBe(false)
     })
 
-    it('lehnt nicht-ganzzahlige Punktzahlen ab', () => {
+    it('rejects non-integer point values', () => {
       expect(
         store.updateQuestionFull(store.themes[0].id, 100, {
           points: 100.5,
@@ -173,7 +173,7 @@ describe('quiz store', () => {
       expect(store.themes[0].questions.some(q => q.points === 100.5)).toBe(false)
     })
 
-    it('lehnt eine bereits vergebene Punktzahl ab', () => {
+    it('rejects an already used point value', () => {
       const id = store.themes[0].id
 
       const ok = store.updateQuestionFull(id, 100, { points: 200, question: 'x', answer: 'y' })
@@ -183,7 +183,7 @@ describe('quiz store', () => {
       expect(question?.question).toBe('')
     })
 
-    it('erlaubt das Beibehalten der eigenen Punktzahl', () => {
+    it('allows keeping the own point value', () => {
       const id = store.themes[0].id
       expect(
         store.updateQuestionFull(id, 300, { points: 300, question: 'Bleibt', answer: 'ok' })
@@ -192,8 +192,8 @@ describe('quiz store', () => {
     })
   })
 
-  describe('Spieler', () => {
-    it('vergibt automatische Namen, wenn keiner angegeben ist', () => {
+  describe('Players', () => {
+    it('assigns automatic names when none is given', () => {
       store.addPlayer()
       store.addPlayer('   ')
 
@@ -201,18 +201,18 @@ describe('quiz store', () => {
       expect(store.players.every(p => p.score === 0)).toBe(true)
     })
 
-    it('trimmt angegebene Namen', () => {
+    it('trims given names', () => {
       store.addPlayer('  Anna  ')
       expect(store.players[0].name).toBe('Anna')
     })
 
-    it('leitet Standardnamen aus der aktuellen Spielerzahl ab', () => {
+    it('derives default names from the current player count', () => {
       store.addPlayer('Anna')
       store.addPlayer()
       expect(store.players[1].name).toBe('Spieler 2')
     })
 
-    it('entfernt einen Spieler anhand der ID', () => {
+    it('removes a player by its ID', () => {
       store.addPlayer('Anna')
       store.addPlayer('Bob')
 
@@ -221,7 +221,7 @@ describe('quiz store', () => {
       expect(store.players.map(p => p.name)).toEqual(['Bob'])
     })
 
-    it('benennt um und behält den Namen bei leerem Entwurf', () => {
+    it('renames and keeps the name for an empty draft', () => {
       store.addPlayer('Anna')
       const id = store.players[0].id
 
@@ -232,13 +232,13 @@ describe('quiz store', () => {
       expect(store.players[0].name).toBe('Alice')
     })
 
-    it('tut nichts bei unbekannter Spieler-ID', () => {
+    it('does nothing for an unknown player ID', () => {
       expect(() => store.renamePlayer('missing', 'X')).not.toThrow()
     })
   })
 
-  describe('Punktevergabe', () => {
-    it('verbucht Punkte und merkt sich, wer geantwortet hat', () => {
+  describe('Awarding points', () => {
+    it('credits points and remembers who answered', () => {
       store.addColumn()
       store.addPlayer('Anna')
       const themeId = store.themes[0].id
@@ -252,7 +252,7 @@ describe('quiz store', () => {
       expect(store.getAnsweredBy(themeId, 300)).toBe('Anna')
     })
 
-    it('gibt false bei unbekanntem Spieler zurück', () => {
+    it('returns false for an unknown player', () => {
       store.addColumn()
       const themeId = store.themes[0].id
 
@@ -260,12 +260,12 @@ describe('quiz store', () => {
       expect(store.isAnswered(themeId, 100)).toBe(false)
     })
 
-    it('liefert null für nicht beantwortete Karten', () => {
+    it('returns null for unanswered cards', () => {
       expect(store.getAnsweredBy('theme', 100)).toBeNull()
       expect(store.isAnswered('theme', 100)).toBe(false)
     })
 
-    it('erlaubt mehrfache Vergabe derselben Karte', () => {
+    it('allows awarding the same card multiple times', () => {
       store.addColumn()
       store.addPlayer('Anna')
       const themeId = store.themes[0].id
@@ -279,7 +279,7 @@ describe('quiz store', () => {
   })
 
   describe('resetRound', () => {
-    it('setzt alle Punkte zurück und gibt die Karten wieder frei', () => {
+    it('resets all points and makes the cards available again', () => {
       store.addColumn()
       store.addPlayer('Anna')
       const themeId = store.themes[0].id
@@ -294,8 +294,8 @@ describe('quiz store', () => {
     })
   })
 
-  describe('Edit-Modus', () => {
-    it('startet im Bearbeitungsmodus und lässt sich umschalten', () => {
+  describe('Edit mode', () => {
+    it('starts in edit mode and can be toggled', () => {
       expect(store.isEditMode).toBe(true)
 
       store.setEditMode(false)
@@ -307,7 +307,7 @@ describe('quiz store', () => {
   })
 
   describe('exportQuiz', () => {
-    it('liefert die erwartete Dateistruktur', () => {
+    it('returns the expected file structure', () => {
       store.addColumn()
       store.addPlayer('Anna')
 
@@ -337,7 +337,7 @@ describe('quiz store', () => {
       players: [{ id: 'ignored', name: 'Anna', score: 50 }]
     }
 
-    it('importiert eine gültige Datei und sortiert Fragen', () => {
+    it('imports a valid file and sorts questions', () => {
       const result = store.importQuiz(validFile)
 
       expect(result).toEqual({ ok: true })
@@ -354,7 +354,7 @@ describe('quiz store', () => {
       expect(store.players[0].score).toBe(50)
     })
 
-    it('setzt den Beantwortet-Status beim Import zurück', () => {
+    it('resets the answered state on import', () => {
       store.addColumn()
       store.addPlayer('Anna')
       const themeId = store.themes[0].id
@@ -367,7 +367,7 @@ describe('quiz store', () => {
       expect(store.isAnswered(store.themes[0].id, 100)).toBe(false)
     })
 
-    it('akzeptiert ältere Dateien ohne Spieler und ohne Bilder', () => {
+    it('accepts older files without players and without images', () => {
       const result = store.importQuiz({
         themes: [{ themeText: 'Alt', questions: [{ points: 100, question: 'q', answer: 'a' }] }]
       })
@@ -422,11 +422,11 @@ describe('quiz store', () => {
       [{ themes: [], players: 'nope' }, 'Ungültige Spielerliste in der Datei.'],
       [{ themes: [], players: [null] }, 'Ein Spieler in der Datei ist ungültig.'],
       [{ themes: [], players: [{ name: 123 }] }, 'Ein Spieler hat keinen gültigen Namen.']
-    ])('lehnt ungültige Daten ab: %j', (data, error) => {
+    ])('rejects invalid data: %j', (data, error) => {
       expect(store.importQuiz(data)).toEqual({ ok: false, error })
     })
 
-    it('verwirft Bilder, die keine data:image-URLs sind', () => {
+    it('discards images that are not data:image URLs', () => {
       store.importQuiz({
         themes: [
           {
@@ -439,7 +439,7 @@ describe('quiz store', () => {
       expect(store.themes[0].questions[0].image).toBeUndefined()
     })
 
-    it('importiert Audio und verwirft Nicht-data:audio-URLs', () => {
+    it('imports audio and discards non-data:audio URLs', () => {
       store.importQuiz({
         themes: [
           {
@@ -456,7 +456,7 @@ describe('quiz store', () => {
       expect(store.themes[0].questions[1].audio).toBeUndefined()
     })
 
-    it('nutzt 0 als Punkte-Fallback bei ungültigem Spieler-Score', () => {
+    it('uses 0 as a score fallback for an invalid player score', () => {
       store.importQuiz({
         themes: [],
         players: [
@@ -468,7 +468,7 @@ describe('quiz store', () => {
       expect(store.players.map(p => p.score)).toEqual([0, 0])
     })
 
-    it('verändert bestehende Daten bei fehlgeschlagenem Import nicht', () => {
+    it('does not modify existing data on a failed import', () => {
       store.addColumn()
       store.addPlayer('Anna')
       const before = {

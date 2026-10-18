@@ -6,7 +6,7 @@
         <button class="modal-close" @click="emit('close')" title="Schließen">✖</button>
       </header>
 
-      <!-- View-Modus (Spielen): Frage + Antwort + Punkte vergeben -->
+      <!-- View mode (playing): question + answer + awarding points -->
       <div v-if="mode === 'view'" class="modal-body">
         <p class="label">Frage:</p>
         <p class="view-text">{{ question.question || "—" }}</p>
@@ -60,7 +60,7 @@
         </div>
       </div>
 
-      <!-- Edit-Modus: Fragetext + Punkte + Antwort formulieren -->
+      <!-- Edit mode: compose question text + points + answer -->
       <form v-else class="modal-body" @submit.prevent="onSave">
         <label class="field">
           <span class="label">Frage</span>
@@ -112,7 +112,7 @@
       </form>
     </div>
 
-    <!-- Vollbild-Ansicht des Frage-Bildes -->
+    <!-- Fullscreen view of the question image -->
     <div
       v-if="showLightbox && question.image"
       class="lightbox"
@@ -170,7 +170,7 @@ const firstFieldEl = ref<HTMLInputElement | null>(null)
 const closeButtonEl = ref<HTMLButtonElement | null>(null)
 const revealButtonEl = ref<HTMLButtonElement | null>(null)
 
-// Antwort im View-Modus standardmäßig verbergen; bereits beantwortete Karten zeigen sie direkt.
+// Hide the answer in view mode by default; already answered cards show it directly.
 const revealed = ref<boolean>(!!props.answeredBy)
 
 const setImageFromFile = async (file: File | undefined): Promise<void> => {
@@ -193,7 +193,7 @@ const setAudioFromFile = async (file: File | undefined): Promise<void> => {
   }
 }
 
-// Abgelegte/eingefügte Datei nach Typ auf Bild oder Audio verteilen.
+// Route a dropped/pasted file to image or audio based on its type.
 const applyFile = (file: File): void => {
   if (isImageFile(file)) {
     void setImageFromFile(file)
@@ -208,7 +208,7 @@ const hasFiles = (dataTransfer: DataTransfer | null): boolean =>
   !!dataTransfer && Array.from(dataTransfer.types).includes('Files')
 
 const onDragOver = (event: DragEvent): void => {
-  // Nur Datei-Drags abfangen, normales Text-Drag&Drop im Feld bleibt möglich.
+  // Only intercept file drags; normal text drag & drop in the field stays possible.
   if (hasFiles(event.dataTransfer)) {
     event.preventDefault()
     isDragging.value = true

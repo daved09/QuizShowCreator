@@ -1,7 +1,7 @@
 import { createPinia, setActivePinia, type Pinia } from 'pinia'
 
-// Erzeugt eine frische Pinia-Instanz, aktiviert sie für direkte Store-Aufrufe
-// außerhalb von Komponenten und gibt sie für `global.plugins` beim Mounten zurück.
+// Creates a fresh Pinia instance, activates it for direct store calls
+// outside of components, and returns it for `global.plugins` when mounting.
 export const createTestPinia = (): Pinia => {
   const pinia = createPinia()
   setActivePinia(pinia)

@@ -15,14 +15,14 @@ describe('PlayerPanel', () => {
 
   const mountPanel = () => mount(PlayerPanel, { global: { plugins: [pinia] } })
 
-  it('zeigt einen Hinweis, wenn keine Spieler existieren', () => {
+  it('shows a hint when no players exist', () => {
     const wrapper = mountPanel()
 
     expect(wrapper.find('.empty-hint').text()).toBe('Noch keine Spieler.')
     expect(wrapper.find('.player-list').exists()).toBe(false)
   })
 
-  it('listet Spieler mit Punkten auf', () => {
+  it('lists players with their scores', () => {
     store.addPlayer('Anna')
     store.addPlayer('Bob')
     store.players[0].score = 300
@@ -36,7 +36,7 @@ describe('PlayerPanel', () => {
     expect(items[1].find('.player-name').text()).toBe('Bob')
   })
 
-  it('fügt einen Spieler über das Formular hinzu und leert die Eingabe', async () => {
+  it('adds a player via the form and clears the input', async () => {
     const wrapper = mountPanel()
     const input = wrapper.find('form .name-input')
 
@@ -48,7 +48,7 @@ describe('PlayerPanel', () => {
     expect((input.element as HTMLInputElement).value).toBe('')
   })
 
-  it('vergibt bei leerer Eingabe einen Standardnamen', async () => {
+  it('assigns a default name for empty input', async () => {
     const wrapper = mountPanel()
 
     await wrapper.find('form').trigger('submit')
@@ -56,7 +56,7 @@ describe('PlayerPanel', () => {
     expect(store.players[0].name).toBe('Spieler 1')
   })
 
-  it('entfernt einen Spieler über den Löschen-Button', async () => {
+  it('removes a player via the delete button', async () => {
     store.addPlayer('Anna')
     const wrapper = mountPanel()
 
@@ -65,7 +65,7 @@ describe('PlayerPanel', () => {
     expect(store.players).toHaveLength(0)
   })
 
-  it('benennt einen Spieler über Klick und Enter um', async () => {
+  it('renames a player via click and Enter', async () => {
     store.addPlayer('Anna')
     const wrapper = mountPanel()
 
@@ -80,7 +80,7 @@ describe('PlayerPanel', () => {
     expect(wrapper.find('.player-item .name-input').exists()).toBe(false)
   })
 
-  it('verwirft die Umbenennung mit Escape', async () => {
+  it('discards the rename with Escape', async () => {
     store.addPlayer('Anna')
     const wrapper = mountPanel()
 
@@ -92,7 +92,7 @@ describe('PlayerPanel', () => {
     expect(wrapper.find('.player-item .name-input').exists()).toBe(false)
   })
 
-  it('setzt die Runde nach Bestätigung zurück', async () => {
+  it('resets the round after confirmation', async () => {
     store.addColumn()
     store.addPlayer('Anna')
     store.awardPointsForCard(store.players[0].id, store.themes[0].id, 200)
@@ -104,7 +104,7 @@ describe('PlayerPanel', () => {
     expect(store.players[0].score).toBe(0)
   })
 
-  it('bricht das Zurücksetzen ab, wenn nicht bestätigt wird', async () => {
+  it('aborts the reset when not confirmed', async () => {
     store.addColumn()
     store.addPlayer('Anna')
     store.awardPointsForCard(store.players[0].id, store.themes[0].id, 200)
@@ -116,7 +116,7 @@ describe('PlayerPanel', () => {
     expect(store.players[0].score).toBe(200)
   })
 
-  it('blendet Bearbeitungsfunktionen außerhalb des Edit-Modus aus', async () => {
+  it('hides editing features outside of edit mode', async () => {
     store.addPlayer('Anna')
     store.setEditMode(false)
     const wrapper = mountPanel()
