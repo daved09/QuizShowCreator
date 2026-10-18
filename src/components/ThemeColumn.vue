@@ -38,7 +38,7 @@ const emit = defineEmits<{
 
 const quizStore = useQuizStore()
 
-// Header-Edit
+// Header editing
 const editingHeader = ref<boolean>(false)
 const headerDraft = ref<string>(props.theme.themeText)
 const headerInputEl = ref<HTMLInputElement | null>(null)
@@ -64,7 +64,7 @@ const cancelHeader = (): void => {
     headerDraft.value = props.theme.themeText
 }
 
-// Laufende Bearbeitung verwerfen, wenn der Edit Mode verlassen wird
+// Discard an in-progress edit when leaving edit mode
 watch(() => quizStore.isEditMode, (isEdit) => {
     if (!isEdit && editingHeader.value) {
         cancelHeader()

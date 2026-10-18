@@ -23,7 +23,7 @@ describe('QuizshowTable', () => {
     return wrapper.findComponent(QuestionModal)
   }
 
-  it('rendert für jedes Thema eine Spalte', () => {
+  it('renders a column for each theme', () => {
     store.addColumn()
     store.addColumn()
 
@@ -32,7 +32,7 @@ describe('QuizshowTable', () => {
     expect(wrapper.findAllComponents(ThemeColumn)).toHaveLength(2)
   })
 
-  it('öffnet beim Klick auf eine Karte den Dialog im Edit-Modus', async () => {
+  it('opens the dialog in edit mode when clicking a card', async () => {
     store.addColumn()
     const wrapper = mountTable()
 
@@ -43,7 +43,7 @@ describe('QuizshowTable', () => {
     expect(modal.props('mode')).toBe('edit')
   })
 
-  it('öffnet den Dialog im View-Modus außerhalb des Edit-Modus', async () => {
+  it('opens the dialog in view mode outside of edit mode', async () => {
     store.addColumn()
     store.setEditMode(false)
     const wrapper = mountTable()
@@ -53,7 +53,7 @@ describe('QuizshowTable', () => {
     expect(modal.props('mode')).toBe('view')
   })
 
-  it('schließt den Dialog beim Empfang von close', async () => {
+  it('closes the dialog when receiving close', async () => {
     store.addColumn()
     const wrapper = mountTable()
     const modal = await openFirstCard(wrapper)
@@ -64,7 +64,7 @@ describe('QuizshowTable', () => {
     expect(wrapper.findComponent(QuestionModal).exists()).toBe(false)
   })
 
-  it('speichert Kartendaten im Store und schließt den Dialog', async () => {
+  it('saves card data to the store and closes the dialog', async () => {
     store.addColumn()
     const themeId = store.themes[0].id
     const wrapper = mountTable()
@@ -82,7 +82,7 @@ describe('QuizshowTable', () => {
     expect(store.themes[0].id).toBe(themeId)
   })
 
-  it('meldet doppelte Punktzahlen und hält den Dialog offen', async () => {
+  it('reports duplicate point values and keeps the dialog open', async () => {
     store.addColumn()
     const wrapper = mountTable()
     const modal = await openFirstCard(wrapper)
@@ -94,7 +94,7 @@ describe('QuizshowTable', () => {
     expect(wrapper.findComponent(QuestionModal).exists()).toBe(true)
   })
 
-  it('vergibt beim Spielen Punkte und schließt den Dialog', async () => {
+  it('awards points while playing and closes the dialog', async () => {
     store.addColumn()
     store.addPlayer('Anna')
     store.setEditMode(false)
@@ -108,7 +108,7 @@ describe('QuizshowTable', () => {
     expect(wrapper.findComponent(QuestionModal).exists()).toBe(false)
   })
 
-  it('zeigt bereits vergebene Punkte im Dialog an', async () => {
+  it('shows already awarded points in the dialog', async () => {
     store.addColumn()
     store.addPlayer('Anna')
     const themeId = store.themes[0].id
@@ -121,7 +121,7 @@ describe('QuizshowTable', () => {
     expect(modal.props('answeredBy')).toBe('Anna')
   })
 
-  it('schließt einen veralteten Dialog, wenn die Frage nicht mehr existiert', async () => {
+  it('closes a stale dialog when the question no longer exists', async () => {
     store.addColumn()
     const wrapper = mountTable()
     await openFirstCard(wrapper)

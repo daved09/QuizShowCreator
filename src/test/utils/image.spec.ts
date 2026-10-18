@@ -4,8 +4,8 @@ import { fileToImageDataUrl, isImageFile } from '@/utils/image'
 const SMALL_DATA_URL = 'data:image/png;base64,AAAA'
 const RESIZED_DATA_URL = 'data:image/png;base64,RESIZED'
 
-// Steuerbare Test-Doubles für die Browser-APIs, die jsdom nicht zuverlässig
-// (bzw. kein Bild-Decoding / Canvas) bereitstellt.
+// Controllable test doubles for the browser APIs that jsdom does not reliably
+// provide (i.e. no image decoding / canvas).
 let readerResult: string | null = SMALL_DATA_URL
 let readerFails = false
 let imageSize = { width: 100, height: 100 }
@@ -62,13 +62,13 @@ const installCanvasMocks = (): void => {
 }
 
 describe('isImageFile', () => {
-  it('erkennt Bild-MIME-Typen', () => {
+  it('recognizes image MIME types', () => {
     expect(isImageFile(makeFile('image/png'))).toBe(true)
     expect(isImageFile(makeFile('image/jpeg'))).toBe(true)
     expect(isImageFile(makeFile('image/webp'))).toBe(true)
   })
 
-  it('erkennt Nicht-Bilder', () => {
+  it('recognizes non-images', () => {
     expect(isImageFile(makeFile('application/pdf'))).toBe(false)
     expect(isImageFile(makeFile('text/plain'))).toBe(false)
     expect(isImageFile(makeFile(''))).toBe(false)
@@ -88,13 +88,13 @@ describe('fileToImageDataUrl', () => {
     installCanvasMocks()
   })
 
-  it('wirft bei Nicht-Bilddateien', async () => {
+  it('throws for non-image files', async () => {
     await expect(fileToImageDataUrl(makeFile('application/pdf'))).rejects.toThrow(
       'Bitte eine Bilddatei auswählen.'
     )
   })
 
-  it('gibt kleine Bilder unverändert als Data-URL zurück', async () => {
+  it('returns small images unchanged as a data URL', async () => {
     const result = await fileToImageDataUrl(makeFile('image/png'))
 
     expect(result).toBe(SMALL_DATA_URL)
@@ -102,7 +102,7 @@ describe('fileToImageDataUrl', () => {
     expect(toDataURL).not.toHaveBeenCalled()
   })
 
-  it('verkleinert Bilder über 1280px und behält PNG bei', async () => {
+  it('downscales images over 1280px and keeps PNG', async () => {
     imageSize = { width: 2560, height: 1440 }
 
     const result = await fileToImageDataUrl(makeFile('image/png'))
@@ -115,7 +115,7 @@ describe('fileToImageDataUrl', () => {
     expect(toDataURL).toHaveBeenCalledWith('image/png', 0.85)
   })
 
-  it('speichert Nicht-PNG-Bilder als JPEG', async () => {
+  it('saves non-PNG images as JPEG', async () => {
     imageSize = { width: 1440, height: 2560 }
 
     await fileToImageDataUrl(makeFile('image/jpeg'))
@@ -123,7 +123,7 @@ describe('fileToImageDataUrl', () => {
     expect(toDataURL).toHaveBeenCalledWith('image/jpeg', 0.85)
   })
 
-  it('gibt das Original zurück, wenn kein Canvas-Kontext verfügbar ist', async () => {
+  it('returns the original when no canvas context is available', async () => {
     imageSize = { width: 4000, height: 4000 }
     vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null)
 
@@ -133,7 +133,7 @@ describe('fileToImageDataUrl', () => {
     expect(toDataURL).not.toHaveBeenCalled()
   })
 
-  it('wirft, wenn das Bild nicht geladen werden kann', async () => {
+  it('throws when the image cannot be loaded', async () => {
     imageFails = true
 
     await expect(fileToImageDataUrl(makeFile('image/png'))).rejects.toThrow(
@@ -141,7 +141,7 @@ describe('fileToImageDataUrl', () => {
     )
   })
 
-  it('wirft, wenn der Reader fehlschlägt', async () => {
+  it('throws when the reader fails', async () => {
     readerFails = true
 
     await expect(fileToImageDataUrl(makeFile('image/png'))).rejects.toThrow('read failed')

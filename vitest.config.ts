@@ -3,8 +3,8 @@ import { fileURLToPath, URL } from 'node:url'
 import { defineConfig } from 'vitest/config'
 import vue from '@vitejs/plugin-vue'
 
-// Test-Konfiguration getrennt von vite.config.ts, damit die Electron-Plugins
-// den Testlauf nicht beeinflussen.
+// Test configuration kept separate from vite.config.ts so the Electron plugins
+// do not affect the test run.
 export default defineConfig({
   plugins: [vue()],
   resolve: {

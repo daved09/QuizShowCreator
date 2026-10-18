@@ -1,7 +1,7 @@
-// Hilfsfunktionen zum Einlesen von Audiodateien für Fragen.
-// Audio wird wie Bilder als Base64-Data-URL gespeichert, damit das Quiz-JSON eigenständig bleibt.
+// Helpers for reading audio files for questions.
+// Audio is stored as a Base64 data URL (like images) so the quiz JSON stays self-contained.
 
-// Maximale Dateigröße; größere Dateien werden aus Speicher-/Exportgründen abgelehnt.
+// Maximum file size; larger files are rejected for storage/export reasons.
 export const MAX_AUDIO_BYTES = 10 * 1024 * 1024
 
 export const isAudioFile = (file: File): boolean => file.type.startsWith('audio/')
@@ -15,7 +15,7 @@ const readAsDataURL = (file: File): Promise<string> =>
 		reader.readAsDataURL(file)
 	})
 
-// Liest eine Audiodatei ein und gibt sie als Base64-Data-URL zurück.
+// Reads an audio file and returns it as a Base64 data URL.
 export const fileToAudioDataUrl = async (file: File): Promise<string> => {
 	if (!isAudioFile(file)) {
 		throw new Error('Bitte eine Audiodatei auswählen.')

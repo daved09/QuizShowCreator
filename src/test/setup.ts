@@ -1,12 +1,12 @@
 import { afterEach, vi } from 'vitest'
 
-// jsdom implementiert weder alert noch confirm. Für Tests deterministisch stubbn,
-// damit z. B. Löschdialoge standardmäßig bestätigt werden.
+// jsdom implements neither alert nor confirm. Stub them deterministically for tests
+// so that e.g. delete dialogs are confirmed by default.
 vi.stubGlobal('alert', vi.fn())
 vi.stubGlobal('confirm', vi.fn(() => true))
 
-// jsdom stellt in manchen Versionen kein crypto.randomUUID bereit, der Store nutzt es
-// aber beim Anlegen von Themen, Spielern und beim Import.
+// Some jsdom versions do not provide crypto.randomUUID, but the store uses it
+// when creating themes and players and when importing.
 if (typeof globalThis.crypto?.randomUUID !== 'function') {
   let counter = 0
   const cryptoObj = globalThis.crypto ?? ((globalThis as Record<string, unknown>).crypto = {})
@@ -17,7 +17,7 @@ if (typeof globalThis.crypto?.randomUUID !== 'function') {
   })
 }
 
-// Vue Test Utils hängt gemountete Komponenten an document.body; zwischen Tests aufräumen.
+// Vue Test Utils attaches mounted components to document.body; clean up between tests.
 afterEach(() => {
   document.body.innerHTML = ''
 })

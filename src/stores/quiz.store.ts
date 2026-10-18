@@ -13,9 +13,9 @@ export type Question = {
 	points: number;
 	question: string;
 	answer: string;
-	// Optionales Frage-Bild als Base64-Data-URL (z. B. "data:image/png;base64,...").
+	// Optional question image as a Base64 data URL (e.g. "data:image/png;base64,...").
 	image?: string;
-	// Optionales Frage-Audio als Base64-Data-URL (z. B. "data:audio/mpeg;base64,...").
+	// Optional question audio as a Base64 data URL (e.g. "data:audio/mpeg;base64,...").
 	audio?: string;
 }
 
@@ -52,7 +52,7 @@ export const useQuizStore = defineStore('quizshow', () => {
 
 	const players = ref<Player[]>([]);
 
-	// Laufzeitstatus: welche Karte wurde bereits beantwortet (Key -> Spielername).
+	// Runtime state: which card has already been answered (key -> player name).
 	const answeredBy = ref<Map<string, string>>(new Map());
 
 	const isEditMode = ref<boolean>(true);
@@ -194,10 +194,10 @@ export const useQuizStore = defineStore('quizshow', () => {
 				if (typeof question !== 'string' || typeof answer !== 'string') {
 					return { ok: false, error: 'Eine Frage hat ungültigen Text.' };
 				}
-				// Bild ist optional (ältere Dateien ohne Bild bleiben lesbar).
+				// Image is optional (older files without an image stay readable).
 				const parsedImage =
 					typeof image === 'string' && image.startsWith('data:image/') ? image : undefined;
-				// Audio ist optional (ältere Dateien ohne Audio bleiben lesbar).
+				// Audio is optional (older files without audio stay readable).
 				const parsedAudio =
 					typeof audio === 'string' && audio.startsWith('data:audio/') ? audio : undefined;
 				questions.push({ points, question, answer, image: parsedImage, audio: parsedAudio });
@@ -206,7 +206,7 @@ export const useQuizStore = defineStore('quizshow', () => {
 			parsed.push({ id: crypto.randomUUID(), themeText, questions });
 		}
 
-		// Spieler sind optional (ältere Dateien ohne Spieler bleiben lesbar).
+		// Players are optional (older files without players stay readable).
 		const rawPlayers = (data as { players?: unknown }).players;
 		const parsedPlayers: Player[] = [];
 		if (rawPlayers !== undefined) {

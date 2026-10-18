@@ -23,7 +23,7 @@ export default [
   },
   {
     rules: {
-      // Alles ist TypeScript (inkl. SFCs mit lang="ts")
+      // Everything is TypeScript (including SFCs with lang="ts")
       'vue/block-lang': ['error', { script: { lang: 'ts' } }]
     }
   },

@@ -1,7 +1,7 @@
-// Hilfsfunktionen zum Einlesen und Verkleinern von Bildern für Fragen.
-// Bilder werden als Base64-Data-URLs gespeichert, damit das Quiz-JSON eigenständig bleibt.
+// Helpers for reading and downscaling images for questions.
+// Images are stored as Base64 data URLs so the quiz JSON stays self-contained.
 
-// Maximale Kantenlänge; größere Bilder werden vor dem Speichern verkleinert.
+// Maximum edge length; larger images are downscaled before saving.
 const MAX_EDGE = 1280
 
 export const isImageFile = (file: File): boolean => file.type.startsWith('image/')
@@ -23,7 +23,7 @@ const loadImage = (src: string): Promise<HTMLImageElement> =>
 		img.src = src
 	})
 
-// Liest eine Bilddatei ein und verkleinert sie bei Bedarf auf MAX_EDGE.
+// Reads an image file and downscales it to MAX_EDGE if needed.
 export const fileToImageDataUrl = async (file: File): Promise<string> => {
 	if (!isImageFile(file)) {
 		throw new Error('Bitte eine Bilddatei auswählen.')
@@ -49,7 +49,7 @@ export const fileToImageDataUrl = async (file: File): Promise<string> => {
 	}
 	ctx.drawImage(img, 0, 0, width, height)
 
-	// PNG behält Transparenz; alles andere wird als JPEG gespeichert.
+	// PNG keeps transparency; everything else is saved as JPEG.
 	const type = file.type === 'image/png' ? 'image/png' : 'image/jpeg'
 	return canvas.toDataURL(type, 0.85)
 }
