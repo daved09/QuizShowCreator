@@ -10,6 +10,14 @@
       <div v-if="mode === 'view'" class="modal-body">
         <p class="label">Frage:</p>
         <p class="view-text">{{ question.question || "—" }}</p>
+        <img
+          v-if="question.image"
+          :src="question.image"
+          alt="Frage-Bild"
+          class="view-image"
+          title="Zum Vergrößern klicken"
+          @click="showLightbox = true"
+        />
         <p class="label">Antwort:</p>
         <p v-if="revealed" class="view-text">{{ question.answer || "—" }}</p>
         <button
@@ -55,8 +63,24 @@
             rows="4"
             placeholder="Frage formulieren …"
             class="text-input"
+            :class="{ 'is-dragging': isDragging }"
+            @dragover="onDragOver"
+            @dragleave="onDragLeave"
+            @drop="onDrop"
+            @paste="onPaste"
           />
+          <small v-if="!draft.image" class="image-hint">
+            Bild zum Hinzufügen hierher ziehen oder einfügen.
+          </small>
         </label>
+        <p v-if="imageError" class="error">{{ imageError }}</p>
+        <div v-if="draft.image" class="field">
+          <span class="label">Bild</span>
+          <img :src="draft.image" alt="Bildvorschau" class="image-preview" />
+          <button type="button" class="remove-image" @click="removeImage">
+            Bild entfernen
+          </button>
+        </div>
         <label class="field">
           <span class="label">Antwort</span>
           <textarea
@@ -73,6 +97,18 @@
         </div>
       </form>
     </div>
+
+    <!-- Vollbild-Ansicht des Frage-Bildes -->
+    <div
+      v-if="showLightbox && question.image"
+      class="lightbox"
+      @click="showLightbox = false"
+    >
+      <img :src="question.image" alt="Frage-Bild groß" class="lightbox-image" />
+      <button class="lightbox-close" @click.stop="showLightbox = false" title="Schließen">
+        ✖
+      </button>
+    </div>
   </div>
 </template>
 
@@ -80,6 +116,7 @@
 import { nextTick, onMounted, onUnmounted, reactive, ref, computed } from 'vue'
 import type { Question } from '@/stores/quiz.store'
 import { useQuizStore } from '@/stores/quiz.store'
+import { fileToImageDataUrl } from '@/utils/image'
 
 const props = defineProps<{
   mode: 'view' | 'edit'
@@ -90,7 +127,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'close'): void
-  (e: 'save', value: { points: number; question: string; answer: string }): void
+  (e: 'save', value: { points: number; question: string; answer: string; image?: string }): void
   (e: 'award', playerId: string): void
 }>()
 
@@ -106,14 +143,72 @@ const draft = reactive({
   points: props.question.points,
   question: props.question.question,
   answer: props.question.answer,
+  image: props.question.image ?? "",
 })
 const error = ref<string>("")
+const imageError = ref<string>("")
+const isDragging = ref<boolean>(false)
+const showLightbox = ref<boolean>(false)
 const firstFieldEl = ref<HTMLInputElement | null>(null)
 const closeButtonEl = ref<HTMLButtonElement | null>(null)
 const revealButtonEl = ref<HTMLButtonElement | null>(null)
 
 // Antwort im View-Modus standardmäßig verbergen; bereits beantwortete Karten zeigen sie direkt.
 const revealed = ref<boolean>(!!props.answeredBy)
+
+const setImageFromFile = async (file: File | undefined): Promise<void> => {
+  if (!file) return
+  imageError.value = ""
+  try {
+    draft.image = await fileToImageDataUrl(file)
+  } catch (err) {
+    imageError.value = err instanceof Error ? err.message : "Bild konnte nicht geladen werden."
+  }
+}
+
+const hasFiles = (dataTransfer: DataTransfer | null): boolean =>
+  !!dataTransfer && Array.from(dataTransfer.types).includes('Files')
+
+const onDragOver = (event: DragEvent): void => {
+  // Nur Datei-Drags abfangen, normales Text-Drag&Drop im Feld bleibt möglich.
+  if (hasFiles(event.dataTransfer)) {
+    event.preventDefault()
+    isDragging.value = true
+  }
+}
+
+const onDragLeave = (): void => {
+  isDragging.value = false
+}
+
+const onDrop = (event: DragEvent): void => {
+  isDragging.value = false
+  const files = event.dataTransfer?.files
+  if (!files || files.length === 0) return
+  event.preventDefault()
+  void setImageFromFile(files[0])
+}
+
+const onPaste = (event: ClipboardEvent): void => {
+  const items = event.clipboardData?.items
+  if (!items) return
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i]
+    if (item.kind === 'file' && item.type.startsWith('image/')) {
+      const file = item.getAsFile()
+      if (file) {
+        event.preventDefault()
+        void setImageFromFile(file)
+        return
+      }
+    }
+  }
+}
+
+const removeImage = (): void => {
+  draft.image = ""
+  imageError.value = ""
+}
 
 const onSave = (): void => {
   error.value = ""
@@ -125,11 +220,16 @@ const onSave = (): void => {
     points: draft.points,
     question: draft.question.trim(),
     answer: draft.answer.trim(),
+    image: draft.image || undefined,
   })
 }
 
 const onKeydown = (event: KeyboardEvent): void => {
   if (event.key === 'Escape') {
+    if (showLightbox.value) {
+      showLightbox.value = false
+      return
+    }
     emit('close')
   }
 }
@@ -324,6 +424,87 @@ onUnmounted(() => {
   color: var(--color-text);
   width: 100%;
   resize: vertical;
+}
+.view-image {
+  align-self: center;
+  max-width: 100%;
+  max-height: 45vh;
+  object-fit: contain;
+  border-radius: 0.25rem;
+  cursor: zoom-in;
+}
+.text-input:focus,
+.text-input:focus-visible {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-soft);
+}
+.text-input.is-dragging {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+  box-shadow: 0 0 0 2px var(--color-primary-soft);
+}
+.image-preview {
+  max-width: 100%;
+  max-height: 12rem;
+  object-fit: contain;
+  border-radius: 0.25rem;
+}
+.image-hint {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+.remove-image {
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 0.35rem 0.75rem;
+  color: var(--color-danger);
+  background: var(--color-danger-soft);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: border-color var(--transition-fast);
+}
+.remove-image:hover {
+  border-color: var(--color-danger);
+}
+.lightbox {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.85);
+  z-index: 200;
+  padding: 2rem;
+  cursor: zoom-out;
+}
+.lightbox-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+.lightbox-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  font-size: 1rem;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+.lightbox-close:hover {
+  background: rgba(255, 255, 255, 0.3);
 }
 .error {
   color: red;
