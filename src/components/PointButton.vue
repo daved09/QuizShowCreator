@@ -7,8 +7,10 @@
     <span>{{ points }}</span>
     <span v-if="answered" class="answered-badge" aria-hidden="true">✔</span>
     <span v-else-if="editMode" class="edit-badge" aria-hidden="true">✏️</span>
-    <span v-if="hasImage" class="image-badge" aria-hidden="true" title="Mit Bild">🖼</span>
-    <span v-if="hasAudio" class="audio-badge" aria-hidden="true" title="Mit Audio">🔊</span>
+    <template v-if="editMode">
+      <span v-if="hasImage" class="image-badge" aria-hidden="true" title="Mit Bild">🖼</span>
+      <span v-if="hasAudio" class="audio-badge" aria-hidden="true" title="Mit Audio">🔊</span>
+    </template>
   </button>
 </template>
 
