@@ -20,6 +20,7 @@
                 :edit-mode="quizStore.isEditMode"
                 :answered="quizStore.isAnswered(theme.id, q.points)"
                 :answered-by="quizStore.getAnsweredBy(theme.id, q.points)"
+                :has-image="!!q.image"
             ></point-button>
         </div>
     </div>

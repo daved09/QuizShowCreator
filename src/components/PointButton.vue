@@ -7,6 +7,7 @@
     <span>{{ points }}</span>
     <span v-if="answered" class="answered-badge" aria-hidden="true">✔</span>
     <span v-else-if="editMode" class="edit-badge" aria-hidden="true">✏️</span>
+    <span v-if="hasImage" class="image-badge" aria-hidden="true" title="Mit Bild">🖼</span>
   </button>
 </template>
 
@@ -16,6 +17,7 @@ const props = defineProps<{
   editMode?: boolean
   answered?: boolean
   answeredBy?: string | null
+  hasImage?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -90,6 +92,10 @@ button.is-answered:disabled:hover {
   color: var(--color-primary);
 }
 .edit-badge {
+  font-size: 0.75em;
+  line-height: 1;
+}
+.image-badge {
   font-size: 0.75em;
   line-height: 1;
 }
