@@ -11,9 +11,17 @@
         <p class="label">Frage:</p>
         <p class="view-text">{{ question.question || "—" }}</p>
         <p class="label">Antwort:</p>
-        <p class="view-text">{{ question.answer || "—" }}</p>
+        <p v-if="revealed" class="view-text">{{ question.answer || "—" }}</p>
+        <button
+          type="button"
+          class="reveal-button"
+          ref="revealButtonEl"
+          @click="revealed = !revealed"
+        >
+          {{ revealed ? 'Antwort verbergen' : 'Antwort anzeigen' }}
+        </button>
 
-        <div class="award-section">
+        <div v-if="revealed" class="award-section">
           <p class="label">Punkte vergeben</p>
           <p v-if="answeredBy" class="award-hint">✔ Bereits beantwortet von {{ answeredBy }}</p>
           <p v-else-if="quizStore.players.length === 0" class="award-hint">
@@ -102,6 +110,10 @@ const draft = reactive({
 const error = ref<string>("")
 const firstFieldEl = ref<HTMLInputElement | null>(null)
 const closeButtonEl = ref<HTMLButtonElement | null>(null)
+const revealButtonEl = ref<HTMLButtonElement | null>(null)
+
+// Antwort im View-Modus standardmäßig verbergen; bereits beantwortete Karten zeigen sie direkt.
+const revealed = ref<boolean>(!!props.answeredBy)
 
 const onSave = (): void => {
   error.value = ""
@@ -128,7 +140,7 @@ onMounted(() => {
     if (props.mode === 'edit') {
       firstFieldEl.value?.focus()
     } else {
-      closeButtonEl.value?.focus()
+      revealButtonEl.value?.focus()
     }
   })
 })
@@ -215,6 +227,34 @@ onUnmounted(() => {
   margin: 0 0 0.5rem;
   white-space: pre-wrap;
   word-break: break-word;
+}
+.reveal-button {
+  align-self: flex-start;
+  font: inherit;
+  padding: 0.5rem 1rem;
+  font-weight: 600;
+  color: var(--color-text);
+  background: var(--color-background-soft);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition:
+    background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast),
+    transform var(--transition-fast);
+}
+.reveal-button:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+.reveal-button:active {
+  transform: translateY(1px) scale(0.99);
+}
+.reveal-button:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
 }
 .award-section {
   display: flex;
