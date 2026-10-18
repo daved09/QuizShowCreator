@@ -66,6 +66,7 @@
           <span class="label">Frage</span>
           <textarea
             v-model="draft.question"
+            maxlength="500"
             rows="4"
             placeholder="Frage formulieren …"
             class="text-input"
@@ -100,6 +101,7 @@
           <textarea
             v-model="draft.answer"
             rows="3"
+            maxlength="250"
             placeholder="Antwort …"
             class="text-input"
           />
