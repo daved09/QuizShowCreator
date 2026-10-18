@@ -10,9 +10,11 @@
     :mode="quizStore.isEditMode ? 'edit' : 'view'"
     :theme-text="selected.theme.themeText"
     :question="selected.question"
+    :answered-by="answeredBy"
     :key="`${selected.theme.id}-${selected.question.points}`"
     @close="closeCard"
     @save="saveCard"
+    @award="awardCard"
   />
 </template>
 
@@ -36,6 +38,11 @@ const selected = computed(() => {
   return { theme, question };
 });
 
+const answeredBy = computed(() => {
+  if (selectedThemeId.value === null || selectedPoints.value === null) return null;
+  return quizStore.getAnsweredBy(selectedThemeId.value, selectedPoints.value);
+});
+
 const openCard = (themeId: string, points: number): void => {
   selectedThemeId.value = themeId;
   selectedPoints.value = points;
@@ -55,6 +62,14 @@ const saveCard = (data: { points: number; question: string; answer: string }): v
   }
   selectedPoints.value = data.points;
   closeCard();
+}
+
+const awardCard = (playerId: string): void => {
+  if (selectedThemeId.value === null || selectedPoints.value === null) return;
+  const ok = quizStore.awardPointsForCard(playerId, selectedThemeId.value, selectedPoints.value);
+  if (ok) {
+    closeCard();
+  }
 }
 
 </script>
