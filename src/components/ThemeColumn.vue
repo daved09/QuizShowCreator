@@ -12,6 +12,7 @@
             @keydown.enter="saveHeader"
             @keydown.esc="cancelHeader"
             @blur="saveHeader"
+            maxlength="15"
         />
         <div v-for="q in theme.questions" :key="q.points" class="column-container">
             <point-button

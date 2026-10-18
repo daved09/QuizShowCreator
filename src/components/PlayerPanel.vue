@@ -12,6 +12,7 @@
           <input
             :ref="setNameInput"
             v-model="nameDraft"
+            maxlength="10"
             class="name-input"
             @keydown.enter="saveName(player.id)"
             @keydown.esc="cancelName"
@@ -40,6 +41,7 @@
       <input
         v-model="newName"
         class="name-input"
+        maxlength="10"
         placeholder="Neuer Spieler …"
       />
       <button type="submit" class="primary">Hinzufügen</button>
