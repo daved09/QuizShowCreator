@@ -23,8 +23,27 @@ npm install
 | `npm run preview`    | Preview the production build locally                               |
 | `npm run lint`       | Lint and auto-fix (ESLint flat config)                             |
 | `npm run format`     | Format sources with Prettier                                       |
+| `npm run test`       | Run the automated tests once (Vitest)                              |
+| `npm run test:watch` | Run the tests in watch mode                                        |
+| `npm run test:coverage` | Run the tests with a coverage report (in `coverage/`)           |
 | `npm run dist`       | Build and package the app as AppImage into `release/`              |
 | `npm run dist:dir`   | Same as `dist`, but only produce the unpacked directory (no image) |
+
+
+## Testing
+
+The project uses [Vitest](https://vitest.dev) with `@vue/test-utils` and a jsdom
+environment. All tests live under `src/test/` (mirroring the `src/` structure) and
+are named `*.spec.ts`.
+
+```
+npm run test          # single run
+npm run test:watch    # watch mode
+npm run test:coverage # coverage report (v8) in coverage/
+```
+
+Global setup (jsdom stubs for `alert`/`confirm`, `crypto.randomUUID`) is in
+`src/test/setup.ts`; the test-only configuration is in `vitest.config.ts`.
 
 
 ## Project structure
