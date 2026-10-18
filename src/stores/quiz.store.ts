@@ -15,12 +15,19 @@ export type Question = {
 	answer: string;
 }
 
-export const QUIZ_FILE_VERSION = 1;
+export type Player = {
+	id: string;
+	name: string;
+	score: number;
+}
+
+export const QUIZ_FILE_VERSION = 2;
 
 export type QuizFile = {
 	app: 'QuizShowCreator';
 	version: number;
 	themes: Theme[];
+	players: Player[];
 }
 
 export type ImportResult = { ok: true } | { ok: false; error: string };
@@ -33,9 +40,16 @@ const createTheme = (themeText: string): Theme => {
 	};
 };
 
+const cardKey = (themeId: string, points: number): string => `${themeId}:${points}`;
+
 export const useQuizStore = defineStore('quizshow', () => {
 
 	const themes = ref<Theme[]>([]);
+
+	const players = ref<Player[]>([]);
+
+	// Laufzeitstatus: welche Karte wurde bereits beantwortet (Key -> Spielername).
+	const answeredBy = ref<Map<string, string>>(new Map());
 
 	const isEditMode = ref<boolean>(true);
 
@@ -46,7 +60,7 @@ export const useQuizStore = defineStore('quizshow', () => {
 	const toggleEditMode = () => {
 		isEditMode.value = !isEditMode.value;
 	};
-  
+
 	const addColumn = () => {
 		themes.value.push(createTheme("New Theme"));
 	};
@@ -89,11 +103,55 @@ export const useQuizStore = defineStore('quizshow', () => {
 		return true;
 	};
 
+	const addPlayer = (name?: string) => {
+		const trimmed = (name ?? "").trim();
+		players.value.push({
+			id: crypto.randomUUID(),
+			name: trimmed || `Spieler ${players.value.length + 1}`,
+			score: 0,
+		});
+	};
+
+	const removePlayer = (id: string) => {
+		players.value = players.value.filter(p => p.id !== id);
+	};
+
+	const renamePlayer = (id: string, name: string) => {
+		const player = players.value.find(p => p.id === id);
+		if (player) {
+			player.name = name.trim() || player.name;
+		}
+	};
+
+	const awardPointsForCard = (playerId: string, themeId: string, cardPoints: number): boolean => {
+		const player = players.value.find(p => p.id === playerId);
+		if (!player) return false;
+		player.score += cardPoints;
+		answeredBy.value.set(cardKey(themeId, cardPoints), player.name);
+		return true;
+	};
+
+	const isAnswered = (themeId: string, points: number): boolean => {
+		return answeredBy.value.has(cardKey(themeId, points));
+	};
+
+	const getAnsweredBy = (themeId: string, points: number): string | null => {
+		return answeredBy.value.get(cardKey(themeId, points)) ?? null;
+	};
+
+	const resetRound = () => {
+		players.value.forEach(p => {
+			p.score = 0;
+		});
+		answeredBy.value = new Map();
+	};
+
 	const exportQuiz = (): QuizFile => {
 		return {
 			app: 'QuizShowCreator',
 			version: QUIZ_FILE_VERSION,
 			themes: themes.value,
+			players: players.value,
 		};
 	};
 
@@ -135,9 +193,52 @@ export const useQuizStore = defineStore('quizshow', () => {
 			questions.sort((a, b) => a.points - b.points);
 			parsed.push({ id: crypto.randomUUID(), themeText, questions });
 		}
+
+		// Spieler sind optional (ältere Dateien ohne Spieler bleiben lesbar).
+		const rawPlayers = (data as { players?: unknown }).players;
+		const parsedPlayers: Player[] = [];
+		if (rawPlayers !== undefined) {
+			if (!Array.isArray(rawPlayers)) {
+				return { ok: false, error: 'Ungültige Spielerliste in der Datei.' };
+			}
+			for (const rawPlayer of rawPlayers) {
+				if (typeof rawPlayer !== 'object' || rawPlayer === null) {
+					return { ok: false, error: 'Ein Spieler in der Datei ist ungültig.' };
+				}
+				const { name, score } = rawPlayer as Record<string, unknown>;
+				if (typeof name !== 'string') {
+					return { ok: false, error: 'Ein Spieler hat keinen gültigen Namen.' };
+				}
+				const playerScore = typeof score === 'number' && Number.isFinite(score) ? score : 0;
+				parsedPlayers.push({ id: crypto.randomUUID(), name, score: playerScore });
+			}
+		}
+
 		themes.value = parsed;
+		players.value = parsedPlayers;
+		answeredBy.value = new Map();
 		return { ok: true };
 	};
 
-	return { addColumn, removeTheme, updateThemeText, updateQuestion, updateQuestionFull, exportQuiz, importQuiz, themes, isEditMode, setEditMode, toggleEditMode }
+	return {
+		addColumn,
+		removeTheme,
+		updateThemeText,
+		updateQuestion,
+		updateQuestionFull,
+		addPlayer,
+		removePlayer,
+		renamePlayer,
+		awardPointsForCard,
+		isAnswered,
+		getAnsweredBy,
+		resetRound,
+		exportQuiz,
+		importQuiz,
+		themes,
+		players,
+		isEditMode,
+		setEditMode,
+		toggleEditMode,
+	}
 })

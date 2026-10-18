@@ -18,6 +18,8 @@
                 @pointButtonClicked="emit('cardClicked', theme.id, q.points)"
                 :points="q.points"
                 :edit-mode="quizStore.isEditMode"
+                :answered="quizStore.isAnswered(theme.id, q.points)"
+                :answered-by="quizStore.getAnsweredBy(theme.id, q.points)"
             ></point-button>
         </div>
     </div>

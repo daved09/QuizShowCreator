@@ -36,19 +36,23 @@
     </div>
   </header>
 
-  <main>
-    <QuizshowTable></QuizshowTable>
-  </main>
+  <div class="app-body">
+    <main>
+      <QuizshowTable></QuizshowTable>
+    </main>
+    <PlayerPanel />
+  </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
 import QuizshowTable from './components/QuizshowTable.vue'
+import PlayerPanel from './components/PlayerPanel.vue'
 import { useQuizStore } from '@/stores/quiz.store'
 
 const quizStore = useQuizStore()
 
-const modeLabel = computed(() => (quizStore.isEditMode ? 'Präsentieren' : 'Bearbeiten'))
+const modeLabel = computed(() => (quizStore.isEditMode ? 'Spielen' : 'Bearbeiten'))
 const modeIcon = computed(() => (quizStore.isEditMode ? '▶' : '✏️'))
 
 const addColumn = (): void => {
@@ -90,6 +94,17 @@ const importQuiz = async (): Promise<void> => {
 </script>
 
 <style scoped>
+.app-body {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.5rem;
+  width: 100%;
+  padding: 0 1.5rem;
+}
+.app-body main {
+  flex: 1;
+  min-width: 0;
+}
 .app-header {
   display: flex;
   align-items: center;

@@ -6,12 +6,41 @@
         <button class="modal-close" @click="emit('close')" title="Schließen">✖</button>
       </header>
 
-      <!-- View-Modus (Spielen): Frage + Antwort nur anzeigen -->
+      <!-- View-Modus (Spielen): Frage + Antwort + Punkte vergeben -->
       <div v-if="mode === 'view'" class="modal-body">
         <p class="label">Frage:</p>
         <p class="view-text">{{ question.question || "—" }}</p>
         <p class="label">Antwort:</p>
-        <p class="view-text">{{ question.answer || "—" }}</p>
+        <p v-if="revealed" class="view-text">{{ question.answer || "—" }}</p>
+        <button
+          type="button"
+          class="reveal-button"
+          ref="revealButtonEl"
+          @click="revealed = !revealed"
+        >
+          {{ revealed ? 'Antwort verbergen' : 'Antwort anzeigen' }}
+        </button>
+
+        <div v-if="revealed" class="award-section">
+          <p class="label">Punkte vergeben</p>
+          <p v-if="answeredBy" class="award-hint">✔ Bereits beantwortet von {{ answeredBy }}</p>
+          <p v-else-if="quizStore.players.length === 0" class="award-hint">
+            Noch keine Spieler angelegt.
+          </p>
+          <div v-else class="award-list">
+            <button
+              v-for="player in quizStore.players"
+              :key="player.id"
+              type="button"
+              class="award-button"
+              @click="emit('award', player.id)"
+            >
+              <span class="award-name">{{ player.name }}</span>
+              <span class="award-points">+{{ question.points }}</span>
+            </button>
+          </div>
+        </div>
+
         <div class="modal-actions">
           <button class="primary" @click="emit('close')" ref="closeButtonEl">Schließen</button>
         </div>
@@ -50,17 +79,22 @@
 <script setup lang="ts">
 import { nextTick, onMounted, onUnmounted, reactive, ref, computed } from 'vue'
 import type { Question } from '@/stores/quiz.store'
+import { useQuizStore } from '@/stores/quiz.store'
 
 const props = defineProps<{
   mode: 'view' | 'edit'
   themeText: string
   question: Question
+  answeredBy?: string | null
 }>()
 
 const emit = defineEmits<{
   (e: 'close'): void
   (e: 'save', value: { points: number; question: string; answer: string }): void
+  (e: 'award', playerId: string): void
 }>()
+
+const quizStore = useQuizStore()
 
 const dialogTitle = computed(() =>
   props.mode === 'edit'
@@ -76,6 +110,10 @@ const draft = reactive({
 const error = ref<string>("")
 const firstFieldEl = ref<HTMLInputElement | null>(null)
 const closeButtonEl = ref<HTMLButtonElement | null>(null)
+const revealButtonEl = ref<HTMLButtonElement | null>(null)
+
+// Antwort im View-Modus standardmäßig verbergen; bereits beantwortete Karten zeigen sie direkt.
+const revealed = ref<boolean>(!!props.answeredBy)
 
 const onSave = (): void => {
   error.value = ""
@@ -102,7 +140,7 @@ onMounted(() => {
     if (props.mode === 'edit') {
       firstFieldEl.value?.focus()
     } else {
-      closeButtonEl.value?.focus()
+      revealButtonEl.value?.focus()
     }
   })
 })
@@ -189,6 +227,93 @@ onUnmounted(() => {
   margin: 0 0 0.5rem;
   white-space: pre-wrap;
   word-break: break-word;
+}
+.reveal-button {
+  align-self: flex-start;
+  font: inherit;
+  padding: 0.5rem 1rem;
+  font-weight: 600;
+  color: var(--color-text);
+  background: var(--color-background-soft);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition:
+    background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast),
+    transform var(--transition-fast);
+}
+.reveal-button:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+.reveal-button:active {
+  transform: translateY(1px) scale(0.99);
+}
+.reveal-button:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.award-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-border);
+}
+.award-hint {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--color-text);
+  opacity: 0.8;
+}
+.award-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.award-button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font: inherit;
+  padding: 0.5rem 0.85rem;
+  font-weight: 600;
+  color: var(--color-text);
+  background: var(--color-background-soft);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition:
+    background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast),
+    transform var(--transition-fast);
+}
+.award-button:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+.award-button:active {
+  transform: translateY(1px) scale(0.99);
+}
+.award-button:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.award-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.award-points {
+  color: var(--color-primary);
+  font-variant-numeric: tabular-nums;
 }
 .text-input {
   font: inherit;

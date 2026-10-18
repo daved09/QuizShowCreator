@@ -1,7 +1,12 @@
 <template>
-  <button :class="{ 'edit-mode': editMode }" @click="test">
+  <button
+    :class="{ 'edit-mode': editMode, 'is-answered': answered }"
+    :title="answered && answeredBy ? `Beantwortet von ${answeredBy}` : undefined"
+    @click="test"
+  >
     <span>{{ points }}</span>
-    <span v-if="editMode" class="edit-badge" aria-hidden="true">✏️</span>
+    <span v-if="answered" class="answered-badge" aria-hidden="true">✔</span>
+    <span v-else-if="editMode" class="edit-badge" aria-hidden="true">✏️</span>
   </button>
 </template>
 
@@ -9,6 +14,8 @@
 const props = defineProps<{
   points: number
   editMode?: boolean
+  answered?: boolean
+  answeredBy?: string | null
 }>()
 
 const emit = defineEmits<{
@@ -62,6 +69,25 @@ button:focus-visible {
 button.edit-mode {
   border: 1.5px dashed var(--color-primary);
   background: var(--color-primary-soft);
+}
+button.is-answered:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  border-style: solid;
+  background: var(--color-background-mute);
+  color: var(--color-text);
+}
+button.is-answered:disabled:hover {
+  transform: none;
+  box-shadow: var(--shadow-sm);
+  border-color: var(--color-border);
+  background: var(--color-background-mute);
+  color: var(--color-text);
+}
+.answered-badge {
+  font-size: 0.85em;
+  line-height: 1;
+  color: var(--color-primary);
 }
 .edit-badge {
   font-size: 0.75em;
