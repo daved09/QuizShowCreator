@@ -15,19 +15,25 @@ npm install
 
 ## Available scripts
 
-| Command              | Description                                                        |
-| -------------------- | ------------------------------------------------------------------ |
-| `npm run dev`        | Start the Vite dev server (alias: `npm run electron:dev`)          |
-| `npm run build`      | Type-check (`vue-tsc --noEmit`) and build for production           |
-| `npm run type-check` | Run the TypeScript/Vue type check without emitting output          |
-| `npm run preview`    | Preview the production build locally                               |
-| `npm run lint`       | Lint and auto-fix (ESLint flat config)                             |
-| `npm run format`     | Format sources with Prettier                                       |
-| `npm run test`       | Run the automated tests once (Vitest)                              |
-| `npm run test:watch` | Run the tests in watch mode                                        |
-| `npm run test:coverage` | Run the tests with a coverage report (in `coverage/`)           |
-| `npm run dist`       | Build and package the app as AppImage into `release/`              |
-| `npm run dist:dir`   | Same as `dist`, but only produce the unpacked directory (no image) |
+| Command              | Description                                                                    |
+| -------------------- | ------------------------------------------------------------------             |
+| `npm run dev`        | Start the Vite dev server (alias: `npm run electron:dev`)                      |
+| `npm run build`      | Type-check (`vue-tsc --noEmit`) and build for production                       |
+| `npm run type-check` | Run the TypeScript/Vue type check without emitting output                      |
+| `npm run preview`    | Preview the production build locally                                           |
+| `npm run lint`       | Lint and auto-fix (ESLint flat config)                                         |
+| `npm run format`     | Format sources with Prettier                                                   |
+| `npm run test`       | Run the automated tests once (Vitest)                                          |
+| `npm run test:watch` | Run the tests in watch mode                                                    |
+| `npm run test:coverage` | Run the tests with a coverage report (in `coverage/`)                       |
+| `npm run dist`       | Build and package the app as AppImage and Windows executable into `release/`   |
+| `npm run dist:dir`   | Same as `dist`, but only produce the unpacked directory (no image)             |
+| `npm run dist:win`   | Build a portable Windows executable (`.exe`, no setup) into `release/`         |
+
+> **Note:** Windows builds are produced with NSIS under the hood, so
+> building them on Linux/macOS requires [Wine](https://www.winehq.org/)
+> to be installed. Alternatively build on Windows or in CI. The portable
+> `.exe` runs without installation.
 
 
 ## Testing
