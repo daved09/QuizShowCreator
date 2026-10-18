@@ -41,15 +41,15 @@ describe('PointButton', () => {
     expect(wrapper.attributes('title')).toBeUndefined()
   })
 
-  it('marks cards with an image', () => {
-    const wrapper = mountButton({ hasImage: true })
+  it('marks cards with an image in edit mode', () => {
+    const wrapper = mountButton({ editMode: true, hasImage: true })
 
     expect(wrapper.text()).toContain('🖼')
     expect(wrapper.find('.image-badge').attributes('title')).toBe('Mit Bild')
   })
 
-  it('marks cards with audio', () => {
-    const wrapper = mountButton({ hasAudio: true })
+  it('marks cards with audio in edit mode', () => {
+    const wrapper = mountButton({ editMode: true, hasAudio: true })
 
     expect(wrapper.text()).toContain('🔊')
     expect(wrapper.find('.audio-badge').attributes('title')).toBe('Mit Audio')
