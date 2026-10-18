@@ -1,4 +1,4 @@
-# QuizShowCreator
+# Quizshow Creator
 
 A quiz show app built with Vue 3 and Electron, using Pinia for state management.
 
