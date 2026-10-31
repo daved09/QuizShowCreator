@@ -2,7 +2,7 @@
   <header class="app-header">
     <h1 class="app-title">Quizshow Creator</h1>
     <div class="header-actions">
-      <template v-if="quizStore.isEditMode">
+      <template v-if="quizStore.isEditMode && !networkStore.isClient">
         <button
           class="add-column-button"
           @click="importQuiz"
@@ -22,7 +22,9 @@
           Spalte hinzufügen
         </button>
       </template>
+      <ConnectionStatus @open-lobby="showLobby = true" />
       <button
+        v-if="!networkStore.isClient"
         class="mode-toggle"
         :class="{ 'is-edit': quizStore.isEditMode }"
         type="button"
@@ -36,6 +38,8 @@
     </div>
   </header>
 
+  <LobbyModal v-if="showLobby" @close="showLobby = false" />
+
   <div class="app-body">
     <main>
       <QuizshowTable></QuizshowTable>
@@ -45,12 +49,18 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import QuizshowTable from './components/QuizshowTable.vue'
 import PlayerPanel from './components/PlayerPanel.vue'
+import ConnectionStatus from './components/ConnectionStatus.vue'
+import LobbyModal from './components/LobbyModal.vue'
 import { useQuizStore } from '@/stores/quiz.store'
+import { useNetworkStore } from '@/stores/network.store'
 
 const quizStore = useQuizStore()
+const networkStore = useNetworkStore()
+
+const showLobby = ref(false)
 
 const modeLabel = computed(() => (quizStore.isEditMode ? 'Spielen' : 'Bearbeiten'))
 const modeIcon = computed(() => (quizStore.isEditMode ? '▶' : '✏️'))

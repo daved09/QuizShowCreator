@@ -1,5 +1,12 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
+import {
+	createSnapshot,
+	type AnswerPayload,
+	type CardPayload,
+	type GameSnapshot,
+	type OpenCard,
+} from '@/net/protocol'
 
 export const DEFAULT_POINTS = [100, 200, 300, 400, 500]
 
@@ -54,6 +61,17 @@ export const useQuizStore = defineStore('quizshow', () => {
 
 	// Runtime state: which card has already been answered (key -> player name).
 	const answeredBy = ref<Map<string, string>>(new Map());
+
+	// Runtime state: the question card currently opened (host driven; synced to viewers).
+	const openCard = ref<OpenCard | null>(null);
+
+	// Runtime state: whether the answer of the open card is revealed.
+	const answerRevealed = ref<boolean>(false);
+
+	// Client-side content of the currently open card. Question text, media and,
+	// once revealed, the answer are kept here instead of the snapshot so viewers
+	// only ever hold what they currently see.
+	let openCardContent: (CardPayload & { key: string }) | null = null;
 
 	const isEditMode = ref<boolean>(true);
 
@@ -145,11 +163,135 @@ export const useQuizStore = defineStore('quizshow', () => {
 		return answeredBy.value.get(cardKey(themeId, points)) ?? null;
 	};
 
+	const openQuestion = (themeId: string, points: number) => {
+		openCard.value = { themeId, points };
+		// Already answered cards show the answer right away.
+		answerRevealed.value = isAnswered(themeId, points);
+	};
+
+	const closeQuestion = () => {
+		openCard.value = null;
+		answerRevealed.value = false;
+	};
+
+	const setAnswerRevealed = (value: boolean) => {
+		answerRevealed.value = value;
+	};
+
+	const toggleAnswerRevealed = () => {
+		answerRevealed.value = !answerRevealed.value;
+	};
+
 	const resetRound = () => {
 		players.value.forEach(p => {
 			p.score = 0;
 		});
 		answeredBy.value = new Map();
+		closeQuestion();
+	};
+
+	// --- Multiplayer snapshot handling -------------------------------------
+
+	const toSnapshot = (): GameSnapshot => {
+		return createSnapshot({
+			themes: themes.value,
+			players: players.value,
+			answeredBy: answeredBy.value,
+			openCard: openCard.value,
+			answerRevealed: answerRevealed.value,
+		});
+	};
+
+	// Looks up a single question inside the local themes.
+	const findQuestion = (themeId: string, points: number): Question | undefined => {
+		return themes.value.find(t => t.id === themeId)?.questions.find(q => q.points === points);
+	};
+
+	// Host: the content of a card, used to ship it when the card is opened.
+	// The answer is only included when it is already revealed.
+	const getQuestionCard = (themeId: string, points: number): CardPayload | null => {
+		const question = findQuestion(themeId, points);
+		if (!question) return null;
+		const card: CardPayload = {
+			themeId,
+			points,
+			question: question.question,
+		};
+		if (question.image) card.image = question.image;
+		if (question.audio) card.audio = question.audio;
+		if (answerRevealed.value) card.answer = question.answer;
+		return card;
+	};
+
+	// Host: the answer of a card, shipped separately once it is revealed.
+	const getQuestionAnswer = (themeId: string, points: number): string | null => {
+		return findQuestion(themeId, points)?.answer ?? null;
+	};
+
+	// Applies a board snapshot received from the host (viewers only). The snapshot
+	// carries no question content, so only the currently open card is filled in
+	// from the cached `card` payload.
+	const applySnapshot = (snapshot: GameSnapshot) => {
+		const open = snapshot.openCard;
+		const openKey = open ? cardKey(open.themeId, open.points) : null;
+		const content = openKey && openCardContent?.key === openKey ? openCardContent : null;
+		// A closed card (or a different one) drops the cached content.
+		if (!content) openCardContent = null;
+
+		themes.value = snapshot.themes.map(theme => ({
+			id: theme.id,
+			themeText: theme.themeText,
+			questions: theme.questions.map(question => {
+				const mapped: Question = { points: question.points, question: "", answer: "" };
+				if (content && openKey === cardKey(theme.id, question.points)) {
+					mapped.question = content.question;
+					mapped.image = content.image;
+					mapped.audio = content.audio;
+					if (snapshot.answerRevealed && content.answer !== undefined) {
+						mapped.answer = content.answer;
+					}
+				}
+				return mapped;
+			}),
+		}));
+		players.value = snapshot.players.map(player => ({ ...player }));
+		answeredBy.value = new Map(snapshot.answeredBy);
+		openCard.value = open ? { ...open } : null;
+		answerRevealed.value = snapshot.answerRevealed;
+	};
+
+	// Applies the content of a card shipped by the host when it is opened.
+	const applyCard = (card: CardPayload) => {
+		openCardContent = { ...card, key: cardKey(card.themeId, card.points) };
+		const open = openCard.value;
+		if (!open || open.themeId !== card.themeId || open.points !== card.points) return;
+		const question = findQuestion(card.themeId, card.points);
+		if (!question) return;
+		question.question = card.question;
+		question.image = card.image;
+		question.audio = card.audio;
+		if (answerRevealed.value && card.answer !== undefined) {
+			question.answer = card.answer;
+		}
+	};
+
+	// Applies a reveal (or hide, with `answer: null`) for the open card.
+	const applyAnswer = (payload: AnswerPayload) => {
+		const open = openCard.value;
+		if (!open || open.themeId !== payload.themeId || open.points !== payload.points) return;
+		const key = cardKey(payload.themeId, payload.points);
+		const question = findQuestion(payload.themeId, payload.points);
+		if (payload.answer === null) {
+			if (question) question.answer = "";
+			if (openCardContent?.key === key) {
+				openCardContent = { ...openCardContent, answer: undefined };
+			}
+		} else {
+			if (question) question.answer = payload.answer;
+			if (openCardContent?.key === key) {
+				openCardContent = { ...openCardContent, answer: payload.answer };
+			}
+		}
 	};
 
 	const exportQuiz = (): QuizFile => {
@@ -229,6 +371,7 @@ export const useQuizStore = defineStore('quizshow', () => {
 		themes.value = parsed;
 		players.value = parsedPlayers;
 		answeredBy.value = new Map();
+		closeQuestion();
 		return { ok: true };
 	};
 
@@ -244,13 +387,26 @@ export const useQuizStore = defineStore('quizshow', () => {
 		awardPointsForCard,
 		isAnswered,
 		getAnsweredBy,
+		openQuestion,
+		closeQuestion,
+		setAnswerRevealed,
+		toggleAnswerRevealed,
+		toSnapshot,
+		applySnapshot,
+		applyCard,
+		applyAnswer,
+		getQuestionCard,
+		getQuestionAnswer,
 		resetRound,
 		exportQuiz,
 		importQuiz,
 		themes,
 		players,
+		answeredBy,
 		isEditMode,
 		setEditMode,
 		toggleEditMode,
+		openCard,
+		answerRevealed,
 	}
 })

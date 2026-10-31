@@ -7,11 +7,13 @@
 
   <QuestionModal
     v-if="selected"
-    :mode="quizStore.isEditMode ? 'edit' : 'view'"
+    :mode="mode"
     :theme-text="selected.theme.themeText"
     :question="selected.question"
     :answered-by="answeredBy"
+    :revealed="quizStore.answerRevealed"
     :key="`${selected.theme.id}-${selected.question.points}`"
+    @update:revealed="(value) => quizStore.setAnswerRevealed(value ?? false)"
     @close="closeCard"
     @save="saveCard"
     @award="awardCard"
@@ -19,56 +21,61 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed } from 'vue';
 import ThemeColumn from './ThemeColumn.vue';
 import QuestionModal from './QuestionModal.vue';
 import { useQuizStore } from '@/stores/quiz.store';
+import { useNetworkStore } from '@/stores/network.store';
 
 const quizStore = useQuizStore();
+const networkStore = useNetworkStore();
 
-const selectedThemeId = ref<string | null>(null);
-const selectedPoints = ref<number | null>(null);
+const mode = computed(() => (quizStore.isEditMode && !networkStore.isClient ? 'edit' : 'view'));
 
 const selected = computed(() => {
-  if (selectedThemeId.value === null || selectedPoints.value === null) return null;
-  const theme = quizStore.themes.find(t => t.id === selectedThemeId.value);
+  const current = quizStore.openCard;
+  if (!current) return null;
+  const theme = quizStore.themes.find(t => t.id === current.themeId);
   if (!theme) return null;
-  const question = theme.questions.find(q => q.points === selectedPoints.value);
+  const question = theme.questions.find(q => q.points === current.points);
   if (!question) return null;
   return { theme, question };
 });
 
 const answeredBy = computed(() => {
-  if (selectedThemeId.value === null || selectedPoints.value === null) return null;
-  return quizStore.getAnsweredBy(selectedThemeId.value, selectedPoints.value);
+  const current = quizStore.openCard;
+  if (!current) return null;
+  return quizStore.getAnsweredBy(current.themeId, current.points);
 });
 
 const openCard = (themeId: string, points: number): void => {
-  selectedThemeId.value = themeId;
-  selectedPoints.value = points;
+  // Viewers only watch: which question is open is driven by the host.
+  if (networkStore.isClient) return;
+  quizStore.openQuestion(themeId, points);
 }
 
 const closeCard = (): void => {
-  selectedThemeId.value = null;
-  selectedPoints.value = null;
+  if (networkStore.isClient) return;
+  quizStore.closeQuestion();
 }
 
 const saveCard = (data: { points: number; question: string; answer: string; image?: string; audio?: string }): void => {
-  if (selectedThemeId.value === null || selectedPoints.value === null) return;
-  const ok = quizStore.updateQuestionFull(selectedThemeId.value, selectedPoints.value, data);
+  const current = quizStore.openCard;
+  if (!current) return;
+  const ok = quizStore.updateQuestionFull(current.themeId, current.points, data);
   if (!ok) {
     alert('Diese Punktzahl existiert in dieser Spalte bereits.');
     return;
   }
-  selectedPoints.value = data.points;
-  closeCard();
+  quizStore.closeQuestion();
 }
 
 const awardCard = (playerId: string): void => {
-  if (selectedThemeId.value === null || selectedPoints.value === null) return;
-  const ok = quizStore.awardPointsForCard(playerId, selectedThemeId.value, selectedPoints.value);
+  const current = quizStore.openCard;
+  if (!current) return;
+  const ok = quizStore.awardPointsForCard(playerId, current.themeId, current.points);
   if (ok) {
-    closeCard();
+    quizStore.closeQuestion();
   }
 }
 
