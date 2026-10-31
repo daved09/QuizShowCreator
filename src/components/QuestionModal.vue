@@ -25,17 +25,18 @@
           class="view-audio"
         ></audio>
         <p class="label">Antwort:</p>
-        <p v-if="revealed" class="view-text">{{ question.answer || "—" }}</p>
+        <p v-if="isRevealed" class="view-text">{{ question.answer || "—" }}</p>
         <button
+          v-if="isHost"
           type="button"
           class="reveal-button"
           ref="revealButtonEl"
-          @click="revealed = !revealed"
+          @click="toggleReveal"
         >
-          {{ revealed ? 'Antwort verbergen' : 'Antwort anzeigen' }}
+          {{ isRevealed ? 'Antwort verbergen' : 'Antwort anzeigen' }}
         </button>
 
-        <div v-if="revealed" class="award-section">
+        <div v-if="isRevealed && !networkStore.isClient" class="award-section">
           <p class="label">Punkte vergeben</p>
           <p v-if="answeredBy" class="award-hint">✔ Bereits beantwortet von {{ answeredBy }}</p>
           <p v-else-if="quizStore.players.length === 0" class="award-hint">
@@ -132,6 +133,7 @@
 import { nextTick, onMounted, onUnmounted, reactive, ref, computed } from 'vue'
 import type { Question } from '@/stores/quiz.store'
 import { useQuizStore } from '@/stores/quiz.store'
+import { useNetworkStore } from '@/stores/network.store'
 import { fileToImageDataUrl, isImageFile } from '@/utils/image'
 import { fileToAudioDataUrl, isAudioFile } from '@/utils/audio'
 
@@ -149,6 +151,7 @@ const emit = defineEmits<{
 }>()
 
 const quizStore = useQuizStore()
+const networkStore = useNetworkStore()
 
 const dialogTitle = computed(() =>
   props.mode === 'edit'
@@ -172,8 +175,26 @@ const firstFieldEl = ref<HTMLInputElement | null>(null)
 const closeButtonEl = ref<HTMLButtonElement | null>(null)
 const revealButtonEl = ref<HTMLButtonElement | null>(null)
 
+// The revealed state is a model so the host stays in control and it can be
+// synced to viewers. Unbound, it behaves like local state.
+const revealed = defineModel<boolean | undefined>('revealed', { default: undefined })
 // Hide the answer in view mode by default; already answered cards show it directly.
-const revealed = ref<boolean>(!!props.answeredBy)
+const isRevealed = computed(() => revealed.value ?? !!props.answeredBy)
+
+// Checks if the client is host or client
+const isHost = computed(() => {
+  if(networkStore.isOnline && networkStore.isHost){
+    return true;
+  }
+  if(networkStore.isOnline && networkStore.isClient){
+    return false;
+  }
+  return true;
+})
+
+const toggleReveal = (): void => {
+  revealed.value = !isRevealed.value
+}
 
 const setImageFromFile = async (file: File | undefined): Promise<void> => {
   if (!file) return

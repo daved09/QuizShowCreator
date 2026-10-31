@@ -36,6 +36,33 @@ npm install
 > `.exe` runs without installation.
 
 
+## Multiplayer (Peer-to-Peer)
+
+The app can be played together over the internet. One instance acts as the
+**host** and drives the game as usual; any number of **viewers** connect with a
+short room code and follow along in read-only mode. When the host opens a
+question, it opens on every connected viewer too (including its image/audio and
+the revealed answer), and scores/answered cards stay in sync.
+
+1. Click **Online spielen** in the header.
+2. Choose **Spiel hosten** — a room code (e.g. `K7Q2XM`) appears.
+3. On the other device, open **Online spielen**, enter the code and click
+   **Beitreten**. It connects, switches to view mode and mirrors the board.
+
+Under the hood:
+
+- Connectivity is WebRTC (via [PeerJS](https://peerjs.com)). Only the signalling
+  handshake uses PeerJS' public cloud server; game data flows peer-to-peer.
+- The **host is authoritative**. It broadcasts a content-free board snapshot
+  (themes, point values, players, scores, answered cards, which card is open) on
+  every change. Question text and media (images/audio) are sent separately only
+  when a card is opened; the answer follows only once it is revealed. Viewers
+  therefore never receive content they cannot currently see.
+- Viewers are read-only: they cannot edit questions, award points or open cards
+  themselves.
+- Symmetric NATs may still require a TURN server; PeerJS ships a default STUN
+  configuration. Anyone who knows the room code can join as a viewer.
+
 ## Testing
 
 The project uses [Vitest](https://vitest.dev) with `@vue/test-utils` and a jsdom
@@ -67,5 +94,6 @@ release/        # Packaged app artifacts, e.g. the AppImage (generated)
 - Vue 3.5 + Pinia 4
 - Vite 8 + `@vitejs/plugin-vue`
 - Electron 44 (Chromium 152, Node 24.22) + electron-builder
+- PeerJS (WebRTC) for peer-to-peer multiplayer
 - TypeScript + vue-tsc
 - ESLint 10 (flat config) + Prettier
