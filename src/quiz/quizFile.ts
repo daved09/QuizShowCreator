@@ -50,7 +50,7 @@ export const parseQuizFile = (data: unknown): ParseResult => {
       if (!isRecord(rawQuestion)) {
         return { ok: false, error: 'Ungültige Frage in der Datei.' }
       }
-      const { points, question, answer, image, audio } = rawQuestion
+      const { points, question, answer, image, audio, buzzEnabled } = rawQuestion
       if (!isFiniteNumber(points)) {
         return { ok: false, error: 'Eine Frage hat eine ungültige Punktzahl.' }
       }
@@ -63,7 +63,16 @@ export const parseQuizFile = (data: unknown): ParseResult => {
       // Audio is optional (older files without audio stay readable).
       const parsedAudio =
         typeof audio === 'string' && audio.startsWith('data:audio/') ? audio : undefined
-      questions.push({ points, question, answer, image: parsedImage, audio: parsedAudio })
+      const parsedQuestion: Question = {
+        points,
+        question,
+        answer,
+        image: parsedImage,
+        audio: parsedAudio,
+      }
+      // Buzzing is optional (older files without the flag allow it).
+      if (buzzEnabled === false) parsedQuestion.buzzEnabled = false
+      questions.push(parsedQuestion)
     }
     questions.sort((a, b) => a.points - b.points)
     themes.push({ id: crypto.randomUUID(), themeText, questions })

@@ -8,6 +8,8 @@ export type Question = {
   image?: string
   // Optional question audio as a Base64 data URL (e.g. "data:audio/mpeg;base64,...").
   audio?: string
+  // Whether players may buzz on this question; only `false` is stored, absent means allowed.
+  buzzEnabled?: false
 }
 
 export type Theme = {

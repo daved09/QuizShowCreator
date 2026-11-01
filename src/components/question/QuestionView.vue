@@ -67,7 +67,7 @@ import { useNetworkStore } from '@/stores/network.store'
 import { useQuizStore } from '@/stores/quiz.store'
 import type { Question } from '@/types/quiz'
 
-defineProps<{
+const props = defineProps<{
   question: Question
   revealed: boolean
   answeredBy?: string | null
@@ -89,7 +89,11 @@ const buzzedPlayer = computed(
 )
 // Only connected viewers that joined with a name can buzz.
 const canBuzz = computed(
-  () => networkStore.isClient && networkStore.status === 'connected' && !!networkStore.playerName,
+  () =>
+    props.question.buzzEnabled !== false &&
+    networkStore.isClient &&
+    networkStore.status === 'connected' &&
+    !!networkStore.playerName,
 )
 
 const revealButtonEl = ref<HTMLButtonElement | null>(null)
