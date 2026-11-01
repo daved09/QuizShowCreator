@@ -166,6 +166,15 @@ The suite uses Vitest with `@vue/test-utils` and a jsdom environment. Specs live
 
 Global setup (jsdom stubs for `alert`/`confirm`, `crypto.randomUUID`) is in `src/test/setup.ts`; the test configuration is `vitest.config.ts`.
 
+### End-to-end tests
+
+```bash
+npx playwright install chromium   # once
+npm run test:e2e
+```
+
+The Playwright specs in `e2e/` drive the real renderer in Chromium. `playwright.config.ts` starts a Vite dev server with `vite.e2e.config.ts` (renderer only, no Electron); the native import/export dialogs are replaced by a mocked `window.electronAPI`. They cover board editing, player management, gameplay (reveal, awarding points, round reset), import/export and the lobby dialog. Multiplayer over PeerJS is not covered end to end.
+
 ## Packaging
 
 ```bash

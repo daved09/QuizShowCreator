@@ -23,7 +23,10 @@
     "electron/**/*.ts",
     "shared/**/*.ts",
     "vite.config.ts",
-    "vitest.config.ts"
+    "vitest.config.ts",
+    "vite.e2e.config.ts",
+    "playwright.config.ts",
+    "e2e/**/*.ts"
   ],
   "exclude": ["node_modules", "dist"]
 }
