@@ -28,12 +28,14 @@ Invalid import data and file errors are reported with `alert()`.
 ### `QuizshowTable.vue`
 
 - Renders one `ThemeColumn` per theme inside a flexible row.
-- Resolves the selected card from `quizStore.openCard` and only renders `QuestionModal` when both theme and question exist.
-- `mode` is `edit` only when `quizStore.isEditMode` is true **and** the user is not a viewer.
+- `mode` is `edit` when `canEdit` (edit mode **and** not a viewer), otherwise `view`.
+- In edit mode, the card being edited is local state (`editingCard`). It never becomes `quizStore.openCard`, so it is not shared with viewers while hosting. Leaving edit mode discards it.
+- In play mode, the card is `quizStore.openCard`, which the host shares with viewers.
+- Only renders `QuestionModal` when both theme and question of the active card exist.
 - Handlers:
-  - `openCard(themeId, points)` — ignored for viewers.
-  - `closeCard()` — ignored for viewers.
-  - `saveCard(data)` — calls `updateQuestionFull()`; a duplicate point value shows `Diese Punktzahl existiert in dieser Spalte bereits.`
+  - `openCard(themeId, points)` — ignored for viewers; sets `editingCard` in edit mode, otherwise `quizStore.openQuestion()`.
+  - `closeCard()` — ignored for viewers; clears `editingCard` or calls `quizStore.closeQuestion()`.
+  - `saveCard(data)` — calls `updateQuestionFull()` for `editingCard`; a duplicate point value shows `Diese Punktzahl existiert in dieser Spalte bereits.`
   - `awardCard(playerId)` — awards and closes the card.
 - The modal is keyed by theme + points so switching cards resets its local draft.
 

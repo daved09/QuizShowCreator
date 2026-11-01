@@ -46,12 +46,15 @@ export const useQuizStore = defineStore('quizshow', () => {
   const findQuestion = (themeId: string, points: number): Question | undefined =>
     findQuestionIn(themes.value, themeId, points)
 
+  // Entering edit mode closes a card opened while playing, so viewers do not
+  // keep seeing a card the host can no longer control from the board.
   const setEditMode = (value: boolean) => {
     isEditMode.value = value
+    if (value) closeQuestion()
   }
 
   const toggleEditMode = () => {
-    isEditMode.value = !isEditMode.value
+    setEditMode(!isEditMode.value)
   }
 
   const addColumn = () => {

@@ -21,12 +21,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import ThemeColumn from './ThemeColumn.vue'
 import QuestionModal from './QuestionModal.vue'
 import { findQuestion, findTheme } from '@/quiz/card'
 import { useQuizStore } from '@/stores/quiz.store'
-import type { Question } from '@/types/quiz'
+import type { OpenCard, Question } from '@/types/quiz'
 import { usePermissions } from '@/composables/usePermissions'
 
 const quizStore = useQuizStore()
@@ -34,8 +34,18 @@ const { canControl, canEdit } = usePermissions()
 
 const mode = computed(() => (canEdit.value ? 'edit' : 'view'))
 
+// The card being edited is local UI state. Only cards opened while playing
+// become the store's `openCard`, which is what the host shares with viewers.
+const editingCard = ref<OpenCard | null>(null)
+const activeCard = computed(() => (canEdit.value ? editingCard.value : quizStore.openCard))
+
+// Leaving edit mode (or losing edit rights) discards the edit dialog.
+watch(canEdit, () => {
+  editingCard.value = null
+})
+
 const selected = computed(() => {
-  const current = quizStore.openCard
+  const current = activeCard.value
   if (!current) return null
   const theme = findTheme(quizStore.themes, current.themeId)
   const question = findQuestion(quizStore.themes, current.themeId, current.points)
@@ -44,7 +54,7 @@ const selected = computed(() => {
 })
 
 const answeredBy = computed(() => {
-  const current = quizStore.openCard
+  const current = activeCard.value
   if (!current) return null
   return quizStore.getAnsweredBy(current.themeId, current.points)
 })
@@ -52,23 +62,31 @@ const answeredBy = computed(() => {
 const openCard = (themeId: string, points: number): void => {
   // Viewers only watch: which question is open is driven by the host.
   if (!canControl.value) return
-  quizStore.openQuestion(themeId, points)
+  if (canEdit.value) {
+    editingCard.value = { themeId, points }
+  } else {
+    quizStore.openQuestion(themeId, points)
+  }
 }
 
 const closeCard = (): void => {
   if (!canControl.value) return
-  quizStore.closeQuestion()
+  if (canEdit.value) {
+    editingCard.value = null
+  } else {
+    quizStore.closeQuestion()
+  }
 }
 
 const saveCard = (data: Question): void => {
-  const current = quizStore.openCard
+  const current = editingCard.value
   if (!current) return
   const ok = quizStore.updateQuestionFull(current.themeId, current.points, data)
   if (!ok) {
     alert('Diese Punktzahl existiert in dieser Spalte bereits.')
     return
   }
-  quizStore.closeQuestion()
+  editingCard.value = null
 }
 
 const awardCard = (playerId: string): void => {

@@ -49,7 +49,7 @@ type QuizFile = { app: 'QuizShowCreator'; version: number; themes: Theme[]; play
 
 | Action | Behaviour |
 | --- | --- |
-| `setEditMode` / `toggleEditMode` | Switch between edit and play mode. |
+| `setEditMode` / `toggleEditMode` | Switch between edit and play mode. Entering edit mode closes a card opened while playing. |
 | `addColumn` | Appends a theme `New Theme` with the default 100–500 cards. |
 | `removeTheme` | Removes a theme by id. |
 | `updateThemeText` | Renames a theme. |
