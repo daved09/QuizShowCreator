@@ -129,6 +129,7 @@ The module reference is in [`docs/logic.md`](./docs/logic.md), the UI reference 
 electron/
   main.ts             # window, lifecycle, quiz import/export IPC
   preload.ts          # window.electronAPI bridge
+shared/ipc.ts         # IPC channel names and types shared by electron/ and src/
 src/
   App.vue             # header, mode toggle, lobby, board and player panel
   constants.ts        # default point values and input length limits

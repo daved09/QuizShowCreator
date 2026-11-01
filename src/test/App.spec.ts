@@ -3,19 +3,18 @@ import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
 import App from '@/App.vue'
 import { useQuizStore } from '@/stores/quiz.store'
 import { createTestPinia } from '@/test/helpers'
-
-type ElectronApi = Window['electronAPI']
+import type { ElectronAPI } from '../../shared/ipc'
 
 const exportQuiz = vi.fn()
 const importQuiz = vi.fn()
 
-const setElectronApi = (overrides: Partial<ElectronApi> = {}): void => {
+const setElectronApi = (overrides: Partial<ElectronAPI> = {}): void => {
   window.electronAPI = {
     platform: 'linux',
     exportQuiz,
     importQuiz,
     ...overrides,
-  } as ElectronApi
+  } as ElectronAPI
 }
 
 describe('App', () => {

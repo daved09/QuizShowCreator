@@ -7,20 +7,22 @@ export const useQuizFile = () => {
   const quiz = useQuizStore()
 
   const exportQuiz = async (): Promise<void> => {
-    if (!window.electronAPI) return
+    const api = window.electronAPI
+    if (!api) return
     const json = JSON.stringify(quiz.exportQuiz(), null, 2)
-    const result = await window.electronAPI.exportQuiz(json)
+    const result = await api.exportQuiz(json)
     if (!result.success && !result.canceled) {
       showError(`Export fehlgeschlagen: ${result.error ?? 'Unbekannter Fehler'}`)
     }
   }
 
   const importQuiz = async (): Promise<void> => {
-    if (!window.electronAPI) return
+    const api = window.electronAPI
+    if (!api) return
     if (quiz.themes.length > 0 && !confirmAction('Vorhandene Themen werden ersetzt. Fortfahren?')) {
       return
     }
-    const result = await window.electronAPI.importQuiz()
+    const result = await api.importQuiz()
     if (!result.success) {
       if (!result.canceled) {
         showError(`Import fehlgeschlagen: ${result.error ?? 'Unbekannter Fehler'}`)
