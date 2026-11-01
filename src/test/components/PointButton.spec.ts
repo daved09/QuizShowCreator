@@ -4,7 +4,7 @@ import PointButton from '@/components/PointButton.vue'
 
 const mountButton = (props: Record<string, unknown> = {}) =>
   mount(PointButton, {
-    props: { points: 100, ...props }
+    props: { points: 100, ...props },
   })
 
 describe('PointButton', () => {

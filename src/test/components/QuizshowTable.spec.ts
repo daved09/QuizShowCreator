@@ -75,7 +75,7 @@ describe('QuizshowTable', () => {
     await answerInput.setValue('Neue Antwort')
     await modal.find('form').trigger('submit')
 
-    const question = store.themes[0].questions.find(q => q.points === 100)
+    const question = store.themes[0].questions.find((q) => q.points === 100)
     expect(question?.question).toBe('Neue Frage')
     expect(question?.answer).toBe('Neue Antwort')
     expect(wrapper.findComponent(QuestionModal).exists()).toBe(false)

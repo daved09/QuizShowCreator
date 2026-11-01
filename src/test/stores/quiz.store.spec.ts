@@ -1,11 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
-import {
-  DEFAULT_POINTS,
-  QUIZ_FILE_VERSION,
-  useQuizStore,
-  type QuizFile
-} from '@/stores/quiz.store'
+import { DEFAULT_POINTS, QUIZ_FILE_VERSION, useQuizStore, type QuizFile } from '@/stores/quiz.store'
 
 describe('quiz store', () => {
   let store: ReturnType<typeof useQuizStore>
@@ -24,8 +19,8 @@ describe('quiz store', () => {
       expect(typeof theme.id).toBe('string')
       expect(theme.id.length).toBeGreaterThan(0)
       expect(theme.themeText).toBe('New Theme')
-      expect(theme.questions.map(q => q.points)).toEqual(DEFAULT_POINTS)
-      expect(theme.questions.every(q => q.question === '' && q.answer === '')).toBe(true)
+      expect(theme.questions.map((q) => q.points)).toEqual(DEFAULT_POINTS)
+      expect(theme.questions.every((q) => q.question === '' && q.answer === '')).toBe(true)
     })
 
     it('assigns unique IDs for multiple themes', () => {
@@ -64,7 +59,7 @@ describe('quiz store', () => {
 
       store.updateQuestion(id, 200, 'Wie hoch ist der Mount Everest?')
 
-      const question = store.themes[0].questions.find(q => q.points === 200)
+      const question = store.themes[0].questions.find((q) => q.points === 200)
       expect(question?.question).toBe('Wie hoch ist der Mount Everest?')
       expect(question?.answer).toBe('')
     })
@@ -79,7 +74,7 @@ describe('quiz store', () => {
       expect(store.themes[0].questions[DEFAULT_POINTS.length]).toEqual({
         points: 999,
         question: 'Bonusfrage',
-        answer: ''
+        answer: '',
       })
     })
 
@@ -101,17 +96,17 @@ describe('quiz store', () => {
         points: 150,
         question: 'Frage',
         answer: 'Antwort',
-        image: 'data:image/png;base64,AAAA'
+        image: 'data:image/png;base64,AAAA',
       })
 
       expect(ok).toBe(true)
-      expect(store.themes[0].questions.map(q => q.points)).toEqual([150, 200, 300, 400, 500])
-      const question = store.themes[0].questions.find(q => q.points === 150)
+      expect(store.themes[0].questions.map((q) => q.points)).toEqual([150, 200, 300, 400, 500])
+      const question = store.themes[0].questions.find((q) => q.points === 150)
       expect(question).toEqual({
         points: 150,
         question: 'Frage',
         answer: 'Antwort',
-        image: 'data:image/png;base64,AAAA'
+        image: 'data:image/png;base64,AAAA',
       })
     })
 
@@ -121,12 +116,12 @@ describe('quiz store', () => {
         points: 100,
         question: 'q',
         answer: 'a',
-        image: 'data:image/png;base64,AAAA'
+        image: 'data:image/png;base64,AAAA',
       })
 
       store.updateQuestionFull(id, 100, { points: 100, question: 'q', answer: 'a' })
 
-      expect(store.themes[0].questions.find(q => q.points === 100)?.image).toBeUndefined()
+      expect(store.themes[0].questions.find((q) => q.points === 100)?.image).toBeUndefined()
     })
 
     it('sets and removes audio like the image', () => {
@@ -136,19 +131,19 @@ describe('quiz store', () => {
         points: 100,
         question: 'q',
         answer: 'a',
-        audio: 'data:audio/mpeg;base64,AAAA'
+        audio: 'data:audio/mpeg;base64,AAAA',
       })
-      expect(store.themes[0].questions.find(q => q.points === 100)?.audio).toBe(
-        'data:audio/mpeg;base64,AAAA'
+      expect(store.themes[0].questions.find((q) => q.points === 100)?.audio).toBe(
+        'data:audio/mpeg;base64,AAAA',
       )
 
       store.updateQuestionFull(id, 100, { points: 100, question: 'q', answer: 'a' })
-      expect(store.themes[0].questions.find(q => q.points === 100)?.audio).toBeUndefined()
+      expect(store.themes[0].questions.find((q) => q.points === 100)?.audio).toBeUndefined()
     })
 
     it('returns false for an unknown theme', () => {
       expect(
-        store.updateQuestionFull('missing', 100, { points: 100, question: '', answer: '' })
+        store.updateQuestionFull('missing', 100, { points: 100, question: '', answer: '' }),
       ).toBe(false)
     })
 
@@ -157,8 +152,8 @@ describe('quiz store', () => {
         store.updateQuestionFull(store.themes[0].id, 1234, {
           points: 1234,
           question: '',
-          answer: ''
-        })
+          answer: '',
+        }),
       ).toBe(false)
     })
 
@@ -167,10 +162,10 @@ describe('quiz store', () => {
         store.updateQuestionFull(store.themes[0].id, 100, {
           points: 100.5,
           question: '',
-          answer: ''
-        })
+          answer: '',
+        }),
       ).toBe(false)
-      expect(store.themes[0].questions.some(q => q.points === 100.5)).toBe(false)
+      expect(store.themes[0].questions.some((q) => q.points === 100.5)).toBe(false)
     })
 
     it('rejects an already used point value', () => {
@@ -179,16 +174,16 @@ describe('quiz store', () => {
       const ok = store.updateQuestionFull(id, 100, { points: 200, question: 'x', answer: 'y' })
 
       expect(ok).toBe(false)
-      const question = store.themes[0].questions.find(q => q.points === 100)
+      const question = store.themes[0].questions.find((q) => q.points === 100)
       expect(question?.question).toBe('')
     })
 
     it('allows keeping the own point value', () => {
       const id = store.themes[0].id
       expect(
-        store.updateQuestionFull(id, 300, { points: 300, question: 'Bleibt', answer: 'ok' })
+        store.updateQuestionFull(id, 300, { points: 300, question: 'Bleibt', answer: 'ok' }),
       ).toBe(true)
-      expect(store.themes[0].questions.find(q => q.points === 300)?.question).toBe('Bleibt')
+      expect(store.themes[0].questions.find((q) => q.points === 300)?.question).toBe('Bleibt')
     })
   })
 
@@ -197,8 +192,8 @@ describe('quiz store', () => {
       store.addPlayer()
       store.addPlayer('   ')
 
-      expect(store.players.map(p => p.name)).toEqual(['Spieler 1', 'Spieler 2'])
-      expect(store.players.every(p => p.score === 0)).toBe(true)
+      expect(store.players.map((p) => p.name)).toEqual(['Spieler 1', 'Spieler 2'])
+      expect(store.players.every((p) => p.score === 0)).toBe(true)
     })
 
     it('trims given names', () => {
@@ -218,7 +213,7 @@ describe('quiz store', () => {
 
       store.removePlayer(store.players[0].id)
 
-      expect(store.players.map(p => p.name)).toEqual(['Bob'])
+      expect(store.players.map((p) => p.name)).toEqual(['Bob'])
     })
 
     it('renames and keeps the name for an empty draft', () => {
@@ -330,11 +325,11 @@ describe('quiz store', () => {
           themeText: 'Geografie',
           questions: [
             { points: 300, question: 'Drei', answer: 'c' },
-            { points: 100, question: 'Eins', answer: 'a', image: 'data:image/png;base64,AAAA' }
-          ]
-        }
+            { points: 100, question: 'Eins', answer: 'a', image: 'data:image/png;base64,AAAA' },
+          ],
+        },
       ],
-      players: [{ id: 'ignored', name: 'Anna', score: 50 }]
+      players: [{ id: 'ignored', name: 'Anna', score: 50 }],
     }
 
     it('imports a valid file and sorts questions', () => {
@@ -346,7 +341,7 @@ describe('quiz store', () => {
       expect(theme.themeText).toBe('Geografie')
       expect(typeof theme.id).toBe('string')
       expect(theme.id).not.toBe('ignored')
-      expect(theme.questions.map(q => q.points)).toEqual([100, 300])
+      expect(theme.questions.map((q) => q.points)).toEqual([100, 300])
       expect(theme.questions[0].image).toBe('data:image/png;base64,AAAA')
       expect(theme.questions[1].image).toBeUndefined()
       expect(store.players).toHaveLength(1)
@@ -369,7 +364,7 @@ describe('quiz store', () => {
 
     it('accepts older files without players and without images', () => {
       const result = store.importQuiz({
-        themes: [{ themeText: 'Alt', questions: [{ points: 100, question: 'q', answer: 'a' }] }]
+        themes: [{ themeText: 'Alt', questions: [{ points: 100, question: 'q', answer: 'a' }] }],
       })
 
       expect(result).toEqual({ ok: true })
@@ -387,41 +382,40 @@ describe('quiz store', () => {
       [{ themes: [null] }, 'Ungültiges Thema in der Datei.'],
       [{ themes: [{}] }, 'Ein Thema hat keinen gültigen Namen.'],
       [{ themes: [{ themeText: 'T' }] }, 'Ein Thema enthält keine gültigen Fragen.'],
+      [{ themes: [{ themeText: 'T', questions: [null] }] }, 'Ungültige Frage in der Datei.'],
       [
-        { themes: [{ themeText: 'T', questions: [null] }] },
-        'Ungültige Frage in der Datei.'
-      ],
-      [
-        { themes: [{ themeText: 'T', questions: [{ points: '100', question: 'q', answer: 'a' }] }] },
-        'Eine Frage hat eine ungültige Punktzahl.'
+        {
+          themes: [{ themeText: 'T', questions: [{ points: '100', question: 'q', answer: 'a' }] }],
+        },
+        'Eine Frage hat eine ungültige Punktzahl.',
       ],
       [
         {
           themes: [
-            { themeText: 'T', questions: [{ points: Number.NaN, question: 'q', answer: 'a' }] }
-          ]
+            { themeText: 'T', questions: [{ points: Number.NaN, question: 'q', answer: 'a' }] },
+          ],
         },
-        'Eine Frage hat eine ungültige Punktzahl.'
+        'Eine Frage hat eine ungültige Punktzahl.',
       ],
       [
         {
           themes: [
-            { themeText: 'T', questions: [{ points: Infinity, question: 'q', answer: 'a' }] }
-          ]
+            { themeText: 'T', questions: [{ points: Infinity, question: 'q', answer: 'a' }] },
+          ],
         },
-        'Eine Frage hat eine ungültige Punktzahl.'
+        'Eine Frage hat eine ungültige Punktzahl.',
       ],
       [
         { themes: [{ themeText: 'T', questions: [{ points: 100, question: 5, answer: 'a' }] }] },
-        'Eine Frage hat ungültigen Text.'
+        'Eine Frage hat ungültigen Text.',
       ],
       [
         { themes: [{ themeText: 'T', questions: [{ points: 100, question: 'q', answer: null }] }] },
-        'Eine Frage hat ungültigen Text.'
+        'Eine Frage hat ungültigen Text.',
       ],
       [{ themes: [], players: 'nope' }, 'Ungültige Spielerliste in der Datei.'],
       [{ themes: [], players: [null] }, 'Ein Spieler in der Datei ist ungültig.'],
-      [{ themes: [], players: [{ name: 123 }] }, 'Ein Spieler hat keinen gültigen Namen.']
+      [{ themes: [], players: [{ name: 123 }] }, 'Ein Spieler hat keinen gültigen Namen.'],
     ])('rejects invalid data: %j', (data, error) => {
       expect(store.importQuiz(data)).toEqual({ ok: false, error })
     })
@@ -431,9 +425,9 @@ describe('quiz store', () => {
         themes: [
           {
             themeText: 'T',
-            questions: [{ points: 100, question: 'q', answer: 'a', image: 'https://evil/x.png' }]
-          }
-        ]
+            questions: [{ points: 100, question: 'q', answer: 'a', image: 'https://evil/x.png' }],
+          },
+        ],
       })
 
       expect(store.themes[0].questions[0].image).toBeUndefined()
@@ -446,10 +440,10 @@ describe('quiz store', () => {
             themeText: 'T',
             questions: [
               { points: 100, question: 'q', answer: 'a', audio: 'data:audio/mpeg;base64,AAAA' },
-              { points: 200, question: 'q', answer: 'a', audio: 'https://evil/x.mp3' }
-            ]
-          }
-        ]
+              { points: 200, question: 'q', answer: 'a', audio: 'https://evil/x.mp3' },
+            ],
+          },
+        ],
       })
 
       expect(store.themes[0].questions[0].audio).toBe('data:audio/mpeg;base64,AAAA')
@@ -459,13 +453,10 @@ describe('quiz store', () => {
     it('uses 0 as a score fallback for an invalid player score', () => {
       store.importQuiz({
         themes: [],
-        players: [
-          { name: 'Ohne' },
-          { name: 'Kaputt', score: 'viel' }
-        ]
+        players: [{ name: 'Ohne' }, { name: 'Kaputt', score: 'viel' }],
       })
 
-      expect(store.players.map(p => p.score)).toEqual([0, 0])
+      expect(store.players.map((p) => p.score)).toEqual([0, 0])
     })
 
     it('does not modify existing data on a failed import', () => {
@@ -473,7 +464,7 @@ describe('quiz store', () => {
       store.addPlayer('Anna')
       const before = {
         themes: store.themes,
-        players: store.players
+        players: store.players,
       }
 
       const result = store.importQuiz({ themes: 'nope' })

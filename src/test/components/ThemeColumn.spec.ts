@@ -18,8 +18,7 @@ describe('ThemeColumn', () => {
     theme = store.themes[0]
   })
 
-  const mountColumn = () =>
-    mount(ThemeColumn, { props: { theme }, global: { plugins: [pinia] } })
+  const mountColumn = () => mount(ThemeColumn, { props: { theme }, global: { plugins: [pinia] } })
 
   it('shows the theme title and one card per question', () => {
     const wrapper = mountColumn()

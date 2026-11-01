@@ -118,7 +118,7 @@ The host only sends content that is currently visible. A viewer joining mid-sess
 
 | Command | Purpose |
 | --- | --- |
-| `npm run dev` / `npm run electron:dev` | Vite dev server plus Electron through `vite-plugin-electron` |
+| `npm run dev` | Vite dev server plus Electron through `vite-plugin-electron` |
 | `npm run build` | `vue-tsc --noEmit` and Vite production build |
 | `npm run type-check` | Type-check without emitting |
 | `npm run preview` | Preview the renderer build |
@@ -126,7 +126,7 @@ The host only sends content that is currently visible. A viewer joining mid-sess
 | `npm run test:watch` | Vitest watch mode |
 | `npm run test:coverage` | Coverage report (v8) |
 | `npm run lint` | ESLint with auto-fix |
-| `npm run format` | Prettier for `src/` |
+| `npm run format` / `npm run format:check` | Prettier for `src/`, `electron/` and the config files (write / check only) |
 | `npm run dist` | Build and package AppImage + Windows portable into `release/` |
 | `npm run dist:dir` | Unpacked build only |
 | `npm run dist:win` | Portable Windows executable |

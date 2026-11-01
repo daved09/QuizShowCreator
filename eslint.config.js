@@ -6,7 +6,7 @@ import tseslint from '@vue/eslint-config-typescript'
 
 export default [
   {
-    ignores: ['node_modules/', 'dist/', 'dist-electron/', 'release/', 'public/', 'coverage/']
+    ignores: ['node_modules/', 'dist/', 'dist-electron/', 'release/', 'public/', 'coverage/'],
   },
   js.configs.recommended,
   ...pluginVue.configs['flat/essential'],
@@ -17,15 +17,15 @@ export default [
       sourceType: 'module',
       globals: {
         ...globals.browser,
-        ...globals.node
-      }
-    }
+        ...globals.node,
+      },
+    },
   },
   {
     rules: {
       // Everything is TypeScript (including SFCs with lang="ts")
-      'vue/block-lang': ['error', { script: { lang: 'ts' } }]
-    }
+      'vue/block-lang': ['error', { script: { lang: 'ts' } }],
+    },
   },
-  skipFormatting
+  skipFormatting,
 ]

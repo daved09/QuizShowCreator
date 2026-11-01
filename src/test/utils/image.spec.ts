@@ -56,7 +56,7 @@ const toDataURL = vi.fn(() => RESIZED_DATA_URL)
 
 const installCanvasMocks = (): void => {
   vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue({
-    drawImage
+    drawImage,
   } as unknown as CanvasRenderingContext2D)
   vi.spyOn(HTMLCanvasElement.prototype, 'toDataURL').mockImplementation(toDataURL)
 }
@@ -90,7 +90,7 @@ describe('fileToImageDataUrl', () => {
 
   it('throws for non-image files', async () => {
     await expect(fileToImageDataUrl(makeFile('application/pdf'))).rejects.toThrow(
-      'Bitte eine Bilddatei auswählen.'
+      'Bitte eine Bilddatei auswählen.',
     )
   })
 
@@ -137,7 +137,7 @@ describe('fileToImageDataUrl', () => {
     imageFails = true
 
     await expect(fileToImageDataUrl(makeFile('image/png'))).rejects.toThrow(
-      'Bild konnte nicht geladen werden.'
+      'Bild konnte nicht geladen werden.',
     )
   })
 

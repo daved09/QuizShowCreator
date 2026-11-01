@@ -6,9 +6,7 @@
         Host · {{ networkStore.roomCode }}
       </span>
       <span class="viewer-count">{{ networkStore.viewerCount }} Zuschauer</span>
-      <button class="connection-button" type="button" @click="networkStore.leave()">
-        Beenden
-      </button>
+      <button class="connection-button" type="button" @click="networkStore.leave()">Beenden</button>
     </template>
 
     <template v-else-if="networkStore.isClient">
@@ -27,7 +25,7 @@
       </button>
     </template>
 
-    <button v-else class="connection-button is-primary" type="button" @click="emit('open-lobby')">
+    <button v-else class="connection-button is-primary" type="button" @click="emit('openLobby')">
       Online spielen
     </button>
   </div>
@@ -37,7 +35,7 @@
 import { computed } from 'vue'
 import { useNetworkStore } from '@/stores/network.store'
 
-const emit = defineEmits<{ (e: 'open-lobby'): void }>()
+const emit = defineEmits<{ (e: 'openLobby'): void }>()
 
 const networkStore = useNetworkStore()
 

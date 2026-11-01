@@ -7,21 +7,21 @@ export const MAX_AUDIO_BYTES = 10 * 1024 * 1024
 export const isAudioFile = (file: File): boolean => file.type.startsWith('audio/')
 
 const readAsDataURL = (file: File): Promise<string> =>
-	new Promise((resolve, reject) => {
-		const reader = new FileReader()
-		reader.onload = () => resolve(reader.result as string)
-		reader.onerror = () =>
-			reject(reader.error ?? new Error('Audiodatei konnte nicht gelesen werden.'))
-		reader.readAsDataURL(file)
-	})
+  new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result as string)
+    reader.onerror = () =>
+      reject(reader.error ?? new Error('Audiodatei konnte nicht gelesen werden.'))
+    reader.readAsDataURL(file)
+  })
 
 // Reads an audio file and returns it as a Base64 data URL.
 export const fileToAudioDataUrl = async (file: File): Promise<string> => {
-	if (!isAudioFile(file)) {
-		throw new Error('Bitte eine Audiodatei auswählen.')
-	}
-	if (file.size > MAX_AUDIO_BYTES) {
-		throw new Error('Die Audiodatei ist zu groß (max. 10 MB).')
-	}
-	return readAsDataURL(file)
+  if (!isAudioFile(file)) {
+    throw new Error('Bitte eine Audiodatei auswählen.')
+  }
+  if (file.size > MAX_AUDIO_BYTES) {
+    throw new Error('Die Audiodatei ist zu groß (max. 10 MB).')
+  }
+  return readAsDataURL(file)
 }

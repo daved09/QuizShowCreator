@@ -3,24 +3,9 @@
     <h1 class="app-title">Quizshow Creator</h1>
     <div class="header-actions">
       <template v-if="quizStore.isEditMode && !networkStore.isClient">
-        <button
-          class="add-column-button"
-          @click="importQuiz"
-        >
-          Importieren
-        </button>
-        <button
-          class="add-column-button"
-          @click="exportQuiz"
-        >
-          Exportieren
-        </button>
-        <button
-          class="add-column-button"
-          @click="addColumn"
-        >
-          Spalte hinzufügen
-        </button>
+        <button class="add-column-button" @click="importQuiz">Importieren</button>
+        <button class="add-column-button" @click="exportQuiz">Exportieren</button>
+        <button class="add-column-button" @click="addColumn">Spalte hinzufügen</button>
       </template>
       <ConnectionStatus @open-lobby="showLobby = true" />
       <button

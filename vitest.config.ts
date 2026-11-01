@@ -9,8 +9,8 @@ export default defineConfig({
   plugins: [vue()],
   resolve: {
     alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url))
-    }
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+    },
   },
   test: {
     environment: 'jsdom',
@@ -19,7 +19,7 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       include: ['src/**/*.{ts,vue}'],
-      exclude: ['src/main.ts', 'src/vite-env.d.ts', 'src/test/**']
-    }
-  }
+      exclude: ['src/main.ts', 'src/vite-env.d.ts', 'src/test/**'],
+    },
+  },
 })
