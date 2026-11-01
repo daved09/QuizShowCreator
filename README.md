@@ -74,7 +74,7 @@ npm run dev
 Under the hood:
 
 - Connectivity uses WebRTC via [PeerJS](https://peerjs.com). Only signalling goes through PeerJS' public cloud server; game data flows peer-to-peer.
-- The **host is authoritative**. It broadcasts a content-free board snapshot (themes, point values, players, scores, answered cards, open card) on every change.
+- The **host is authoritative**. It broadcasts a content-free board snapshot (themes, point values, players, scores, answered cards, open card) whenever one of these changes.
 - Question text and media are sent separately as a `card` message when a card is opened. The answer follows only after it is revealed, and can be hidden again.
 - Viewers never receive content they cannot currently see. They cannot edit questions, open cards or award points.
 - The only viewer input is the optional name in the `hello` handshake. The host turns it into a player entry.

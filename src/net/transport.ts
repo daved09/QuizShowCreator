@@ -27,9 +27,15 @@ export type TransportHandlers = {
   onError?: (message: string) => void
 }
 
-export type Transport = {
-  send: (data: unknown) => void
+// Host: one peer, many viewer connections.
+export type HostTransport = {
   broadcast: (data: unknown) => void
+  close: () => void
+}
+
+// Client: exactly one connection to the host.
+export type ClientTransport = {
+  send: (data: unknown) => void
   close: () => void
 }
 
@@ -66,7 +72,7 @@ const describeError = (error: unknown): string => {
   }
 }
 
-export const createHostTransport = (code: string, handlers: TransportHandlers): Transport => {
+export const createHostTransport = (code: string, handlers: TransportHandlers): HostTransport => {
   const peer = new Peer(roomIdFromCode(code))
   const connections = new Set<DataConnection>()
 
@@ -88,11 +94,6 @@ export const createHostTransport = (code: string, handlers: TransportHandlers): 
   peer.on('disconnected', () => handlers.onClose?.())
 
   return {
-    send: (data: unknown) => {
-      for (const connection of connections) {
-        if (connection.open) connection.send(data)
-      }
-    },
     broadcast: (data: unknown) => {
       for (const connection of connections) {
         if (connection.open) connection.send(data)
@@ -106,7 +107,10 @@ export const createHostTransport = (code: string, handlers: TransportHandlers): 
   }
 }
 
-export const createClientTransport = (code: string, handlers: TransportHandlers): Transport => {
+export const createClientTransport = (
+  code: string,
+  handlers: TransportHandlers,
+): ClientTransport => {
   const peer = new Peer()
   let connection: DataConnection | null = null
 
@@ -123,10 +127,6 @@ export const createClientTransport = (code: string, handlers: TransportHandlers)
 
   return {
     send: (data: unknown) => {
-      if (connection?.open) connection.send(data)
-    },
-    // A client has exactly one connection, so broadcast behaves like send.
-    broadcast: (data: unknown) => {
       if (connection?.open) connection.send(data)
     },
     close: () => {

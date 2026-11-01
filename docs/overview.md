@@ -98,8 +98,8 @@ App.vue / components
    -> electron main (native dialog + fs)
 
 Host: quiz store change
-   -> network store watcher -> pushState()
-   -> transport.broadcast(card | answer | state)
+   -> network store watcher (content-free snapshot) -> pushState()
+   -> hostSync.messagesFor() -> transport.broadcast(card | answer | state)
    -> viewer transport.onData()
    -> parseMessage() -> viewerSync.applyCard/applyAnswer/applySnapshot() -> quiz store
 ```

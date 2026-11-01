@@ -107,6 +107,24 @@ describe('network store', () => {
       expect(state.snapshot.themes).toHaveLength(1)
     })
 
+    it('does not push when only invisible content changes', async () => {
+      quiz.addColumn()
+      network.startHosting()
+      hostHandlers!.onOpen()
+      sent = []
+
+      const themeId = quiz.themes[0].id
+      quiz.updateQuestionFull(themeId, 100, {
+        points: 100,
+        question: 'secret',
+        answer: 'a',
+        image: 'data:image/png;base64,AAAA',
+      })
+      await nextTick()
+
+      expect(sent).toEqual([])
+    })
+
     it('ships the card content only when a card is opened', async () => {
       quiz.addColumn()
       const themeId = quiz.themes[0].id
