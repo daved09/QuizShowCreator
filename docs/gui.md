@@ -77,7 +77,7 @@ Two modes:
 
 | State | Display |
 | --- | --- |
-| Offline | **Online spielen** button (emits `open-lobby`) |
+| Offline | **Online spielen** button (emits `openLobby`) |
 | Host | `Host · <code>`, viewer count, **Beenden** |
 | Client | `Verbinde …`, `Verbunden · <code>` or the error text, **Verlassen** |
 

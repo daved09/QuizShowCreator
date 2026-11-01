@@ -29,7 +29,7 @@
     />
     <div v-for="q in theme.questions" :key="q.points" class="column-container">
       <point-button
-        @pointButtonClicked="emit('cardClicked', theme.id, q.points)"
+        @point-button-clicked="emit('cardClicked', theme.id, q.points)"
         :points="q.points"
         :edit-mode="quizStore.isEditMode"
         :answered="quizStore.isAnswered(theme.id, q.points)"
@@ -43,7 +43,7 @@
 <script setup lang="ts">
 import { nextTick, ref, watch } from 'vue'
 import PointButton from './PointButton.vue'
-import { useQuizStore, type Theme } from '@/stores'
+import { useQuizStore, type Theme } from '@/stores/quiz.store'
 const props = defineProps<{ theme: Theme }>()
 
 const emit = defineEmits<{

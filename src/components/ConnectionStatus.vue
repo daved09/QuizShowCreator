@@ -25,7 +25,7 @@
       </button>
     </template>
 
-    <button v-else class="connection-button is-primary" type="button" @click="emit('open-lobby')">
+    <button v-else class="connection-button is-primary" type="button" @click="emit('openLobby')">
       Online spielen
     </button>
   </div>
@@ -35,7 +35,7 @@
 import { computed } from 'vue'
 import { useNetworkStore } from '@/stores/network.store'
 
-const emit = defineEmits<{ (e: 'open-lobby'): void }>()
+const emit = defineEmits<{ (e: 'openLobby'): void }>()
 
 const networkStore = useNetworkStore()
 

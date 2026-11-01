@@ -6,7 +6,6 @@
   "main": "dist-electron/main.js",
   "scripts": {
     "dev": "vite",
-    "electron:dev": "vite",
     "build": "vue-tsc --noEmit && vite build",
     "type-check": "vue-tsc --noEmit",
     "preview": "vite preview",
@@ -21,7 +20,6 @@
     "format:check": "prettier --check src electron vite.config.ts vitest.config.ts eslint.config.js"
   },
   "dependencies": {
-    "bootstrap": "^5.3.8",
     "peerjs": "^1.5.5",
     "pinia": "^4.1.0",
     "vue": "^3.5.44"

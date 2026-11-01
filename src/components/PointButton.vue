@@ -2,7 +2,7 @@
   <button
     :class="{ 'edit-mode': editMode, 'is-answered': answered }"
     :title="answered && answeredBy ? `Beantwortet von ${answeredBy}` : undefined"
-    @click="test"
+    @click="onClick"
   >
     <span>{{ points }}</span>
     <span v-if="answered" class="answered-badge" aria-hidden="true">✔</span>
@@ -28,7 +28,7 @@ const emit = defineEmits<{
   (e: 'pointButtonClicked', value: number): void
 }>()
 
-const test = (): void => {
+const onClick = (): void => {
   emit('pointButtonClicked', props.points)
 }
 </script>

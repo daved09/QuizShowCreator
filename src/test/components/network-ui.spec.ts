@@ -37,7 +37,7 @@ describe('multiplayer UI', () => {
 
       await button.trigger('click')
 
-      expect(wrapper.emitted('open-lobby')).toHaveLength(1)
+      expect(wrapper.emitted('openLobby')).toHaveLength(1)
     })
 
     it('shows the room code while hosting', () => {

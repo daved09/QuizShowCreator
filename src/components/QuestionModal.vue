@@ -22,7 +22,7 @@
         <p class="label">Antwort:</p>
         <p v-if="isRevealed" class="view-text">{{ question.answer || '—' }}</p>
         <button
-          v-if="isHost"
+          v-if="canReveal"
           type="button"
           class="reveal-button"
           ref="revealButtonEl"
@@ -169,16 +169,8 @@ const revealed = defineModel<boolean | undefined>('revealed', { default: undefin
 // Hide the answer in view mode by default; already answered cards show it directly.
 const isRevealed = computed(() => revealed.value ?? !!props.answeredBy)
 
-// Checks if the client is host or client
-const isHost = computed(() => {
-  if (networkStore.isOnline && networkStore.isHost) {
-    return true
-  }
-  if (networkStore.isOnline && networkStore.isClient) {
-    return false
-  }
-  return true
-})
+// Only the host (or an offline game) controls revealing the answer; viewers just watch.
+const canReveal = computed(() => !networkStore.isClient)
 
 const toggleReveal = (): void => {
   revealed.value = !isRevealed.value

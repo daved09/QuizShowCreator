@@ -38,7 +38,7 @@ npm run dev
 
 | Command | Description |
 | --- | --- |
-| `npm run dev` | Start Vite and Electron (alias: `npm run electron:dev`) |
+| `npm run dev` | Start Vite and Electron |
 | `npm run build` | Type-check with `vue-tsc` and build for production |
 | `npm run type-check` | Type-check without emitting output |
 | `npm run preview` | Preview the renderer build |
@@ -47,6 +47,7 @@ npm run dev
 | `npm run test:coverage` | Coverage report in `coverage/` |
 | `npm run lint` | Lint and auto-fix (ESLint flat config) |
 | `npm run format` | Format sources with Prettier |
+| `npm run format:check` | Check formatting without writing changes |
 | `npm run dist` | Build and package AppImage + Windows executable into `release/` |
 | `npm run dist:dir` | Build the unpacked app without an installer |
 | `npm run dist:win` | Build a portable Windows `.exe` |
