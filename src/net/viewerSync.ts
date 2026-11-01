@@ -50,6 +50,7 @@ export const createViewerSync = (quiz: QuizStore): ViewerSync => {
       answeredBy: new Map(snapshot.answeredBy),
       openCard: open ? { ...open } : null,
       answerRevealed: snapshot.answerRevealed,
+      buzzedBy: snapshot.buzzedBy,
     })
   }
 

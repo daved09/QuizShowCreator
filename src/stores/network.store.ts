@@ -4,8 +4,9 @@
 // Host  -> watches the quiz store and broadcasts board snapshots plus the
 //          content of the open card (and its answer once revealed).
 // Client-> applies incoming snapshots / card content / answers to the quiz
-//          store and is otherwise read-only. Its only input is the player name
-//          sent with `hello`, which the host adds to the player list. Without a
+//          store and is otherwise read-only. Its inputs are the player name
+//          sent with `hello`, which the host adds to the player list, and
+//          `buzz`, the buzzer press. Without a
 //          name the host keeps entering players manually.
 
 import { computed, ref, watch } from 'vue'
@@ -46,6 +47,8 @@ export const useNetworkStore = defineStore('network', () => {
   let sessionId = 0
   // Host: connected viewer (peer id) -> the player it joined as.
   const peerPlayers = new Map<string, string>()
+  // Host: connected viewer (peer id) -> the name it joined with.
+  const peerNames = new Map<string, string>()
 
   const isHost = computed(() => role.value === 'host')
   const isClient = computed(() => role.value === 'client')
@@ -111,6 +114,16 @@ export const useNetworkStore = defineStore('network', () => {
     )
     const player = existing ?? quiz.addPlayer(uniquePlayerName(name))
     peerPlayers.set(peerId, player.id)
+    peerNames.set(peerId, name)
+  }
+
+  // Host: the player list was replaced (e.g. by an import), which drops the
+  // players of the connected viewers. Gives every viewer a player again.
+  const restorePlayers = (): void => {
+    if (role.value !== 'host') return
+    const names = Array.from(peerNames.entries())
+    peerPlayers.clear()
+    for (const [peerId, name] of names) claimPlayer(peerId, name)
   }
 
   const startHosting = (): void => {
@@ -128,10 +141,14 @@ export const useNetworkStore = defineStore('network', () => {
         status.value = 'connected'
         startWatching()
       }),
-      // Viewers are read-only apart from announcing their name.
+      // Viewers are read-only apart from announcing their name and buzzing.
       onData: guard((data: unknown, peerId: string) => {
         const message = parseMessage(data)
         if (message?.type === 'hello') claimPlayer(peerId, message.name)
+        else if (message?.type === 'buzz') {
+          const playerId = peerPlayers.get(peerId)
+          if (playerId) quiz.buzz(playerId)
+        }
       }),
       onViewerJoin: guard(() => {
         viewerCount.value += 1
@@ -144,6 +161,7 @@ export const useNetworkStore = defineStore('network', () => {
         // The player stays in the list (with its score) so a reconnect with
         // the same name picks it up again.
         peerPlayers.delete(peerId)
+        peerNames.delete(peerId)
       }),
       onClose: guard(() => connectionClosed('Verbindung zum Vermittlungsserver getrennt.')),
       onError: guard(connectionFailed),
@@ -187,6 +205,13 @@ export const useNetworkStore = defineStore('network', () => {
     })
   }
 
+  // Client: hit the buzzer. The host decides who was first.
+  const buzz = (): void => {
+    if (role.value === 'client' && status.value === 'connected') {
+      clientTransport?.send({ type: 'buzz' })
+    }
+  }
+
   const leave = (): void => {
     sessionId += 1
     stopWatching?.()
@@ -199,6 +224,7 @@ export const useNetworkStore = defineStore('network', () => {
     host?.close()
     client?.close()
     peerPlayers.clear()
+    peerNames.clear()
     playerName.value = ''
     role.value = 'offline'
     status.value = 'idle'
@@ -219,6 +245,8 @@ export const useNetworkStore = defineStore('network', () => {
     isOnline,
     startHosting,
     join,
+    buzz,
+    restorePlayers,
     leave,
   }
 })

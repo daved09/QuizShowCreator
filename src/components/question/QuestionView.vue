@@ -11,6 +11,17 @@
       @click="emit('zoomImage')"
     />
     <audio v-if="question.audio" :src="question.audio" controls class="view-audio"></audio>
+    <div v-if="buzzedPlayer" class="buzzer-banner" role="status">
+      <span class="buzzer-banner__icon" aria-hidden="true">🔔</span>
+      <span class="buzzer-banner__text">{{ buzzedPlayer.name }} hat gebuzzert!</span>
+      <button v-if="canControl" type="button" class="btn btn-sm" @click="quizStore.clearBuzz()">
+        Buzzer freigeben
+      </button>
+    </div>
+    <button v-else-if="canBuzz" type="button" class="buzzer-button" @click="networkStore.buzz()">
+      BUZZER
+    </button>
+
     <p class="label">Antwort:</p>
     <p v-if="revealed" class="view-text">{{ question.answer || '—' }}</p>
     <button
@@ -50,8 +61,9 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, onMounted, ref } from 'vue'
+import { computed, nextTick, onMounted, ref } from 'vue'
 import { usePermissions } from '@/composables/usePermissions'
+import { useNetworkStore } from '@/stores/network.store'
 import { useQuizStore } from '@/stores/quiz.store'
 import type { Question } from '@/types/quiz'
 
@@ -69,7 +81,16 @@ const emit = defineEmits<{
 }>()
 
 const quizStore = useQuizStore()
+const networkStore = useNetworkStore()
 const { canControl } = usePermissions()
+
+const buzzedPlayer = computed(
+  () => quizStore.players.find((player) => player.id === quizStore.buzzedBy) ?? null,
+)
+// Only connected viewers that joined with a name can buzz.
+const canBuzz = computed(
+  () => networkStore.isClient && networkStore.status === 'connected' && !!networkStore.playerName,
+)
 
 const revealButtonEl = ref<HTMLButtonElement | null>(null)
 
@@ -94,6 +115,44 @@ onMounted(() => {
 }
 .view-audio {
   width: 100%;
+}
+.buzzer-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem 0.85rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  background: var(--color-background-soft);
+  border: 2px solid var(--color-primary);
+  border-radius: var(--radius-md);
+}
+.buzzer-banner__text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.buzzer-button {
+  align-self: center;
+  width: 9rem;
+  height: 9rem;
+  font: inherit;
+  font-size: 1.3rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: #fff;
+  background: var(--color-danger);
+  border: 0.4rem solid rgba(0, 0, 0, 0.2);
+  border-radius: 50%;
+  cursor: pointer;
+}
+.buzzer-button:active {
+  transform: scale(0.95);
+}
+.buzzer-button:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
 }
 .reveal-button {
   align-self: flex-start;

@@ -2,7 +2,7 @@
 //
 // The host is authoritative: it turns its quiz state into a snapshot and
 // broadcasts it. Viewers (clients) only ever receive state; the only message
-// they send back is a lightweight `hello`.
+// they send back are a lightweight `hello` and the `buzz` of the buzzer.
 //
 // The board snapshot is deliberately kept content-free: it only carries what a
 // viewer actually sees on the board (themes, point values, players, scores and
@@ -13,7 +13,7 @@
 import type { OpenCard, Player, Theme } from '@/types/quiz'
 import { isFiniteNumber, isRecord } from '@/utils/guards'
 
-export const PROTOCOL_VERSION = 2
+export const PROTOCOL_VERSION = 3
 
 export type SnapshotQuestion = {
   points: number
@@ -39,6 +39,8 @@ export type GameSnapshot = {
   answeredBy: Array<[string, string]>
   openCard: OpenCard | null
   answerRevealed: boolean
+  // Id of the player who hit the buzzer first for the open card.
+  buzzedBy: string | null
 }
 
 // Content of a single question card, shipped only while that card is open.
@@ -66,7 +68,7 @@ export type HostMessage =
   | { type: 'answer'; answer: AnswerPayload }
 
 // Viewer -> host
-export type ClientMessage = { type: 'hello'; name?: string }
+export type ClientMessage = { type: 'hello'; name?: string } | { type: 'buzz' }
 
 export type NetMessage = HostMessage | ClientMessage
 
@@ -77,6 +79,7 @@ export const createSnapshot = (input: {
   answeredBy: Map<string, string>
   openCard: OpenCard | null
   answerRevealed: boolean
+  buzzedBy: string | null
 }): GameSnapshot => ({
   v: PROTOCOL_VERSION,
   themes: input.themes.map((theme) => ({
@@ -94,6 +97,7 @@ export const createSnapshot = (input: {
   answeredBy: Array.from(input.answeredBy.entries()),
   openCard: input.openCard ? { ...input.openCard } : null,
   answerRevealed: input.answerRevealed,
+  buzzedBy: input.buzzedBy,
 })
 
 const isOpenCard = (value: unknown): value is OpenCard =>
@@ -131,7 +135,8 @@ export const isGameSnapshot = (value: unknown): value is GameSnapshot =>
   Array.isArray(value.answeredBy) &&
   value.answeredBy.every(isAnsweredEntry) &&
   (value.openCard === null || isOpenCard(value.openCard)) &&
-  typeof value.answerRevealed === 'boolean'
+  typeof value.answerRevealed === 'boolean' &&
+  (value.buzzedBy === null || typeof value.buzzedBy === 'string')
 
 const isCardPayload = (value: unknown): value is CardPayload =>
   isRecord(value) &&
@@ -164,6 +169,7 @@ export const parseMessage = (raw: unknown): NetMessage | null => {
   if (type === 'hello') {
     return { type: 'hello', name: typeof data.name === 'string' ? data.name : undefined }
   }
+  if (type === 'buzz') return { type: 'buzz' }
   if (type === 'state') {
     return isGameSnapshot(data.snapshot) ? { type: 'state', snapshot: data.snapshot } : null
   }

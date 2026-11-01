@@ -133,6 +133,7 @@ Protocol version: `2`.
 | `card` | host → viewers | Question text, image/audio and (if already revealed) the answer for the currently open card. |
 | `answer` | host → viewers | Reveal an answer (`answer: string`) or hide it again (`answer: null`). |
 | `hello` | viewer → host | Connection handshake with the optional player name; the host adds (or reuses) a matching player. |
+| `buzz` | viewer → host | Buzzer press of a named viewer. The first buzz for the open card wins (`buzzedBy` in the snapshot); host and viewers see the player and hear a synthesized buzzer sound (`src/utils/buzzer.ts`). The host releases the buzzer again via "Buzzer freigeben". |
 
 The host only sends content that is currently visible. A viewer joining mid-session receives the current card content again.
 

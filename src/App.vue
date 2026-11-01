@@ -34,7 +34,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import QuizshowTable from './components/QuizshowTable.vue'
 import PlayerPanel from './components/PlayerPanel.vue'
 import ConnectionStatus from './components/ConnectionStatus.vue'
@@ -42,6 +42,7 @@ import LobbyModal from './components/LobbyModal.vue'
 import { useQuizStore } from '@/stores/quiz.store'
 import { usePermissions } from '@/composables/usePermissions'
 import { useQuizFile } from '@/composables/useQuizFile'
+import { playBuzzerSound } from '@/utils/buzzer'
 
 const quizStore = useQuizStore()
 const { canControl, canEdit } = usePermissions()
@@ -51,6 +52,14 @@ const showLobby = ref(false)
 
 const modeLabel = computed(() => (quizStore.isEditMode ? 'Spielen' : 'Bearbeiten'))
 const modeIcon = computed(() => (quizStore.isEditMode ? '▶' : '✏️'))
+
+// Everyone hears the buzzer, host and viewers alike.
+watch(
+  () => quizStore.buzzedBy,
+  (playerId) => {
+    if (playerId) playBuzzerSound()
+  },
+)
 
 const addColumn = (): void => {
   quizStore.addColumn()

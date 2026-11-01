@@ -17,6 +17,7 @@ const snapshot = (overrides: Partial<GameSnapshot> = {}): GameSnapshot => ({
   answeredBy: [],
   openCard: null,
   answerRevealed: false,
+  buzzedBy: null,
   ...overrides,
 })
 
