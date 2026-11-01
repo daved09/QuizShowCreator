@@ -2,14 +2,14 @@
   <header class="app-header">
     <h1 class="app-title">Quizshow Creator</h1>
     <div class="header-actions">
-      <template v-if="quizStore.isEditMode && !networkStore.isClient">
+      <template v-if="canEdit">
         <button class="add-column-button" @click="importQuiz">Importieren</button>
         <button class="add-column-button" @click="exportQuiz">Exportieren</button>
         <button class="add-column-button" @click="addColumn">Spalte hinzufügen</button>
       </template>
       <ConnectionStatus @open-lobby="showLobby = true" />
       <button
-        v-if="!networkStore.isClient"
+        v-if="canControl"
         class="mode-toggle"
         :class="{ 'is-edit': quizStore.isEditMode }"
         type="button"
@@ -40,10 +40,10 @@ import PlayerPanel from './components/PlayerPanel.vue'
 import ConnectionStatus from './components/ConnectionStatus.vue'
 import LobbyModal from './components/LobbyModal.vue'
 import { useQuizStore } from '@/stores/quiz.store'
-import { useNetworkStore } from '@/stores/network.store'
+import { usePermissions } from '@/composables/usePermissions'
 
 const quizStore = useQuizStore()
-const networkStore = useNetworkStore()
+const { canControl, canEdit } = usePermissions()
 
 const showLobby = ref(false)
 

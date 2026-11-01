@@ -1,6 +1,6 @@
 # Backend logic — QuizShowCreator
 
-Covers `src/stores/*`, `src/net/*`, `src/quiz/*`, `src/types/*`, `src/constants.ts`, `src/utils/*`, `electron/main.ts` and `electron/preload.ts`.
+Covers `src/stores/*`, `src/net/*`, `src/quiz/*`, `src/composables/*`, `src/types/*`, `src/constants.ts`, `src/utils/*`, `electron/main.ts` and `electron/preload.ts`.
 
 ## Shared modules
 
@@ -10,15 +10,18 @@ Covers `src/stores/*`, `src/net/*`, `src/quiz/*`, `src/types/*`, `src/constants.
 - `src/quiz/player.ts` — `normalizePlayerName` (trim and cut to `MAX_PLAYER_NAME_LENGTH`), used by the quiz store and the network store.
 - `src/utils/guards.ts` — `isRecord`, `isFiniteNumber` for validating imported files and network messages.
 - `src/utils/file.ts` — `readFileAsDataUrl`, shared by the image and audio helpers.
+- `src/quiz/quizFile.ts` — the quiz JSON format: `QUIZ_FILE_VERSION`, `QuizFile`, `createQuizFile()` and `parseQuizFile()` (see *Import and export*).
+- `src/composables/usePermissions.ts` — `canControl` (host or offline: open/close cards, reveal answers, award points, toggle the mode) and `canEdit` (`canControl` plus edit mode: change the board, import/export). Components use these instead of checking `isClient` themselves.
+
 Renderer / GUI in [gui.md](./gui.md); architecture in [overview.md](./overview.md).
 
 ## `src/stores/quiz.store.ts` — quiz state
 
-Single source of truth for themes, questions, players, scoring and the open card.
+Single source of truth for themes, questions, players, scoring and the open card. File parsing and multiplayer sync live outside the store (`src/quiz/quizFile.ts`, `src/net/hostSync.ts`, `src/net/viewerSync.ts`).
 
 ### Types
 
-Domain types live in `src/types/quiz.ts`; `QuizFile` and `ImportResult` stay in the store.
+Domain types live in `src/types/quiz.ts`, `QuizFile` in `src/quiz/quizFile.ts`. The store exports `ImportResult` and `BoardState` (the full board, as loaded from a snapshot).
 
 ```ts
 type Theme = { id: string; themeText: string; questions: Question[] }
@@ -28,7 +31,7 @@ type QuizFile = { app: 'QuizShowCreator'; version: number; themes: Theme[]; play
 ```
 
 - `DEFAULT_POINTS = [100, 200, 300, 400, 500]` (from `src/constants.ts`)
-- `QUIZ_FILE_VERSION = 4`
+- `QUIZ_FILE_VERSION = 4` (from `src/quiz/quizFile.ts`)
 - `Image` and `audio` are Base64 data URLs.
 
 ### State
@@ -41,8 +44,6 @@ type QuizFile = { app: 'QuizShowCreator'; version: number; themes: Theme[]; play
 | `openCard` | `OpenCard \| null` | Currently opened card (`{ themeId, points }`) |
 | `answerRevealed` | `boolean` | Whether the open answer is visible |
 | `isEditMode` | `boolean` | Edit vs. play mode (default `true`) |
-
-On the viewer side, `openCardContent` is a module-local cache for the card content shipped by the host; it is deliberately **not** part of the snapshot.
 
 ### Board actions
 
@@ -63,24 +64,18 @@ On the viewer side, `openCardContent` is a module-local cache for the card conte
 | `setAnswerRevealed` / `toggleAnswerRevealed` | Controls answer visibility. |
 | `resetRound` | Sets all scores to zero, clears `answeredBy` and closes the card. |
 
-### Multiplayer helpers
+### Multiplayer actions
 
-| Function | Purpose |
+| Action | Purpose |
 | --- | --- |
-| `toSnapshot()` | Builds a content-free `GameSnapshot` via `createSnapshot()`. |
-| `getQuestionCard(themeId, points)` | Host payload for the open card; includes the answer only when revealed. |
-| `getQuestionAnswer(themeId, points)` | Returns the answer for the open card. |
-| `applySnapshot(snapshot)` | Viewer: replaces themes/players/answered map/open card; fills only the currently open card from cached content. |
-| `applyCard(card)` | Viewer: caches the card content and applies it when the card is open. |
-| `applyAnswer(payload)` | Viewer: sets or clears the answer of the open card. |
-
-`applySnapshot` maps every question to `{ points, question: '', answer: '' }` and only fills the open card from `openCardContent`. Closing the card or switching to a different one drops the cache, so viewers never retain content they cannot see.
+| `loadBoard(state)` | Replaces themes, players, `answeredBy`, open card and reveal flag at once (used by the viewer sync). |
+| `patchQuestion(themeId, points, patch)` | Overwrites content fields (question, answer, image, audio) of one card. |
 
 ### Import and export
 
-`exportQuiz()` returns a `QuizFile` with the current themes and players.
+`exportQuiz()` returns `createQuizFile(themes, players)`.
 
-`importQuiz(data)` validates the document and replaces the board:
+`importQuiz(data)` validates the document with `parseQuizFile()` and, on success, replaces the board. `parseQuizFile` is a pure function:
 
 1. Root must be an object with an array `themes`.
 2. Every theme needs a string `themeText` and an array `questions`.
@@ -88,7 +83,7 @@ On the viewer side, `openCardContent` is a module-local cache for the card conte
 4. `image` is kept only when it starts with `data:image/`; `audio` only with `data:audio/`.
 5. Questions are sorted by points; theme ids are regenerated.
 6. `players` is optional; when present it must be an array of objects with a string `name`; invalid scores become `0`.
-7. On success, `answeredBy` is cleared and the open card is closed.
+7. On success, the store clears `answeredBy` and closes the open card.
 
 Errors are returned as `{ ok: false, error }` with German messages. A successful import does not validate duplicate point values in the file.
 
@@ -125,8 +120,29 @@ The `sessionId` guard prevents callbacks from a previous session from mutating t
 1. `join(code)` trims and uppercases the code; an empty code sets status `error`.
 2. Edit mode is disabled immediately so viewer affordances stay hidden while connecting.
 3. The client transport sends `hello` on open, including `name` when the viewer entered one (`playerName`).
-4. Incoming data is passed through `parseMessage()`; valid `state`, `card` and `answer` messages are applied to the quiz store. Invalid messages are ignored.
+4. Incoming data is passed through `parseMessage()`; valid `state`, `card` and `answer` messages go to a `ViewerSync` (see below) created fresh for each `join`. Invalid messages are ignored.
 5. Close/error callbacks set `idle`/`error` with a German message.
+
+## `src/net/hostSync.ts` and `src/net/viewerSync.ts` — content sync
+
+Host side (pure functions, used by `pushState()`):
+
+| Function | Purpose |
+| --- | --- |
+| `createCardPayload(themes, card, answerRevealed)` | `card` payload for the open card; includes the answer only when revealed. |
+| `getCardAnswer(themes, card)` | The answer of a card, shipped once it is revealed. |
+
+The `state` snapshot itself is `createSnapshot(quiz)` from the protocol module.
+
+Viewer side, `createViewerSync(quiz)` returns:
+
+| Function | Purpose |
+| --- | --- |
+| `applySnapshot(snapshot)` | Loads the board via `loadBoard`; every question becomes `{ points, question: '', answer: '' }` except the open card, which is filled from the cached content. |
+| `applyCard(card)` | Caches the card content and applies it when the card is open. |
+| `applyAnswer(payload)` | Sets or clears the answer of the open card. |
+
+The content cache lives inside the `ViewerSync` instance. Closing the card or switching to a different one drops it, so viewers never retain content they cannot see; a new `join` starts with an empty cache.
 
 ## `src/net/protocol.ts` — wire protocol
 
@@ -207,14 +223,16 @@ Images can be added by drag-and-drop or paste in the question field. Audio is se
 
 ## Tests
 
-`src/test/` contains 14 specs run with Vitest and jsdom:
+`src/test/` contains 20 specs run with Vitest and jsdom:
 
 | Area | Specs |
 | --- | --- |
 | App shell | `App.spec.ts` |
 | Components | `components/network-ui.spec.ts`, `PlayerPanel.spec.ts`, `PointButton.spec.ts`, `QuestionModal.spec.ts`, `QuizshowTable.spec.ts`, `ThemeColumn.spec.ts` |
-| Network | `net/protocol.spec.ts`, `net/transport.spec.ts` |
-| Stores | `stores/network.store.spec.ts`, `quiz.store.spec.ts`, `quiz.sync.spec.ts` |
-| Utilities | `utils/audio.spec.ts`, `utils/image.spec.ts` |
+| Composables | `composables/usePermissions.spec.ts` |
+| Network | `net/protocol.spec.ts`, `net/transport.spec.ts`, `net/hostSync.spec.ts`, `net/viewerSync.spec.ts` |
+| Quiz helpers | `quiz/card.spec.ts`, `quiz/player.spec.ts`, `quiz/quizFile.spec.ts` |
+| Stores | `stores/network.store.spec.ts`, `stores/quiz.store.spec.ts` |
+| Utilities | `utils/audio.spec.ts`, `utils/image.spec.ts`, `utils/guards.spec.ts` |
 
 Global setup is in `src/test/setup.ts` (jsdom stubs for `alert`/`confirm`, `crypto.randomUUID`). No test establishes a real PeerJS connection or opens native dialogs.

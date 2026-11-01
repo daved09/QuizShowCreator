@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import { DEFAULT_POINTS } from '@/constants'
-import { QUIZ_FILE_VERSION, useQuizStore, type QuizFile } from '@/stores/quiz.store'
+import { QUIZ_FILE_VERSION, type QuizFile } from '@/quiz/quizFile'
+import { useQuizStore } from '@/stores/quiz.store'
 
 describe('quiz store', () => {
   let store: ReturnType<typeof useQuizStore>
@@ -482,6 +483,38 @@ describe('quiz store', () => {
       expect(store.themes).toBe(before.themes)
       expect(store.players).toBe(before.players)
       expect(store.themes).toHaveLength(1)
+    })
+  })
+
+  describe('open/close question', () => {
+    it('opens a card and hides the answer for unanswered cards', () => {
+      store.addColumn()
+      store.openQuestion(store.themes[0].id, 100)
+
+      expect(store.openCard).toEqual({ themeId: store.themes[0].id, points: 100 })
+      expect(store.answerRevealed).toBe(false)
+    })
+
+    it('reveals the answer immediately for already answered cards', () => {
+      store.addColumn()
+      store.addPlayer('Anna')
+      const themeId = store.themes[0].id
+      store.awardPointsForCard(store.players[0].id, themeId, 100)
+
+      store.openQuestion(themeId, 100)
+
+      expect(store.answerRevealed).toBe(true)
+    })
+
+    it('closes the card and resets the reveal flag', () => {
+      store.addColumn()
+      store.openQuestion(store.themes[0].id, 100)
+      store.setAnswerRevealed(true)
+
+      store.closeQuestion()
+
+      expect(store.openCard).toBeNull()
+      expect(store.answerRevealed).toBe(false)
     })
   })
 })

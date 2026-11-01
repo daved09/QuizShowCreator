@@ -27,12 +27,12 @@ import QuestionModal from './QuestionModal.vue'
 import { findQuestion, findTheme } from '@/quiz/card'
 import { useQuizStore } from '@/stores/quiz.store'
 import type { Question } from '@/types/quiz'
-import { useNetworkStore } from '@/stores/network.store'
+import { usePermissions } from '@/composables/usePermissions'
 
 const quizStore = useQuizStore()
-const networkStore = useNetworkStore()
+const { canControl, canEdit } = usePermissions()
 
-const mode = computed(() => (quizStore.isEditMode && !networkStore.isClient ? 'edit' : 'view'))
+const mode = computed(() => (canEdit.value ? 'edit' : 'view'))
 
 const selected = computed(() => {
   const current = quizStore.openCard
@@ -51,12 +51,12 @@ const answeredBy = computed(() => {
 
 const openCard = (themeId: string, points: number): void => {
   // Viewers only watch: which question is open is driven by the host.
-  if (networkStore.isClient) return
+  if (!canControl.value) return
   quizStore.openQuestion(themeId, points)
 }
 
 const closeCard = (): void => {
-  if (networkStore.isClient) return
+  if (!canControl.value) return
   quizStore.closeQuestion()
 }
 

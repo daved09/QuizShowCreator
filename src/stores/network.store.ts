@@ -14,13 +14,15 @@ import { MAX_PLAYER_NAME_LENGTH } from '@/constants'
 import { cardKey } from '@/quiz/card'
 import { normalizePlayerName } from '@/quiz/player'
 import { useQuizStore } from '@/stores/quiz.store'
-import { parseMessage } from '@/net/protocol'
+import { createCardPayload, getCardAnswer } from '@/net/hostSync'
+import { createSnapshot, parseMessage } from '@/net/protocol'
 import {
   createClientTransport,
   createHostTransport,
   generateRoomCode,
   type Transport,
 } from '@/net/transport'
+import { createViewerSync } from '@/net/viewerSync'
 
 export type NetworkRole = 'offline' | 'host' | 'client'
 export type NetworkStatus = 'idle' | 'connecting' | 'connected' | 'error'
@@ -60,14 +62,14 @@ export const useNetworkStore = defineStore('network', () => {
     if (card) {
       const key = cardKey(card.themeId, card.points)
       if (key !== lastCardKey) {
-        const payload = quiz.getQuestionCard(card.themeId, card.points)
+        const payload = createCardPayload(quiz.themes, card, quiz.answerRevealed)
         if (payload) transport.broadcast({ type: 'card', card: payload })
         lastCardKey = key
         // An already answered card ships the answer together with the card.
         answerSent = quiz.answerRevealed
       }
       if (quiz.answerRevealed && !answerSent) {
-        const answer = quiz.getQuestionAnswer(card.themeId, card.points)
+        const answer = getCardAnswer(quiz.themes, card)
         if (answer !== null) {
           transport.broadcast({
             type: 'answer',
@@ -86,7 +88,7 @@ export const useNetworkStore = defineStore('network', () => {
       lastCardKey = null
       answerSent = false
     }
-    transport.broadcast({ type: 'state', snapshot: quiz.toSnapshot() })
+    transport.broadcast({ type: 'state', snapshot: createSnapshot(quiz) })
   }
 
   const startWatching = (): void => {
@@ -190,6 +192,8 @@ export const useNetworkStore = defineStore('network', () => {
     // stay hidden while the connection is still being established.
     quiz.setEditMode(false)
     role.value = 'client'
+    // Fresh per session, so no card content survives a reconnect.
+    const viewerSync = createViewerSync(quiz)
     transport = createClientTransport(trimmed, {
       onOpen: () => {
         if (session !== sessionId) return
@@ -203,9 +207,9 @@ export const useNetworkStore = defineStore('network', () => {
         if (session !== sessionId) return
         const message = parseMessage(data)
         if (!message) return
-        if (message.type === 'state') quiz.applySnapshot(message.snapshot)
-        else if (message.type === 'card') quiz.applyCard(message.card)
-        else if (message.type === 'answer') quiz.applyAnswer(message.answer)
+        if (message.type === 'state') viewerSync.applySnapshot(message.snapshot)
+        else if (message.type === 'card') viewerSync.applyCard(message.card)
+        else if (message.type === 'answer') viewerSync.applyAnswer(message.answer)
       },
       onClose: () => {
         if (session !== sessionId) return

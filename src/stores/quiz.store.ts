@@ -1,32 +1,21 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
-import {
-  createSnapshot,
-  type AnswerPayload,
-  type CardPayload,
-  type GameSnapshot,
-} from '@/net/protocol'
 import { DEFAULT_POINTS } from '@/constants'
-import {
-  cardKey,
-  findQuestion as findQuestionIn,
-  findTheme as findThemeIn,
-  isSameCard,
-} from '@/quiz/card'
+import { cardKey, findQuestion as findQuestionIn, findTheme as findThemeIn } from '@/quiz/card'
 import { normalizePlayerName } from '@/quiz/player'
+import { createQuizFile, parseQuizFile, type QuizFile } from '@/quiz/quizFile'
 import type { OpenCard, Player, Question, Theme } from '@/types/quiz'
-import { isFiniteNumber, isRecord } from '@/utils/guards'
-
-export const QUIZ_FILE_VERSION = 4
-
-export type QuizFile = {
-  app: 'QuizShowCreator'
-  version: number
-  themes: Theme[]
-  players: Player[]
-}
 
 export type ImportResult = { ok: true } | { ok: false; error: string }
+
+// The complete board state, as replaced by a snapshot from the host.
+export type BoardState = {
+  themes: Theme[]
+  players: Player[]
+  answeredBy: Map<string, string>
+  openCard: OpenCard | null
+  answerRevealed: boolean
+}
 
 const createTheme = (themeText: string): Theme => {
   return {
@@ -49,11 +38,6 @@ export const useQuizStore = defineStore('quizshow', () => {
 
   // Runtime state: whether the answer of the open card is revealed.
   const answerRevealed = ref<boolean>(false)
-
-  // Client-side content of the currently open card. Question text, media and,
-  // once revealed, the answer are kept here instead of the snapshot so viewers
-  // only ever hold what they currently see.
-  let openCardContent: (CardPayload & { key: string }) | null = null
 
   const isEditMode = ref<boolean>(true)
 
@@ -178,179 +162,34 @@ export const useQuizStore = defineStore('quizshow', () => {
     closeQuestion()
   }
 
-  // --- Multiplayer snapshot handling -------------------------------------
+  // --- Multiplayer (viewer side) ----------------------------------------
 
-  const toSnapshot = (): GameSnapshot => {
-    return createSnapshot({
-      themes: themes.value,
-      players: players.value,
-      answeredBy: answeredBy.value,
-      openCard: openCard.value,
-      answerRevealed: answerRevealed.value,
-    })
+  // Replaces the whole board state, e.g. with a snapshot received from the host.
+  const loadBoard = (state: BoardState) => {
+    themes.value = state.themes
+    players.value = state.players
+    answeredBy.value = state.answeredBy
+    openCard.value = state.openCard
+    answerRevealed.value = state.answerRevealed
   }
 
-  // Host: the content of a card, used to ship it when the card is opened.
-  // The answer is only included when it is already revealed.
-  const getQuestionCard = (themeId: string, points: number): CardPayload | null => {
+  // Overwrites the content fields of a single card without touching its points.
+  const patchQuestion = (
+    themeId: string,
+    points: number,
+    patch: Partial<Omit<Question, 'points'>>,
+  ) => {
     const question = findQuestion(themeId, points)
-    if (!question) return null
-    const card: CardPayload = {
-      themeId,
-      points,
-      question: question.question,
-    }
-    if (question.image) card.image = question.image
-    if (question.audio) card.audio = question.audio
-    if (answerRevealed.value) card.answer = question.answer
-    return card
+    if (question) Object.assign(question, patch)
   }
 
-  // Host: the answer of a card, shipped separately once it is revealed.
-  const getQuestionAnswer = (themeId: string, points: number): string | null => {
-    return findQuestion(themeId, points)?.answer ?? null
-  }
-
-  // Applies a board snapshot received from the host (viewers only). The snapshot
-  // carries no question content, so only the currently open card is filled in
-  // from the cached `card` payload.
-  const applySnapshot = (snapshot: GameSnapshot) => {
-    const open = snapshot.openCard
-    const openKey = open ? cardKey(open.themeId, open.points) : null
-    const content = openKey && openCardContent?.key === openKey ? openCardContent : null
-    // A closed card (or a different one) drops the cached content.
-    if (!content) openCardContent = null
-
-    themes.value = snapshot.themes.map((theme) => ({
-      id: theme.id,
-      themeText: theme.themeText,
-      questions: theme.questions.map((question) => {
-        const mapped: Question = { points: question.points, question: '', answer: '' }
-        if (content && openKey === cardKey(theme.id, question.points)) {
-          mapped.question = content.question
-          mapped.image = content.image
-          mapped.audio = content.audio
-          if (snapshot.answerRevealed && content.answer !== undefined) {
-            mapped.answer = content.answer
-          }
-        }
-        return mapped
-      }),
-    }))
-    players.value = snapshot.players.map((player) => ({ ...player }))
-    answeredBy.value = new Map(snapshot.answeredBy)
-    openCard.value = open ? { ...open } : null
-    answerRevealed.value = snapshot.answerRevealed
-  }
-
-  // Applies the content of a card shipped by the host when it is opened.
-  const applyCard = (card: CardPayload) => {
-    openCardContent = { ...card, key: cardKey(card.themeId, card.points) }
-    if (!isSameCard(openCard.value, card)) return
-    const question = findQuestion(card.themeId, card.points)
-    if (!question) return
-    question.question = card.question
-    question.image = card.image
-    question.audio = card.audio
-    if (answerRevealed.value && card.answer !== undefined) {
-      question.answer = card.answer
-    }
-  }
-
-  // Applies a reveal (or hide, with `answer: null`) for the open card.
-  const applyAnswer = (payload: AnswerPayload) => {
-    if (!isSameCard(openCard.value, payload)) return
-    const key = cardKey(payload.themeId, payload.points)
-    const question = findQuestion(payload.themeId, payload.points)
-    if (payload.answer === null) {
-      if (question) question.answer = ''
-      if (openCardContent?.key === key) {
-        openCardContent = { ...openCardContent, answer: undefined }
-      }
-    } else {
-      if (question) question.answer = payload.answer
-      if (openCardContent?.key === key) {
-        openCardContent = { ...openCardContent, answer: payload.answer }
-      }
-    }
-  }
-
-  const exportQuiz = (): QuizFile => {
-    return {
-      app: 'QuizShowCreator',
-      version: QUIZ_FILE_VERSION,
-      themes: themes.value,
-      players: players.value,
-    }
-  }
+  const exportQuiz = (): QuizFile => createQuizFile(themes.value, players.value)
 
   const importQuiz = (data: unknown): ImportResult => {
-    if (!isRecord(data)) {
-      return { ok: false, error: 'Ungültiges Dateiformat.' }
-    }
-    const rawThemes = data.themes
-    if (!Array.isArray(rawThemes)) {
-      return { ok: false, error: 'Keine Themen in der Datei gefunden.' }
-    }
-    const parsed: Theme[] = []
-    for (const rawTheme of rawThemes) {
-      if (!isRecord(rawTheme)) {
-        return { ok: false, error: 'Ungültiges Thema in der Datei.' }
-      }
-      const themeText = rawTheme.themeText
-      if (typeof themeText !== 'string') {
-        return { ok: false, error: 'Ein Thema hat keinen gültigen Namen.' }
-      }
-      const rawQuestions = rawTheme.questions
-      if (!Array.isArray(rawQuestions)) {
-        return { ok: false, error: 'Ein Thema enthält keine gültigen Fragen.' }
-      }
-      const questions: Question[] = []
-      for (const rawQuestion of rawQuestions) {
-        if (!isRecord(rawQuestion)) {
-          return { ok: false, error: 'Ungültige Frage in der Datei.' }
-        }
-        const { points, question, answer, image, audio } = rawQuestion
-        if (!isFiniteNumber(points)) {
-          return { ok: false, error: 'Eine Frage hat eine ungültige Punktzahl.' }
-        }
-        if (typeof question !== 'string' || typeof answer !== 'string') {
-          return { ok: false, error: 'Eine Frage hat ungültigen Text.' }
-        }
-        // Image is optional (older files without an image stay readable).
-        const parsedImage =
-          typeof image === 'string' && image.startsWith('data:image/') ? image : undefined
-        // Audio is optional (older files without audio stay readable).
-        const parsedAudio =
-          typeof audio === 'string' && audio.startsWith('data:audio/') ? audio : undefined
-        questions.push({ points, question, answer, image: parsedImage, audio: parsedAudio })
-      }
-      questions.sort((a, b) => a.points - b.points)
-      parsed.push({ id: crypto.randomUUID(), themeText, questions })
-    }
-
-    // Players are optional (older files without players stay readable).
-    const rawPlayers = data.players
-    const parsedPlayers: Player[] = []
-    if (rawPlayers !== undefined) {
-      if (!Array.isArray(rawPlayers)) {
-        return { ok: false, error: 'Ungültige Spielerliste in der Datei.' }
-      }
-      for (const rawPlayer of rawPlayers) {
-        if (!isRecord(rawPlayer)) {
-          return { ok: false, error: 'Ein Spieler in der Datei ist ungültig.' }
-        }
-        const { name, score } = rawPlayer
-        if (typeof name !== 'string') {
-          return { ok: false, error: 'Ein Spieler hat keinen gültigen Namen.' }
-        }
-        const playerScore = isFiniteNumber(score) ? score : 0
-        parsedPlayers.push({ id: crypto.randomUUID(), name, score: playerScore })
-      }
-    }
-
-    themes.value = parsed
-    players.value = parsedPlayers
+    const result = parseQuizFile(data)
+    if (!result.ok) return result
+    themes.value = result.themes
+    players.value = result.players
     answeredBy.value = new Map()
     closeQuestion()
     return { ok: true }
@@ -372,13 +211,9 @@ export const useQuizStore = defineStore('quizshow', () => {
     closeQuestion,
     setAnswerRevealed,
     toggleAnswerRevealed,
-    toSnapshot,
-    applySnapshot,
-    applyCard,
-    applyAnswer,
-    getQuestionCard,
-    getQuestionAnswer,
     resetRound,
+    loadBoard,
+    patchQuestion,
     exportQuiz,
     importQuiz,
     themes,
