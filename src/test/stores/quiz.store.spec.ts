@@ -309,6 +309,18 @@ describe('quiz store', () => {
       store.toggleEditMode()
       expect(store.isEditMode).toBe(true)
     })
+
+    it('closes a card opened while playing when entering edit mode', () => {
+      store.addColumn()
+      store.setEditMode(false)
+      store.openQuestion(store.themes[0].id, 100)
+      store.setAnswerRevealed(true)
+
+      store.toggleEditMode()
+
+      expect(store.openCard).toBeNull()
+      expect(store.answerRevealed).toBe(false)
+    })
   })
 
   describe('exportQuiz', () => {

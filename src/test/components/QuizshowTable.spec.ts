@@ -43,6 +43,27 @@ describe('QuizshowTable', () => {
     expect(modal.props('mode')).toBe('edit')
   })
 
+  it('keeps the edited card out of the shared open card', async () => {
+    store.addColumn()
+    const wrapper = mountTable()
+
+    await openFirstCard(wrapper)
+
+    // Only cards opened while playing are shared with viewers.
+    expect(store.openCard).toBeNull()
+  })
+
+  it('discards the edit dialog when leaving edit mode', async () => {
+    store.addColumn()
+    const wrapper = mountTable()
+    await openFirstCard(wrapper)
+
+    store.setEditMode(false)
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.findComponent(QuestionModal).exists()).toBe(false)
+  })
+
   it('opens the dialog in view mode outside of edit mode', async () => {
     store.addColumn()
     store.setEditMode(false)

@@ -11,16 +11,16 @@
 import { computed, ref, watch } from 'vue'
 import { defineStore } from 'pinia'
 import { MAX_PLAYER_NAME_LENGTH } from '@/constants'
-import { cardKey } from '@/quiz/card'
 import { normalizePlayerName } from '@/quiz/player'
 import { useQuizStore } from '@/stores/quiz.store'
-import { createCardPayload, getCardAnswer } from '@/net/hostSync'
+import { createHostSync, type HostSync } from '@/net/hostSync'
 import { createSnapshot, parseMessage } from '@/net/protocol'
 import {
   createClientTransport,
   createHostTransport,
   generateRoomCode,
-  type Transport,
+  type ClientTransport,
+  type HostTransport,
 } from '@/net/transport'
 import { createViewerSync } from '@/net/viewerSync'
 
@@ -38,12 +38,10 @@ export const useNetworkStore = defineStore('network', () => {
   // Client: the name this viewer joined with (empty when none was given).
   const playerName = ref('')
 
-  let transport: Transport | null = null
+  let hostTransport: HostTransport | null = null
+  let clientTransport: ClientTransport | null = null
+  let hostSync: HostSync | null = null
   let stopWatching: (() => void) | null = null
-  // The card whose content was sent last, so it is only shipped once per open.
-  let lastCardKey: string | null = null
-  // Whether the answer of the currently tracked card is known by the viewers.
-  let answerSent = false
   // Invalidates handlers of a previous session (e.g. after leaving).
   let sessionId = 0
   // Host: connected viewer (peer id) -> the player it joined as.
@@ -53,52 +51,41 @@ export const useNetworkStore = defineStore('network', () => {
   const isClient = computed(() => role.value === 'client')
   const isOnline = computed(() => role.value !== 'offline')
 
-  // Host -> all viewers: only what is visible right now. The board snapshot
-  // carries no content; the open card's question/media and its answer (once
-  // revealed) are shipped as separate messages, and the snapshot follows last.
-  const pushState = (): void => {
-    if (!transport || role.value !== 'host' || status.value !== 'connected') return
-    const card = quiz.openCard
-    if (card) {
-      const key = cardKey(card.themeId, card.points)
-      if (key !== lastCardKey) {
-        const payload = createCardPayload(quiz.themes, card, quiz.answerRevealed)
-        if (payload) transport.broadcast({ type: 'card', card: payload })
-        lastCardKey = key
-        // An already answered card ships the answer together with the card.
-        answerSent = quiz.answerRevealed
+  // Starts a new session and returns a wrapper that drops transport callbacks
+  // once that session is over (left or replaced by a newer one).
+  const startSession = () => {
+    const session = ++sessionId
+    return <A extends unknown[]>(handler: (...args: A) => void) =>
+      (...args: A): void => {
+        if (session === sessionId) handler(...args)
       }
-      if (quiz.answerRevealed && !answerSent) {
-        const answer = getCardAnswer(quiz.themes, card)
-        if (answer !== null) {
-          transport.broadcast({
-            type: 'answer',
-            answer: { themeId: card.themeId, points: card.points, answer },
-          })
-        }
-        answerSent = true
-      } else if (!quiz.answerRevealed && answerSent) {
-        transport.broadcast({
-          type: 'answer',
-          answer: { themeId: card.themeId, points: card.points, answer: null },
-        })
-        answerSent = false
-      }
-    } else {
-      lastCardKey = null
-      answerSent = false
-    }
-    transport.broadcast({ type: 'state', snapshot: createSnapshot(quiz) })
   }
 
+  const connectionClosed = (message: string): void => {
+    status.value = 'idle'
+    error.value = message
+  }
+
+  const connectionFailed = (message: string): void => {
+    error.value = message
+    status.value = 'error'
+  }
+
+  // Host -> all viewers: only what is visible right now (see createHostSync).
+  const pushState = (): void => {
+    if (!hostTransport || !hostSync || status.value !== 'connected') return
+    for (const message of hostSync.messagesFor(quiz)) hostTransport.broadcast(message)
+  }
+
+  // Watches only what viewers can see: the content-free snapshot. Media and
+  // question texts are not tracked, so editing them does not trigger a push.
+  // Comparing the serialized snapshot skips pushes when nothing visible changed.
   const startWatching = (): void => {
     stopWatching?.()
-    const stop = watch(
-      () => [quiz.themes, quiz.players, quiz.answeredBy, quiz.openCard, quiz.answerRevealed],
+    stopWatching = watch(
+      () => JSON.stringify(createSnapshot(quiz)),
       () => pushState(),
-      { deep: true },
     )
-    stopWatching = () => stop()
   }
 
   // Picks a name that is not yet used by another player, e.g. "Anna 2".
@@ -129,61 +116,48 @@ export const useNetworkStore = defineStore('network', () => {
   const startHosting = (): void => {
     if (isOnline.value) return
     leave()
-    const session = ++sessionId
+    const guard = startSession()
     role.value = 'host'
     status.value = 'connecting'
     error.value = null
     const code = generateRoomCode()
     roomCode.value = code
-    transport = createHostTransport(code, {
-      onOpen: () => {
-        if (session !== sessionId) return
+    hostSync = createHostSync()
+    hostTransport = createHostTransport(code, {
+      onOpen: guard(() => {
         status.value = 'connected'
         startWatching()
-      },
+      }),
       // Viewers are read-only apart from announcing their name.
-      onData: (data, peerId) => {
-        if (session !== sessionId) return
+      onData: guard((data: unknown, peerId: string) => {
         const message = parseMessage(data)
         if (message?.type === 'hello') claimPlayer(peerId, message.name)
-      },
-      onViewerJoin: () => {
-        if (session !== sessionId) return
+      }),
+      onViewerJoin: guard(() => {
         viewerCount.value += 1
         // A freshly joined viewer still needs the current card content.
-        lastCardKey = null
-        answerSent = false
+        hostSync?.reset()
         pushState()
-      },
-      onViewerLeave: (peerId) => {
-        if (session !== sessionId) return
+      }),
+      onViewerLeave: guard((peerId: string) => {
         viewerCount.value = Math.max(0, viewerCount.value - 1)
         // The player stays in the list (with its score) so a reconnect with
         // the same name picks it up again.
         peerPlayers.delete(peerId)
-      },
-      onClose: () => {
-        if (session !== sessionId) return
-        status.value = 'idle'
-        error.value = 'Verbindung zum Vermittlungsserver getrennt.'
-      },
-      onError: (message) => {
-        if (session !== sessionId) return
-        error.value = message
-        status.value = 'error'
-      },
+      }),
+      onClose: guard(() => connectionClosed('Verbindung zum Vermittlungsserver getrennt.')),
+      onError: guard(connectionFailed),
     })
   }
 
   const join = (code: string, name?: string): void => {
     const trimmed = code.trim().toUpperCase()
     if (!trimmed) {
-      error.value = 'Bitte einen Raumcode eingeben.'
-      status.value = 'error'
+      connectionFailed('Bitte einen Raumcode eingeben.')
       return
     }
     if (isOnline.value) leave()
-    const session = ++sessionId
+    const guard = startSession()
     status.value = 'connecting'
     error.value = null
     roomCode.value = trimmed
@@ -194,33 +168,22 @@ export const useNetworkStore = defineStore('network', () => {
     role.value = 'client'
     // Fresh per session, so no card content survives a reconnect.
     const viewerSync = createViewerSync(quiz)
-    transport = createClientTransport(trimmed, {
-      onOpen: () => {
-        if (session !== sessionId) return
+    clientTransport = createClientTransport(trimmed, {
+      onOpen: guard(() => {
         status.value = 'connected'
-        role.value = 'client'
-        transport?.send(
+        clientTransport?.send(
           playerName.value ? { type: 'hello', name: playerName.value } : { type: 'hello' },
         )
-      },
-      onData: (data) => {
-        if (session !== sessionId) return
+      }),
+      onData: guard((data: unknown) => {
         const message = parseMessage(data)
         if (!message) return
         if (message.type === 'state') viewerSync.applySnapshot(message.snapshot)
         else if (message.type === 'card') viewerSync.applyCard(message.card)
         else if (message.type === 'answer') viewerSync.applyAnswer(message.answer)
-      },
-      onClose: () => {
-        if (session !== sessionId) return
-        status.value = 'idle'
-        error.value = 'Verbindung zum Host beendet.'
-      },
-      onError: (message) => {
-        if (session !== sessionId) return
-        error.value = message
-        status.value = 'error'
-      },
+      }),
+      onClose: guard(() => connectionClosed('Verbindung zum Host beendet.')),
+      onError: guard(connectionFailed),
     })
   }
 
@@ -228,11 +191,13 @@ export const useNetworkStore = defineStore('network', () => {
     sessionId += 1
     stopWatching?.()
     stopWatching = null
-    const active = transport
-    transport = null
-    active?.close()
-    lastCardKey = null
-    answerSent = false
+    const host = hostTransport
+    const client = clientTransport
+    hostTransport = null
+    clientTransport = null
+    hostSync = null
+    host?.close()
+    client?.close()
     peerPlayers.clear()
     playerName.value = ''
     role.value = 'offline'

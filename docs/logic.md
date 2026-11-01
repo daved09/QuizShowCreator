@@ -49,7 +49,7 @@ type QuizFile = { app: 'QuizShowCreator'; version: number; themes: Theme[]; play
 
 | Action | Behaviour |
 | --- | --- |
-| `setEditMode` / `toggleEditMode` | Switch between edit and play mode. |
+| `setEditMode` / `toggleEditMode` | Switch between edit and play mode. Entering edit mode closes a card opened while playing. |
 | `addColumn` | Appends a theme `New Theme` with the default 100–500 cards. |
 | `removeTheme` | Removes a theme by id. |
 | `updateThemeText` | Renames a theme. |
@@ -102,18 +102,14 @@ Computed: `isHost`, `isClient`, `isOnline`.
 
 ### Host flow
 
-1. `startHosting()` leaves an existing session, creates a room code and a host transport.
-2. On `onOpen`, the status becomes `connected` and `startWatching()` installs a deep watcher over themes, players, `answeredBy`, `openCard` and `answerRevealed`.
-3. Every change calls `pushState()`:
-   - When a new card is open, broadcast a `card` message once and track its key.
-   - When the answer becomes visible, broadcast an `answer` message once.
-   - When it is hidden again, broadcast `{ answer: null }`.
-   - Always broadcast a `state` snapshot last.
-4. On viewer join, reset `lastCardKey`/`answerSent` and push state again so the new viewer receives the current card.
+1. `startHosting()` leaves an existing session, creates a room code, a `HostSync` and a host transport.
+2. On `onOpen`, the status becomes `connected` and `startWatching()` watches the serialized content-free snapshot (`JSON.stringify(createSnapshot(quiz))`). Only changes viewers can see trigger a push; editing question texts, answers or media does not.
+3. Every change calls `pushState()`, which broadcasts `hostSync.messagesFor(quiz)` (see *content sync* below): the `card` once per open, the `answer` once revealed (or `null` once hidden), and always the `state` snapshot last.
+4. On viewer join, `hostSync.reset()` and push again so the new viewer receives the current card.
 5. Viewer data is ignored except `hello`: a name (trimmed, max. 10 chars) claims an unclaimed player with the same name (case-insensitive) or adds a new one (`Anna 2` if the name is taken by another viewer). The `peerId -> playerId` mapping is dropped when the viewer leaves; the player itself stays.
 6. `leave()` increments a session id, closes the transport and resets role, status, room code, viewer count and error.
 
-The `sessionId` guard prevents callbacks from a previous session from mutating the new one.
+`startSession()` bumps the session id and returns a `guard` wrapper; every transport callback is wrapped with it, so callbacks from a previous session cannot mutate the new one. Close and error callbacks of host and client share `connectionClosed(message)` / `connectionFailed(message)`.
 
 ### Client flow
 
@@ -125,14 +121,13 @@ The `sessionId` guard prevents callbacks from a previous session from mutating t
 
 ## `src/net/hostSync.ts` and `src/net/viewerSync.ts` — content sync
 
-Host side (pure functions, used by `pushState()`):
+Host side:
 
 | Function | Purpose |
 | --- | --- |
 | `createCardPayload(themes, card, answerRevealed)` | `card` payload for the open card; includes the answer only when revealed. |
 | `getCardAnswer(themes, card)` | The answer of a card, shipped once it is revealed. |
-
-The `state` snapshot itself is `createSnapshot(quiz)` from the protocol module.
+| `createHostSync()` | Returns `{ messagesFor(board), reset() }`. Remembers the last shipped card and whether its answer is known, and returns the messages to broadcast: `card` once per open (with the answer if it is already revealed), `answer` once revealed, `answer: null` once hidden again, and always the `state` snapshot (`createSnapshot(board)`) last. `reset()` forgets what was sent, e.g. for a newly joined viewer. |
 
 Viewer side, `createViewerSync(quiz)` returns:
 
@@ -183,7 +178,7 @@ The content cache lives inside the `ViewerSync` instance. Closing the card or sw
 | `roomIdFromCode(code)` | `quizshow-<CODE>` |
 | Host | Creates a `Peer` with the room id, accepts data connections, tracks viewers in a `Set`. |
 | Client | Creates an anonymous `Peer`, connects to the host with `{ reliable: true }`, sends `hello`. |
-| `send` / `broadcast` | Send to all open connections (client: its single connection). |
+| `broadcast` (host) / `send` (client) | `createHostTransport` returns a `HostTransport` that broadcasts to all open connections; `createClientTransport` returns a `ClientTransport` that sends over its single connection. |
 | `close()` | Closes connections and destroys the peer. |
 
 Error mapping (`describeError`) covers `unavailable-id`, `peer-unavailable`, network/server/socket errors, browser incompatibility, WebRTC failures and a generic fallback.

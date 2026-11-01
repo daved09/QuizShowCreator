@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
-import { createCardPayload, getCardAnswer } from '@/net/hostSync'
+import { createCardPayload, createHostSync, getCardAnswer } from '@/net/hostSync'
 import { createSnapshot } from '@/net/protocol'
 import { useQuizStore } from '@/stores/quiz.store'
 
@@ -59,6 +59,60 @@ describe('host sync', () => {
       expect(snap.players).toEqual([{ id: store.players[0].id, name: 'Anna', score: 100 }])
       expect(snap.answeredBy).toEqual([[`${themeId}:100`, 'Anna']])
       expect(snap.themes[0].questions[0]).toEqual({ points: 100 })
+    })
+  })
+
+  describe('createHostSync', () => {
+    const types = (messages: { type: string }[]) => messages.map((message) => message.type)
+
+    it('only sends the snapshot while no card is open', () => {
+      expect(types(createHostSync().messagesFor(store))).toEqual(['state'])
+    })
+
+    it('ships the card once per open, then only snapshots', () => {
+      const sync = createHostSync()
+      store.openQuestion(themeId, 100)
+
+      const first = sync.messagesFor(store)
+      expect(types(first)).toEqual(['card', 'state'])
+      expect(first[0]).toMatchObject({ card: { question: 'q' } })
+      expect(first[0]).not.toHaveProperty('card.answer')
+      expect(types(sync.messagesFor(store))).toEqual(['state'])
+    })
+
+    it('sends the answer once revealed and null once hidden again', () => {
+      const sync = createHostSync()
+      store.openQuestion(themeId, 100)
+      sync.messagesFor(store)
+
+      store.setAnswerRevealed(true)
+      const revealed = sync.messagesFor(store)
+      expect(types(revealed)).toEqual(['answer', 'state'])
+      expect(revealed[0]).toMatchObject({ answer: { themeId, points: 100, answer: 'a' } })
+      expect(types(sync.messagesFor(store))).toEqual(['state'])
+
+      store.setAnswerRevealed(false)
+      expect(sync.messagesFor(store)[0]).toMatchObject({ answer: { answer: null } })
+    })
+
+    it('ships an already revealed answer together with the card', () => {
+      const sync = createHostSync()
+      store.openQuestion(themeId, 100)
+      store.setAnswerRevealed(true)
+
+      const messages = sync.messagesFor(store)
+      expect(types(messages)).toEqual(['card', 'state'])
+      expect(messages[0]).toMatchObject({ card: { answer: 'a' } })
+    })
+
+    it('ships the open card again after a reset', () => {
+      const sync = createHostSync()
+      store.openQuestion(themeId, 100)
+      sync.messagesFor(store)
+
+      sync.reset()
+
+      expect(types(sync.messagesFor(store))).toEqual(['card', 'state'])
     })
   })
 })
