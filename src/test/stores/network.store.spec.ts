@@ -208,6 +208,64 @@ describe('network store', () => {
 			expect(quiz.themes).toHaveLength(0)
 		})
 
+		it('adds a viewer to the player list when it announces a name', () => {
+			network.startHosting()
+			hostHandlers!.onOpen()
+
+			hostHandlers!.onData({ type: 'hello', name: '  Anna  ' }, 'viewer-1')
+
+			expect(quiz.players.map(player => player.name)).toEqual(['Anna'])
+		})
+
+		it('leaves the player list to the host when a viewer sends no name', () => {
+			network.startHosting()
+			hostHandlers!.onOpen()
+
+			hostHandlers!.onData({ type: 'hello' }, 'viewer-1')
+			hostHandlers!.onData({ type: 'hello', name: '   ' }, 'viewer-2')
+
+			expect(quiz.players).toHaveLength(0)
+		})
+
+		it('reuses a player the host already entered with the same name', () => {
+			quiz.addPlayer('Anna')
+			quiz.players[0].score = 300
+			network.startHosting()
+			hostHandlers!.onOpen()
+
+			hostHandlers!.onData({ type: 'hello', name: 'anna' }, 'viewer-1')
+
+			expect(quiz.players).toHaveLength(1)
+			expect(quiz.players[0].score).toBe(300)
+		})
+
+		it('makes the name unique when another viewer already claimed it', () => {
+			network.startHosting()
+			hostHandlers!.onOpen()
+
+			hostHandlers!.onData({ type: 'hello', name: 'Anna' }, 'viewer-1')
+			hostHandlers!.onData({ type: 'hello', name: 'Anna' }, 'viewer-2')
+			// A repeated hello from the same viewer does not add another player.
+			hostHandlers!.onData({ type: 'hello', name: 'Anna' }, 'viewer-2')
+
+			expect(quiz.players.map(player => player.name)).toEqual(['Anna', 'Anna 2'])
+		})
+
+		it('keeps the player after a viewer leaves so a reconnect picks it up again', () => {
+			network.startHosting()
+			hostHandlers!.onOpen()
+			hostHandlers!.onViewerJoin?.('viewer-1')
+			hostHandlers!.onData({ type: 'hello', name: 'Anna' }, 'viewer-1')
+			quiz.players[0].score = 200
+
+			hostHandlers!.onViewerLeave?.('viewer-1')
+			hostHandlers!.onViewerJoin?.('viewer-2')
+			hostHandlers!.onData({ type: 'hello', name: 'Anna' }, 'viewer-2')
+
+			expect(quiz.players).toHaveLength(1)
+			expect(quiz.players[0].score).toBe(200)
+		})
+
 		it('ignores events from a previous session after leaving', () => {
 			network.startHosting()
 			const handlers = hostHandlers!
@@ -243,6 +301,15 @@ describe('network store', () => {
 
 			expect(network.status).toBe('connected')
 			expect(sent).toContainEqual({ type: 'hello' })
+		})
+
+		it('sends the trimmed player name with the hello', () => {
+			network.join('AB12CD', '  Bernhard-Maximilian ')
+
+			clientHandlers!.onOpen()
+
+			expect(network.playerName).toBe('Bernhard-M')
+			expect(sent).toContainEqual({ type: 'hello', name: 'Bernhard-M' })
 		})
 
 		it('rejects an empty code', () => {

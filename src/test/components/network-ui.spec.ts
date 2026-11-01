@@ -24,6 +24,7 @@ describe('multiplayer UI', () => {
 	beforeEach(() => {
 		pinia = createTestPinia()
 		vi.clearAllMocks()
+		localStorage.clear()
 		mocks.generateRoomCode.mockReturnValue('ABCDEF')
 	})
 
@@ -67,6 +68,22 @@ describe('multiplayer UI', () => {
 			await wrapper.find('.join-form').trigger('submit')
 
 			expect(mocks.createClientTransport).toHaveBeenCalledWith('AB12CD', expect.anything())
+		})
+
+		it('joins with the entered player name and remembers it', async () => {
+			const wrapper = mount(LobbyModal, { global: { plugins: [pinia] } })
+
+			await wrapper.find('.name-input').setValue('Anna')
+			await wrapper.find('.code-input').setValue('ab12cd')
+			await wrapper.find('.join-form').trigger('submit')
+
+			expect(useNetworkStore().playerName).toBe('Anna')
+			expect(localStorage.getItem('quizshow.playerName')).toBe('Anna')
+
+			wrapper.unmount()
+			useNetworkStore().leave()
+			const reopened = mount(LobbyModal, { global: { plugins: [pinia] } })
+			expect((reopened.find('.name-input').element as HTMLInputElement).value).toBe('Anna')
 		})
 
 		it('closes via the backdrop', async () => {

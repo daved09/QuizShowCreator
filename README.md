@@ -65,7 +65,8 @@ npm run dev
 
 1. Click **Online spielen** in the header.
 2. **Spiel hosten** creates a room code (six characters, for example `K7Q2XM`).
-3. On another device, open **Online spielen**, enter the code and click **Beitreten**.
+3. On another device, open **Online spielen**, enter your name and the code and click **Beitreten**.
+   The name is added to the host's player list automatically (an existing player with the same name is reused, so a reconnect keeps its score). Without a name, the host adds players manually as before.
 4. The viewer switches to read-only mode and mirrors the board, the open card and its media.
 5. **Beenden** / **Verlassen** ends the session.
 
@@ -75,6 +76,7 @@ Under the hood:
 - The **host is authoritative**. It broadcasts a content-free board snapshot (themes, point values, players, scores, answered cards, open card) on every change.
 - Question text and media are sent separately as a `card` message when a card is opened. The answer follows only after it is revealed, and can be hidden again.
 - Viewers never receive content they cannot currently see. They cannot edit questions, open cards or award points.
+- The only viewer input is the optional name in the `hello` handshake. The host turns it into a player entry.
 
 ## Configuration
 

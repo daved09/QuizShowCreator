@@ -4,7 +4,9 @@
 // Host  -> watches the quiz store and broadcasts board snapshots plus the
 //          content of the open card (and its answer once revealed).
 // Client-> applies incoming snapshots / card content / answers to the quiz
-//          store and is otherwise read-only.
+//          store and is otherwise read-only. Its only input is the player name
+//          sent with `hello`, which the host adds to the player list. Without a
+//          name the host keeps entering players manually.
 
 import { computed, ref, watch } from 'vue'
 import { defineStore } from 'pinia'
@@ -20,6 +22,12 @@ import {
 export type NetworkRole = 'offline' | 'host' | 'client'
 export type NetworkStatus = 'idle' | 'connecting' | 'connected' | 'error'
 
+// Matches the max length of the player name inputs in the player panel.
+export const MAX_PLAYER_NAME_LENGTH = 10
+
+export const normalizePlayerName = (name: string | undefined): string =>
+	(name ?? '').trim().slice(0, MAX_PLAYER_NAME_LENGTH)
+
 export const useNetworkStore = defineStore('network', () => {
 	const quiz = useQuizStore()
 
@@ -28,6 +36,8 @@ export const useNetworkStore = defineStore('network', () => {
 	const roomCode = ref<string | null>(null)
 	const viewerCount = ref(0)
 	const error = ref<string | null>(null)
+	// Client: the name this viewer joined with (empty when none was given).
+	const playerName = ref('')
 
 	let transport: Transport | null = null
 	let stopWatching: (() => void) | null = null
@@ -37,6 +47,8 @@ export const useNetworkStore = defineStore('network', () => {
 	let answerSent = false
 	// Invalidates handlers of a previous session (e.g. after leaving).
 	let sessionId = 0
+	// Host: connected viewer (peer id) -> the player it joined as.
+	const peerPlayers = new Map<string, string>()
 
 	const isHost = computed(() => role.value === 'host')
 	const isClient = computed(() => role.value === 'client')
@@ -90,6 +102,31 @@ export const useNetworkStore = defineStore('network', () => {
 		stopWatching = () => stop()
 	}
 
+	// Picks a name that is not yet used by another player, e.g. "Anna 2".
+	const uniquePlayerName = (name: string): string => {
+		const taken = new Set(quiz.players.map(player => player.name.toLowerCase()))
+		if (!taken.has(name.toLowerCase())) return name
+		for (let i = 2; ; i++) {
+			const suffix = ` ${i}`
+			const candidate = name.slice(0, MAX_PLAYER_NAME_LENGTH - suffix.length) + suffix
+			if (!taken.has(candidate.toLowerCase())) return candidate
+		}
+	}
+
+	// Host: a viewer announced its name. An existing player with that name that
+	// no other connected viewer has claimed is reused (host-entered players and
+	// reconnects keep their score); otherwise a new player is added.
+	const claimPlayer = (peerId: string, rawName: string | undefined): void => {
+		const name = normalizePlayerName(rawName)
+		if (!name || peerPlayers.has(peerId)) return
+		const claimed = new Set(peerPlayers.values())
+		const existing = quiz.players.find(
+			player => player.name.toLowerCase() === name.toLowerCase() && !claimed.has(player.id),
+		)
+		const player = existing ?? quiz.addPlayer(uniquePlayerName(name))
+		peerPlayers.set(peerId, player.id)
+	}
+
 	const startHosting = (): void => {
 		if (isOnline.value) return
 		leave()
@@ -105,8 +142,12 @@ export const useNetworkStore = defineStore('network', () => {
 				status.value = 'connected'
 				startWatching()
 			},
-			// Viewers are read-only; ignore whatever they send.
-			onData: () => {},
+			// Viewers are read-only apart from announcing their name.
+			onData: (data, peerId) => {
+				if (session !== sessionId) return
+				const message = parseMessage(data)
+				if (message?.type === 'hello') claimPlayer(peerId, message.name)
+			},
 			onViewerJoin: () => {
 				if (session !== sessionId) return
 				viewerCount.value += 1
@@ -115,9 +156,12 @@ export const useNetworkStore = defineStore('network', () => {
 				answerSent = false
 				pushState()
 			},
-			onViewerLeave: () => {
+			onViewerLeave: (peerId) => {
 				if (session !== sessionId) return
 				viewerCount.value = Math.max(0, viewerCount.value - 1)
+				// The player stays in the list (with its score) so a reconnect with
+				// the same name picks it up again.
+				peerPlayers.delete(peerId)
 			},
 			onClose: () => {
 				if (session !== sessionId) return
@@ -132,7 +176,7 @@ export const useNetworkStore = defineStore('network', () => {
 		})
 	}
 
-	const join = (code: string): void => {
+	const join = (code: string, name?: string): void => {
 		const trimmed = code.trim().toUpperCase()
 		if (!trimmed) {
 			error.value = 'Bitte einen Raumcode eingeben.'
@@ -144,6 +188,7 @@ export const useNetworkStore = defineStore('network', () => {
 		status.value = 'connecting'
 		error.value = null
 		roomCode.value = trimmed
+		playerName.value = normalizePlayerName(name)
 		// Viewers never edit; switch to viewer mode right away so edit affordances
 		// stay hidden while the connection is still being established.
 		quiz.setEditMode(false)
@@ -153,7 +198,9 @@ export const useNetworkStore = defineStore('network', () => {
 				if (session !== sessionId) return
 				status.value = 'connected'
 				role.value = 'client'
-				transport?.send({ type: 'hello' })
+				transport?.send(
+					playerName.value ? { type: 'hello', name: playerName.value } : { type: 'hello' },
+				)
 			},
 			onData: (data) => {
 				if (session !== sessionId) return
@@ -185,6 +232,8 @@ export const useNetworkStore = defineStore('network', () => {
 		active?.close()
 		lastCardKey = null
 		answerSent = false
+		peerPlayers.clear()
+		playerName.value = ''
 		role.value = 'offline'
 		status.value = 'idle'
 		roomCode.value = null
@@ -198,6 +247,7 @@ export const useNetworkStore = defineStore('network', () => {
 		roomCode,
 		viewerCount,
 		error,
+		playerName,
 		isHost,
 		isClient,
 		isOnline,
