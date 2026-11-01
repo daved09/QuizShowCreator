@@ -88,6 +88,7 @@ export const useQuizStore = defineStore('quizshow', () => {
     target.answer = content.answer
     target.image = content.image || undefined
     target.audio = content.audio || undefined
+    target.buzzEnabled = content.buzzEnabled === false ? false : undefined
     return true
   }
 
@@ -146,6 +147,9 @@ export const useQuizStore = defineStore('quizshow', () => {
   // host releases the buzzer again.
   const buzz = (playerId: string): boolean => {
     if (!openCard.value || buzzedBy.value) return false
+    if (findQuestion(openCard.value.themeId, openCard.value.points)?.buzzEnabled === false) {
+      return false
+    }
     if (!players.value.some((p) => p.id === playerId)) return false
     buzzedBy.value = playerId
     return true

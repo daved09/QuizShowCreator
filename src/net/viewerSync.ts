@@ -39,6 +39,7 @@ export const createViewerSync = (quiz: QuizStore): ViewerSync => {
             mapped.question = content.question
             mapped.image = content.image
             mapped.audio = content.audio
+            mapped.buzzEnabled = content.buzzEnabled
             if (snapshot.answerRevealed && content.answer !== undefined) {
               mapped.answer = content.answer
             }
@@ -62,6 +63,7 @@ export const createViewerSync = (quiz: QuizStore): ViewerSync => {
       question: card.question,
       image: card.image,
       audio: card.audio,
+      buzzEnabled: card.buzzEnabled,
       ...(quiz.answerRevealed && card.answer !== undefined ? { answer: card.answer } : {}),
     })
   }

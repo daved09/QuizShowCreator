@@ -471,6 +471,15 @@ describe('quiz store', () => {
       expect(store.buzzedBy).toBeNull()
     })
 
+    it('ignores buzzes on questions with buzzing disabled', () => {
+      const themeId = store.themes[0].id
+      store.patchQuestion(themeId, 100, { buzzEnabled: false })
+      store.openQuestion(themeId, 100)
+
+      expect(store.buzz(playerId)).toBe(false)
+      expect(store.buzzedBy).toBeNull()
+    })
+
     it('keeps the first buzz until it is cleared', () => {
       const otherId = store.addPlayer('Ben').id
       store.openQuestion(store.themes[0].id, 100)

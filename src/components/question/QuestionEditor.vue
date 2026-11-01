@@ -45,6 +45,10 @@
         class="text-input"
       />
     </label>
+    <label class="field field-inline">
+      <input v-model="draft.buzzEnabled" type="checkbox" class="switch" />
+      <span class="label">Buzzern erlauben</span>
+    </label>
     <div class="modal-actions">
       <button type="button" class="btn" @click="emit('cancel')">Abbrechen</button>
       <button type="submit" class="btn btn-primary">Speichern</button>
@@ -70,6 +74,7 @@ const draft = reactive({
   answer: props.question.answer,
   image: props.question.image ?? '',
   audio: props.question.audio ?? '',
+  buzzEnabled: props.question.buzzEnabled !== false,
 })
 
 const {
@@ -92,6 +97,7 @@ const onSave = (): void => {
     answer: draft.answer.trim(),
     image: draft.image || undefined,
     audio: draft.audio || undefined,
+    buzzEnabled: draft.buzzEnabled ? undefined : false,
   })
 }
 
@@ -101,6 +107,12 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.field-inline {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.6rem;
+  cursor: pointer;
+}
 .text-input.is-dragging {
   border-color: var(--color-primary);
   background: var(--color-primary-soft);

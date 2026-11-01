@@ -21,6 +21,7 @@ export const createCardPayload = (
   }
   if (question.image) payload.image = question.image
   if (question.audio) payload.audio = question.audio
+  if (question.buzzEnabled === false) payload.buzzEnabled = false
   if (answerRevealed) payload.answer = question.answer
   return payload
 }
