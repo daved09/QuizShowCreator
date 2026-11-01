@@ -15,6 +15,7 @@ export type BoardState = {
   answeredBy: Map<string, string>
   openCard: OpenCard | null
   answerRevealed: boolean
+  buzzedBy: string | null
 }
 
 const createTheme = (themeText: string): Theme => {
@@ -38,6 +39,9 @@ export const useQuizStore = defineStore('quizshow', () => {
 
   // Runtime state: whether the answer of the open card is revealed.
   const answerRevealed = ref<boolean>(false)
+
+  // Runtime state: the player who hit the buzzer first for the open card.
+  const buzzedBy = ref<string | null>(null)
 
   const isEditMode = ref<boolean>(true)
 
@@ -99,6 +103,7 @@ export const useQuizStore = defineStore('quizshow', () => {
 
   const removePlayer = (id: string) => {
     players.value = players.value.filter((p) => p.id !== id)
+    if (buzzedBy.value === id) buzzedBy.value = null
   }
 
   const renamePlayer = (id: string, name: string) => {
@@ -128,11 +133,26 @@ export const useQuizStore = defineStore('quizshow', () => {
     openCard.value = { themeId, points }
     // Already answered cards show the answer right away.
     answerRevealed.value = isAnswered(themeId, points)
+    buzzedBy.value = null
   }
 
   const closeQuestion = () => {
     openCard.value = null
     answerRevealed.value = false
+    buzzedBy.value = null
+  }
+
+  // The first buzz for the open card wins; later ones are ignored until the
+  // host releases the buzzer again.
+  const buzz = (playerId: string): boolean => {
+    if (!openCard.value || buzzedBy.value) return false
+    if (!players.value.some((p) => p.id === playerId)) return false
+    buzzedBy.value = playerId
+    return true
+  }
+
+  const clearBuzz = () => {
+    buzzedBy.value = null
   }
 
   const setAnswerRevealed = (value: boolean) => {
@@ -160,6 +180,7 @@ export const useQuizStore = defineStore('quizshow', () => {
     answeredBy.value = state.answeredBy
     openCard.value = state.openCard
     answerRevealed.value = state.answerRevealed
+    buzzedBy.value = state.buzzedBy
   }
 
   // Overwrites the content fields of a single card without touching its points.
@@ -193,6 +214,8 @@ export const useQuizStore = defineStore('quizshow', () => {
     getAnsweredBy,
     openQuestion,
     closeQuestion,
+    buzz,
+    clearBuzz,
     setAnswerRevealed,
     toggleAnswerRevealed,
     resetRound,
@@ -208,5 +231,6 @@ export const useQuizStore = defineStore('quizshow', () => {
     toggleEditMode,
     openCard,
     answerRevealed,
+    buzzedBy,
   }
 })

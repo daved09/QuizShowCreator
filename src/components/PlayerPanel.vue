@@ -5,7 +5,12 @@
     <p v-if="quizStore.players.length === 0" class="empty-hint">Noch keine Spieler.</p>
 
     <ul v-else class="player-list">
-      <li v-for="player in quizStore.players" :key="player.id" class="player-item">
+      <li
+        v-for="player in quizStore.players"
+        :key="player.id"
+        class="player-item"
+        :class="{ 'is-buzzed': quizStore.buzzedBy === player.id }"
+      >
         <template v-if="editingId === player.id">
           <input
             :ref="setNameInput"
@@ -34,6 +39,9 @@
             ✖
           </button>
         </template>
+        <span v-if="quizStore.buzzedBy === player.id" class="buzzed-icon" title="Hat gebuzzert">
+          🔔
+        </span>
         <span class="player-score">{{ player.score }}</span>
       </li>
     </ul>
@@ -147,6 +155,10 @@ const resetRound = (): void => {
   background: var(--color-background);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
+}
+.player-item.is-buzzed {
+  border-color: var(--color-primary);
+  box-shadow: var(--focus-ring);
 }
 .player-name {
   flex: 1;

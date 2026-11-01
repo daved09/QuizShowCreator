@@ -453,4 +453,43 @@ describe('quiz store', () => {
       expect(store.answerRevealed).toBe(false)
     })
   })
+
+  describe('buzzer', () => {
+    let playerId: string
+
+    beforeEach(() => {
+      store.addColumn()
+      playerId = store.addPlayer('Anna').id
+    })
+
+    it('ignores buzzes while no card is open or for unknown players', () => {
+      expect(store.buzz(playerId)).toBe(false)
+
+      store.openQuestion(store.themes[0].id, 100)
+
+      expect(store.buzz('unknown')).toBe(false)
+      expect(store.buzzedBy).toBeNull()
+    })
+
+    it('keeps the first buzz until it is cleared', () => {
+      const otherId = store.addPlayer('Ben').id
+      store.openQuestion(store.themes[0].id, 100)
+
+      expect(store.buzz(playerId)).toBe(true)
+      expect(store.buzz(otherId)).toBe(false)
+      expect(store.buzzedBy).toBe(playerId)
+
+      store.clearBuzz()
+      expect(store.buzz(otherId)).toBe(true)
+    })
+
+    it('resets when a card is opened or closed', () => {
+      store.openQuestion(store.themes[0].id, 100)
+      store.buzz(playerId)
+
+      store.closeQuestion()
+
+      expect(store.buzzedBy).toBeNull()
+    })
+  })
 })

@@ -54,6 +54,7 @@ const remoteSnapshot: GameSnapshot = {
   answeredBy: [['t1:100', 'Anna']],
   openCard: { themeId: 't1', points: 100 },
   answerRevealed: true,
+  buzzedBy: null,
 }
 
 describe('network store', () => {
@@ -288,6 +289,54 @@ describe('network store', () => {
       expect(quiz.players[0].score).toBe(200)
     })
 
+    it('lets the first buzz of a named viewer win', () => {
+      network.startHosting()
+      hostHandlers!.onOpen()
+      hostHandlers!.onData({ type: 'hello', name: 'Anna' }, 'viewer-1')
+      hostHandlers!.onData({ type: 'hello', name: 'Ben' }, 'viewer-2')
+      quiz.addColumn()
+      quiz.openQuestion(quiz.themes[0].id, 100)
+
+      hostHandlers!.onData({ type: 'buzz' }, 'viewer-2')
+      hostHandlers!.onData({ type: 'buzz' }, 'viewer-1')
+
+      expect(quiz.buzzedBy).toBe(quiz.players[1].id)
+    })
+
+    it('ignores a buzz from a viewer without a player', () => {
+      network.startHosting()
+      hostHandlers!.onOpen()
+      quiz.addColumn()
+      quiz.openQuestion(quiz.themes[0].id, 100)
+
+      hostHandlers!.onData({ type: 'buzz' }, 'viewer-1')
+
+      expect(quiz.buzzedBy).toBeNull()
+    })
+
+    it('gives connected viewers a player again after the players were replaced', () => {
+      network.startHosting()
+      hostHandlers!.onOpen()
+      hostHandlers!.onData({ type: 'hello', name: 'Anna' }, 'viewer-1')
+      hostHandlers!.onData({ type: 'hello', name: 'Ben' }, 'viewer-2')
+      // An import replaces the players with the ones from the file.
+      quiz.importQuiz({
+        app: 'QuizShowCreator',
+        version: 4,
+        themes: [],
+        players: [{ id: 'x', name: 'Ben', score: 300 }],
+      })
+
+      network.restorePlayers()
+      quiz.addColumn()
+      quiz.openQuestion(quiz.themes[0].id, 100)
+      hostHandlers!.onData({ type: 'buzz' }, 'viewer-1')
+
+      expect(quiz.players.map((player) => player.name)).toEqual(['Ben', 'Anna'])
+      expect(quiz.players[0].score).toBe(300)
+      expect(quiz.buzzedBy).toBe(quiz.players[1].id)
+    })
+
     it('ignores events from a previous session after leaving', () => {
       network.startHosting()
       const handlers = hostHandlers!
@@ -332,6 +381,17 @@ describe('network store', () => {
 
       expect(network.playerName).toBe('Bernhard-M')
       expect(sent).toContainEqual({ type: 'hello', name: 'Bernhard-M' })
+    })
+
+    it('sends a buzz once connected', () => {
+      network.join('abcdef', 'Anna')
+      network.buzz()
+      expect(sent).not.toContainEqual({ type: 'buzz' })
+
+      clientHandlers!.onOpen()
+      network.buzz()
+
+      expect(sent).toContainEqual({ type: 'buzz' })
     })
 
     it('rejects an empty code', () => {

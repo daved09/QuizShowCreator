@@ -151,6 +151,7 @@ The content cache lives inside the `ViewerSync` instance. Closing the card or sw
 | `card` | host → viewer | `{ type: 'card', card: CardPayload }` |
 | `answer` | host → viewer | `{ type: 'answer', answer: AnswerPayload }` |
 | `hello` | viewer → host | `{ type: 'hello', name?: string }` |
+| `buzz` | viewer → host | `{ type: 'buzz' }`; the host calls `quiz.buzz(playerId)` for the viewer's player. `buzzedBy` (player id) is part of the snapshot (protocol version 3) and reset when a card is opened or closed. |
 
 `GameSnapshot` contains only visible board data:
 

@@ -27,6 +27,12 @@ const themes: Theme[] = [
 
 const players: Player[] = [{ id: 'p1', name: 'Anna', score: 100 }]
 
+describe('buzz message', () => {
+  it('parses a buzz from a viewer', () => {
+    expect(parseMessage({ type: 'buzz' })).toEqual({ type: 'buzz' })
+  })
+})
+
 describe('createSnapshot', () => {
   it('ships only board metadata and never question content', () => {
     const snapshot = createSnapshot({
@@ -35,6 +41,7 @@ describe('createSnapshot', () => {
       answeredBy: new Map([['t1:100', 'Anna']]),
       openCard: { themeId: 't1', points: 100 },
       answerRevealed: true,
+      buzzedBy: null,
     })
 
     expect(snapshot.v).toBe(PROTOCOL_VERSION)
@@ -62,6 +69,7 @@ describe('createSnapshot', () => {
       ]),
       openCard: null,
       answerRevealed: false,
+      buzzedBy: null,
     })
 
     expect(snapshot.answeredBy).toEqual([
@@ -79,6 +87,7 @@ describe('createSnapshot', () => {
       answeredBy: new Map(),
       openCard,
       answerRevealed: false,
+      buzzedBy: null,
     })
 
     expect(snapshot.openCard).not.toBe(openCard)
@@ -93,6 +102,7 @@ describe('isGameSnapshot', () => {
     answeredBy: new Map(),
     openCard: null,
     answerRevealed: false,
+    buzzedBy: null,
   })
 
   it('accepts a well-formed snapshot', () => {
@@ -119,6 +129,7 @@ describe('parseMessage', () => {
     answeredBy: new Map(),
     openCard: null,
     answerRevealed: false,
+    buzzedBy: null,
   })
 
   it('accepts a state message', () => {
@@ -184,6 +195,7 @@ describe('snapshot round trip', () => {
       answeredBy: new Map([['t1:100', 'Anna']]),
       openCard: { themeId: 't1', points: 100 },
       answerRevealed: true,
+      buzzedBy: null,
     })
 
     const message = parseMessage(JSON.parse(JSON.stringify({ type: 'state', snapshot })))
