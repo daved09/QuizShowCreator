@@ -46,7 +46,7 @@
       />
     </label>
     <label class="field field-inline">
-      <input v-model="draft.buzzEnabled" type="checkbox" class="buzz-toggle" />
+      <input v-model="draft.buzzEnabled" type="checkbox" class="switch" />
       <span class="label">Buzzern erlauben</span>
     </label>
     <div class="modal-actions">
@@ -110,7 +110,8 @@ onMounted(() => {
 .field-inline {
   flex-direction: row;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.6rem;
+  cursor: pointer;
 }
 .text-input.is-dragging {
   border-color: var(--color-primary);
