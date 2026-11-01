@@ -90,6 +90,7 @@ Errors are returned as `{ ok: false, error }` with German messages. A successful
 | `roomCode` | `string \| null` | Active room code |
 | `viewerCount` | `number` | Connected viewers on the host |
 | `error` | `string \| null` | Last connection error |
+| `playerName` | `string` | Name the client joined with (empty if none) |
 
 Computed: `isHost`, `isClient`, `isOnline`.
 
@@ -103,7 +104,7 @@ Computed: `isHost`, `isClient`, `isOnline`.
    - When it is hidden again, broadcast `{ answer: null }`.
    - Always broadcast a `state` snapshot last.
 4. On viewer join, reset `lastCardKey`/`answerSent` and push state again so the new viewer receives the current card.
-5. Viewer data is ignored (`onData: () => {}`).
+5. Viewer data is ignored except `hello`: a name (trimmed, max. 10 chars) claims an unclaimed player with the same name (case-insensitive) or adds a new one (`Anna 2` if the name is taken by another viewer). The `peerId -> playerId` mapping is dropped when the viewer leaves; the player itself stays.
 6. `leave()` increments a session id, closes the transport and resets role, status, room code, viewer count and error.
 
 The `sessionId` guard prevents callbacks from a previous session from mutating the new one.
@@ -112,7 +113,7 @@ The `sessionId` guard prevents callbacks from a previous session from mutating t
 
 1. `join(code)` trims and uppercases the code; an empty code sets status `error`.
 2. Edit mode is disabled immediately so viewer affordances stay hidden while connecting.
-3. The client transport sends `hello` on open.
+3. The client transport sends `hello` on open, including `name` when the viewer entered one (`playerName`).
 4. Incoming data is passed through `parseMessage()`; valid `state`, `card` and `answer` messages are applied to the quiz store. Invalid messages are ignored.
 5. Close/error callbacks set `idle`/`error` with a German message.
 

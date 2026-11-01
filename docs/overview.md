@@ -110,7 +110,7 @@ Protocol version: `2`.
 | `state` | host → viewers | Content-free board snapshot: themes/points, players/scores, answered map, open card, reveal flag. |
 | `card` | host → viewers | Question text, image/audio and (if already revealed) the answer for the currently open card. |
 | `answer` | host → viewers | Reveal an answer (`answer: string`) or hide it again (`answer: null`). |
-| `hello` | viewer → host | Connection handshake; currently ignored by the host. |
+| `hello` | viewer → host | Connection handshake with the optional player name; the host adds (or reuses) a matching player. |
 
 The host only sends content that is currently visible. A viewer joining mid-session receives the current card content again.
 

@@ -127,13 +127,15 @@ export const useQuizStore = defineStore('quizshow', () => {
 		return true;
 	};
 
-	const addPlayer = (name?: string) => {
+	const addPlayer = (name?: string): Player => {
 		const trimmed = (name ?? "").trim();
-		players.value.push({
+		const player: Player = {
 			id: crypto.randomUUID(),
 			name: trimmed || `Spieler ${players.value.length + 1}`,
 			score: 0,
-		});
+		};
+		players.value.push(player);
+		return player;
 	};
 
 	const removePlayer = (id: string) => {

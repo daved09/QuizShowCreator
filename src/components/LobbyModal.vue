@@ -42,13 +42,25 @@
           </template>
           <form v-else class="join-form" @submit.prevent="join">
             <input
-              v-model="code"
-              class="code-input"
-              maxlength="8"
-              placeholder="Raumcode"
-              aria-label="Raumcode"
+              v-model="name"
+              class="name-input"
+              :maxlength="MAX_PLAYER_NAME_LENGTH"
+              placeholder="Dein Name"
+              aria-label="Dein Name"
             />
-            <button type="submit" class="primary" :disabled="!code.trim()">Beitreten</button>
+            <div class="join-row">
+              <input
+                v-model="code"
+                class="code-input"
+                maxlength="8"
+                placeholder="Raumcode"
+                aria-label="Raumcode"
+              />
+              <button type="submit" class="primary" :disabled="!code.trim()">Beitreten</button>
+            </div>
+            <p class="hint">
+              Mit Namen erscheinst du automatisch in der Spielerliste. Ohne Namen trägt dich der Host ein.
+            </p>
           </form>
         </section>
       </div>
@@ -58,16 +70,37 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { useNetworkStore } from '@/stores/network.store'
+import { MAX_PLAYER_NAME_LENGTH, useNetworkStore } from '@/stores/network.store'
 
 const emit = defineEmits<{ (e: 'close'): void }>()
 
+// Remembers the last used name so it does not have to be typed again.
+const NAME_STORAGE_KEY = 'quizshow.playerName'
+
+const readStoredName = (): string => {
+  try {
+    return localStorage.getItem(NAME_STORAGE_KEY) ?? ''
+  } catch {
+    return ''
+  }
+}
+
+const storeName = (value: string): void => {
+  try {
+    localStorage.setItem(NAME_STORAGE_KEY, value)
+  } catch {
+    // Storage is optional; ignore failures.
+  }
+}
+
 const networkStore = useNetworkStore()
 const code = ref('')
+const name = ref(readStoredName())
 
 const join = (): void => {
   if (!code.value.trim()) return
-  networkStore.join(code.value)
+  storeName(name.value.trim())
+  networkStore.join(code.value, name.value)
 }
 
 const copyCode = async (): Promise<void> => {
@@ -95,7 +128,9 @@ const clientStatusText = computed(() => {
     case 'connecting':
       return 'Verbindung wird aufgebaut …'
     case 'connected':
-      return `Verbunden mit Raum ${networkStore.roomCode}.`
+      return networkStore.playerName
+        ? `Verbunden mit Raum ${networkStore.roomCode} als ${networkStore.playerName}.`
+        : `Verbunden mit Raum ${networkStore.roomCode}.`
     case 'error':
       return networkStore.error ?? 'Verbindung fehlgeschlagen.'
     default:
@@ -193,19 +228,28 @@ const clientStatusText = computed(() => {
 }
 .join-form {
   display: flex;
+  flex-direction: column;
   gap: 0.5rem;
 }
+.join-row {
+  display: flex;
+  gap: 0.5rem;
+}
+.name-input,
 .code-input {
   flex: 1;
   min-width: 0;
   font: inherit;
   padding: 0.5rem;
-  text-transform: uppercase;
   color: var(--color-text);
   background: var(--color-background-soft);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
 }
+.code-input {
+  text-transform: uppercase;
+}
+.name-input:focus,
 .code-input:focus {
   outline: none;
   border-color: var(--color-primary);
