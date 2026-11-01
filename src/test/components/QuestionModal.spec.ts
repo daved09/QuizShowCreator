@@ -59,7 +59,6 @@ describe('QuestionModal', () => {
       expect(wrapper.emitted('save')).toEqual([
         [
           {
-            points: 100,
             question: 'Neue Frage',
             answer: 'Neue Antwort',
             image: undefined,
@@ -69,13 +68,16 @@ describe('QuestionModal', () => {
       ])
     })
 
-    it('prevents saving with a non-integer point value', async () => {
-      const wrapper = mountEdit({ points: 100.5 })
+    it('focuses the question field when opened', async () => {
+      const wrapper = mount(QuestionModal, {
+        props: { mode: 'edit' as const, themeText: 'Thema', question },
+        global: { plugins: [pinia] },
+        attachTo: document.body,
+      })
+      await flushPromises()
 
-      await wrapper.find('form').trigger('submit')
-
-      expect(wrapper.find('.error').text()).toBe('Bitte eine ganze Punktzahl eingeben.')
-      expect(wrapper.emitted('save')).toBeUndefined()
+      expect(document.activeElement).toBe(wrapper.findAll('textarea')[0].element)
+      wrapper.unmount()
     })
 
     it('shows an image preview and removes the image', async () => {
@@ -213,7 +215,7 @@ describe('QuestionModal', () => {
     it('emits close via the close button', async () => {
       const wrapper = mountView()
 
-      await wrapper.find('.modal-actions .primary').trigger('click')
+      await wrapper.find('.modal-actions .btn-primary').trigger('click')
 
       expect(wrapper.emitted('close')).toHaveLength(1)
     })
@@ -388,7 +390,6 @@ describe('QuestionModal', () => {
       expect(wrapper.emitted('save')).toEqual([
         [
           {
-            points: 100,
             question: 'Frage',
             answer: 'Antwort',
             image: undefined,

@@ -6,7 +6,9 @@
         Host · {{ networkStore.roomCode }}
       </span>
       <span class="viewer-count">{{ networkStore.viewerCount }} Zuschauer</span>
-      <button class="connection-button" type="button" @click="networkStore.leave()">Beenden</button>
+      <button class="connection-button btn" type="button" @click="networkStore.leave()">
+        Beenden
+      </button>
     </template>
 
     <template v-else-if="networkStore.isClient">
@@ -20,12 +22,17 @@
         <span class="status-dot" aria-hidden="true"></span>
         {{ clientLabel }}
       </span>
-      <button class="connection-button" type="button" @click="networkStore.leave()">
+      <button class="connection-button btn" type="button" @click="networkStore.leave()">
         Verlassen
       </button>
     </template>
 
-    <button v-else class="connection-button is-primary" type="button" @click="emit('openLobby')">
+    <button
+      v-else
+      class="connection-button btn btn-primary"
+      type="button"
+      @click="emit('openLobby')"
+    >
       Online spielen
     </button>
   </div>
@@ -96,34 +103,5 @@ const clientLabel = computed(() => {
   display: inline-flex;
   align-items: center;
   padding: 0.4rem 0.9rem;
-  font: inherit;
-  font-weight: 600;
-  color: var(--color-text);
-  background: var(--color-background-soft);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  transition:
-    background-color var(--transition-fast),
-    border-color var(--transition-fast),
-    color var(--transition-fast);
-}
-.connection-button:hover {
-  border-color: var(--color-primary);
-  color: var(--color-primary);
-  background: var(--color-primary-soft);
-}
-.connection-button.is-primary {
-  color: var(--color-on-primary);
-  background: var(--color-primary);
-  border-color: transparent;
-}
-.connection-button.is-primary:hover {
-  color: var(--color-on-primary);
-  background: var(--color-primary-hover);
-}
-.connection-button:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
 }
 </style>

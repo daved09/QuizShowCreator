@@ -54,58 +54,24 @@ describe('quiz store', () => {
     })
   })
 
-  describe('updateQuestion', () => {
-    it('updates the question text of an existing point value', () => {
-      store.addColumn()
-      const id = store.themes[0].id
-
-      store.updateQuestion(id, 200, 'Wie hoch ist der Mount Everest?')
-
-      const question = store.themes[0].questions.find((q) => q.points === 200)
-      expect(question?.question).toBe('Wie hoch ist der Mount Everest?')
-      expect(question?.answer).toBe('')
-    })
-
-    it('adds a question with a new point value', () => {
-      store.addColumn()
-      const id = store.themes[0].id
-
-      store.updateQuestion(id, 999, 'Bonusfrage')
-
-      expect(store.themes[0].questions).toHaveLength(DEFAULT_POINTS.length + 1)
-      expect(store.themes[0].questions[DEFAULT_POINTS.length]).toEqual({
-        points: 999,
-        question: 'Bonusfrage',
-        answer: '',
-      })
-    })
-
-    it('does nothing for an unknown theme', () => {
-      expect(() => store.updateQuestion('missing', 100, 'x')).not.toThrow()
-      expect(store.themes).toHaveLength(0)
-    })
-  })
-
-  describe('updateQuestionFull', () => {
+  describe('updateQuestionContent', () => {
     beforeEach(() => {
       store.addColumn()
     })
 
-    it('updates points, question, answer and image and re-sorts', () => {
+    it('updates question, answer and image but keeps the points', () => {
       const id = store.themes[0].id
 
-      const ok = store.updateQuestionFull(id, 100, {
-        points: 150,
+      const ok = store.updateQuestionContent(id, 100, {
         question: 'Frage',
         answer: 'Antwort',
         image: 'data:image/png;base64,AAAA',
       })
 
       expect(ok).toBe(true)
-      expect(store.themes[0].questions.map((q) => q.points)).toEqual([150, 200, 300, 400, 500])
-      const question = store.themes[0].questions.find((q) => q.points === 150)
-      expect(question).toEqual({
-        points: 150,
+      expect(store.themes[0].questions.map((q) => q.points)).toEqual(DEFAULT_POINTS)
+      expect(store.themes[0].questions[0]).toEqual({
+        points: 100,
         question: 'Frage',
         answer: 'Antwort',
         image: 'data:image/png;base64,AAAA',
@@ -114,78 +80,36 @@ describe('quiz store', () => {
 
     it('removes the image when none is passed', () => {
       const id = store.themes[0].id
-      store.updateQuestionFull(id, 100, {
-        points: 100,
+      store.updateQuestionContent(id, 100, {
         question: 'q',
         answer: 'a',
         image: 'data:image/png;base64,AAAA',
       })
 
-      store.updateQuestionFull(id, 100, { points: 100, question: 'q', answer: 'a' })
+      store.updateQuestionContent(id, 100, { question: 'q', answer: 'a' })
 
-      expect(store.themes[0].questions.find((q) => q.points === 100)?.image).toBeUndefined()
+      expect(store.themes[0].questions[0].image).toBeUndefined()
     })
 
     it('sets and removes audio like the image', () => {
       const id = store.themes[0].id
 
-      store.updateQuestionFull(id, 100, {
-        points: 100,
+      store.updateQuestionContent(id, 100, {
         question: 'q',
         answer: 'a',
         audio: 'data:audio/mpeg;base64,AAAA',
       })
-      expect(store.themes[0].questions.find((q) => q.points === 100)?.audio).toBe(
-        'data:audio/mpeg;base64,AAAA',
-      )
+      expect(store.themes[0].questions[0].audio).toBe('data:audio/mpeg;base64,AAAA')
 
-      store.updateQuestionFull(id, 100, { points: 100, question: 'q', answer: 'a' })
-      expect(store.themes[0].questions.find((q) => q.points === 100)?.audio).toBeUndefined()
+      store.updateQuestionContent(id, 100, { question: 'q', answer: 'a' })
+      expect(store.themes[0].questions[0].audio).toBeUndefined()
     })
 
-    it('returns false for an unknown theme', () => {
+    it('returns false for an unknown theme or point value', () => {
+      expect(store.updateQuestionContent('missing', 100, { question: '', answer: '' })).toBe(false)
       expect(
-        store.updateQuestionFull('missing', 100, { points: 100, question: '', answer: '' }),
+        store.updateQuestionContent(store.themes[0].id, 1234, { question: '', answer: '' }),
       ).toBe(false)
-    })
-
-    it('returns false for an unknown old point value', () => {
-      expect(
-        store.updateQuestionFull(store.themes[0].id, 1234, {
-          points: 1234,
-          question: '',
-          answer: '',
-        }),
-      ).toBe(false)
-    })
-
-    it('rejects non-integer point values', () => {
-      expect(
-        store.updateQuestionFull(store.themes[0].id, 100, {
-          points: 100.5,
-          question: '',
-          answer: '',
-        }),
-      ).toBe(false)
-      expect(store.themes[0].questions.some((q) => q.points === 100.5)).toBe(false)
-    })
-
-    it('rejects an already used point value', () => {
-      const id = store.themes[0].id
-
-      const ok = store.updateQuestionFull(id, 100, { points: 200, question: 'x', answer: 'y' })
-
-      expect(ok).toBe(false)
-      const question = store.themes[0].questions.find((q) => q.points === 100)
-      expect(question?.question).toBe('')
-    })
-
-    it('allows keeping the own point value', () => {
-      const id = store.themes[0].id
-      expect(
-        store.updateQuestionFull(id, 300, { points: 300, question: 'Bleibt', answer: 'ok' }),
-      ).toBe(true)
-      expect(store.themes[0].questions.find((q) => q.points === 300)?.question).toBe('Bleibt')
     })
   })
 

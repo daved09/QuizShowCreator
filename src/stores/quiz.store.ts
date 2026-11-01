@@ -4,7 +4,7 @@ import { DEFAULT_POINTS } from '@/constants'
 import { cardKey, findQuestion as findQuestionIn, findTheme as findThemeIn } from '@/quiz/card'
 import { normalizePlayerName } from '@/quiz/player'
 import { createQuizFile, parseQuizFile, type QuizFile } from '@/quiz/quizFile'
-import type { OpenCard, Player, Question, Theme } from '@/types/quiz'
+import type { OpenCard, Player, Question, QuestionContent, Theme } from '@/types/quiz'
 
 export type ImportResult = { ok: true } | { ok: false; error: string }
 
@@ -72,32 +72,18 @@ export const useQuizStore = defineStore('quizshow', () => {
     }
   }
 
-  const updateQuestion = (themeId: string, points: number, question: string) => {
-    const theme = findTheme(themeId)
-    if (!theme) return
-    const existing = theme.questions.find((q) => q.points === points)
-    if (existing) {
-      existing.question = question
-    } else {
-      theme.questions.push({ points, question, answer: '' })
-    }
-  }
-
-  const updateQuestionFull = (themeId: string, oldPoints: number, data: Question): boolean => {
-    const theme = findTheme(themeId)
-    if (!theme) return false
-    const target = theme.questions.find((q) => q.points === oldPoints)
+  // Replaces the content of a card; its point value stays fixed.
+  const updateQuestionContent = (
+    themeId: string,
+    points: number,
+    content: QuestionContent,
+  ): boolean => {
+    const target = findQuestion(themeId, points)
     if (!target) return false
-    if (!Number.isInteger(data.points)) return false
-    if (data.points !== oldPoints && theme.questions.some((q) => q.points === data.points)) {
-      return false
-    }
-    target.points = data.points
-    target.question = data.question
-    target.answer = data.answer
-    target.image = data.image ? data.image : undefined
-    target.audio = data.audio ? data.audio : undefined
-    theme.questions.sort((a, b) => a.points - b.points)
+    target.question = content.question
+    target.answer = content.answer
+    target.image = content.image || undefined
+    target.audio = content.audio || undefined
     return true
   }
 
@@ -177,11 +163,7 @@ export const useQuizStore = defineStore('quizshow', () => {
   }
 
   // Overwrites the content fields of a single card without touching its points.
-  const patchQuestion = (
-    themeId: string,
-    points: number,
-    patch: Partial<Omit<Question, 'points'>>,
-  ) => {
+  const patchQuestion = (themeId: string, points: number, patch: Partial<QuestionContent>) => {
     const question = findQuestion(themeId, points)
     if (question) Object.assign(question, patch)
   }
@@ -202,8 +184,7 @@ export const useQuizStore = defineStore('quizshow', () => {
     addColumn,
     removeTheme,
     updateThemeText,
-    updateQuestion,
-    updateQuestionFull,
+    updateQuestionContent,
     addPlayer,
     removePlayer,
     renamePlayer,

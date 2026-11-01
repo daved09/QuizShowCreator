@@ -101,18 +101,7 @@ describe('QuizshowTable', () => {
     expect(question?.answer).toBe('Neue Antwort')
     expect(wrapper.findComponent(QuestionModal).exists()).toBe(false)
     expect(store.themes[0].id).toBe(themeId)
-  })
-
-  it('reports duplicate point values and keeps the dialog open', async () => {
-    store.addColumn()
-    const wrapper = mountTable()
-    const modal = await openFirstCard(wrapper)
-
-    modal.vm.$emit('save', { points: 200, question: 'x', answer: 'y' })
-    await wrapper.vm.$nextTick()
-
-    expect(window.alert).toHaveBeenCalledWith('Diese Punktzahl existiert in dieser Spalte bereits.')
-    expect(wrapper.findComponent(QuestionModal).exists()).toBe(true)
+    expect(question?.points).toBe(100)
   })
 
   it('awards points while playing and closes the dialog', async () => {

@@ -20,13 +20,18 @@ src/
   constants.ts               # DEFAULT_POINTS and input length limits
   composables/
     usePermissions.ts        # canControl / canEdit for host, offline and viewer
-  assets/                    # base.css, main.css, logo.svg
+    useQuizFile.ts           # import/export via native dialogs
+    useMediaDrop.ts          # image/audio drop and paste into the question field
+  assets/                    # base.css, ui.css (buttons, fields, dialogs), main.css, logo.svg
   components/
+    base/BaseModal.vue       # dialog frame: backdrop, title bar, Escape
+    question/QuestionView.vue   # play view of a card: reveal, award, media
+    question/QuestionEditor.vue # edit form of a card: text, answer, media
     ConnectionStatus.vue     # online state, room code, leave/join entry point
     LobbyModal.vue           # host/join dialog, room code copy
     PlayerPanel.vue          # player list, add/rename/remove, reset round
     PointButton.vue          # point card button with answered/media badges
-    QuestionModal.vue        # view/edit card, media, reveal and award
+    QuestionModal.vue        # picks view/editor, lightbox, reveal model
     QuizshowTable.vue        # theme columns and selected-card routing
     ThemeColumn.vue          # theme header and point buttons
   quiz/
@@ -48,6 +53,7 @@ src/
     audio.ts                 # audio validation and data URLs
     file.ts                  # readFileAsDataUrl (shared by image and audio)
     guards.ts                # isRecord, isFiniteNumber (import + protocol validation)
+    dialogs.ts               # showError / confirmAction (wrap alert / confirm)
   test/                      # Vitest specs mirroring the source tree
   vite-env.d.ts              # Window.electronAPI typing
 docs/                        # architecture, backend and GUI documentation
@@ -77,7 +83,7 @@ eslint.config.js             # ESLint flat config
 | `src/components/QuizshowTable.vue` | Renders one `ThemeColumn` per theme, resolves the selected card, opens `QuestionModal`, handles save/award/close. |
 | `src/components/ThemeColumn.vue` | Editable theme header (max 15 characters), delete action, point buttons. |
 | `src/components/PointButton.vue` | Point card with edit/answered/media badges. |
-| `src/components/QuestionModal.vue` | Edit form and play view; image/audio drop, paste, preview and lightbox; answer reveal; player award buttons. |
+| `src/components/QuestionModal.vue` | `BaseModal` with `QuestionView` (play) or `QuestionEditor` (edit), image lightbox, answer reveal model. |
 | `src/components/PlayerPanel.vue` | Player list, inline rename (max 10 characters), add/remove, reset round. |
 | `src/components/LobbyModal.vue` | Host/join sections, room code copy, connection status text. |
 | `src/components/ConnectionStatus.vue` | Header badge for offline/host/client, room code, viewer count, leave button. |
