@@ -13,8 +13,7 @@ describe('host sync', () => {
     store = useQuizStore()
     store.addColumn()
     themeId = store.themes[0].id
-    store.updateQuestionFull(themeId, 100, {
-      points: 100,
+    store.updateQuestionContent(themeId, 100, {
       question: 'q',
       answer: 'a',
       image: 'data:image/png;base64,AAAA',

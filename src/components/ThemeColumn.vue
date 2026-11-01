@@ -45,6 +45,7 @@ import { nextTick, ref, watch } from 'vue'
 import PointButton from './PointButton.vue'
 import { MAX_THEME_NAME_LENGTH } from '@/constants'
 import { useQuizStore } from '@/stores/quiz.store'
+import { confirmAction } from '@/utils/dialogs'
 import type { Theme } from '@/types/quiz'
 const props = defineProps<{ theme: Theme }>()
 
@@ -91,7 +92,7 @@ watch(
 )
 
 const deleteTheme = (): void => {
-  if (confirm(`'${props.theme.themeText}' wirklich löschen?`)) {
+  if (confirmAction(`'${props.theme.themeText}' wirklich löschen?`)) {
     quizStore.removeTheme(props.theme.id)
   }
 }

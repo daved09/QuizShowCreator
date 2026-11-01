@@ -11,6 +11,9 @@ Covers `src/stores/*`, `src/net/*`, `src/quiz/*`, `src/composables/*`, `src/type
 - `src/utils/guards.ts` — `isRecord`, `isFiniteNumber` for validating imported files and network messages.
 - `src/utils/file.ts` — `readFileAsDataUrl`, shared by the image and audio helpers.
 - `src/quiz/quizFile.ts` — the quiz JSON format: `QUIZ_FILE_VERSION`, `QuizFile`, `createQuizFile()` and `parseQuizFile()` (see *Import and export*).
+- `src/composables/useQuizFile.ts` — `exportQuiz()` / `importQuiz()` via the native Electron dialogs, with confirmation and error messages.
+- `src/composables/useMediaDrop.ts` — drag & drop and paste of image/audio files into the question field.
+- `src/utils/dialogs.ts` — `showError()` and `confirmAction()`, the single place that calls `alert()` / `confirm()`.
 - `src/composables/usePermissions.ts` — `canControl` (host or offline: open/close cards, reveal answers, award points, toggle the mode) and `canEdit` (`canControl` plus edit mode: change the board, import/export). Components use these instead of checking `isClient` themselves.
 
 Renderer / GUI in [gui.md](./gui.md); architecture in [overview.md](./overview.md).
@@ -53,8 +56,7 @@ type QuizFile = { app: 'QuizShowCreator'; version: number; themes: Theme[]; play
 | `addColumn` | Appends a theme `New Theme` with the default 100–500 cards. |
 | `removeTheme` | Removes a theme by id. |
 | `updateThemeText` | Renames a theme. |
-| `updateQuestion` | Sets a question text, creating the card if needed. |
-| `updateQuestionFull` | Updates points, question, answer, image and audio; rejects non-integer points and duplicate point values within a theme; re-sorts by points. |
+| `updateQuestionContent` | Replaces question, answer, image and audio of a card; the point value stays fixed. Returns `false` for an unknown card. |
 | `addPlayer` | Adds a player; names are trimmed and cut to 10 characters, empty names become `Spieler <n>`. |
 | `removePlayer` / `renamePlayer` | Removes or renames a player; renames are trimmed and cut to 10 characters, empty renames keep the old name. |
 | `awardPointsForCard` | Adds the card value to a player and records `answeredBy`. |
@@ -218,12 +220,12 @@ Images can be added by drag-and-drop or paste in the question field. Audio is se
 
 ## Tests
 
-`src/test/` contains 20 specs run with Vitest and jsdom:
+`src/test/` contains 21 specs run with Vitest and jsdom:
 
 | Area | Specs |
 | --- | --- |
 | App shell | `App.spec.ts` |
-| Components | `components/network-ui.spec.ts`, `PlayerPanel.spec.ts`, `PointButton.spec.ts`, `QuestionModal.spec.ts`, `QuizshowTable.spec.ts`, `ThemeColumn.spec.ts` |
+| Components | `components/base/BaseModal.spec.ts`, `components/network-ui.spec.ts`, `PlayerPanel.spec.ts`, `PointButton.spec.ts`, `QuestionModal.spec.ts`, `QuizshowTable.spec.ts`, `ThemeColumn.spec.ts` |
 | Composables | `composables/usePermissions.spec.ts` |
 | Network | `net/protocol.spec.ts`, `net/transport.spec.ts`, `net/hostSync.spec.ts`, `net/viewerSync.spec.ts` |
 | Quiz helpers | `quiz/card.spec.ts`, `quiz/player.spec.ts`, `quiz/quizFile.spec.ts` |

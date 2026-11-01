@@ -27,3 +27,6 @@ export type OpenCard = {
   themeId: string
   points: number
 }
+
+// The editable content of a card; its point value is fixed.
+export type QuestionContent = Omit<Question, 'points'>

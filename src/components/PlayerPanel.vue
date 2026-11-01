@@ -45,10 +45,15 @@
         :maxlength="MAX_PLAYER_NAME_LENGTH"
         placeholder="Neuer Spieler …"
       />
-      <button type="submit" class="primary">Hinzufügen</button>
+      <button type="submit" class="btn btn-primary btn-sm">Hinzufügen</button>
     </form>
 
-    <button v-if="quizStore.isEditMode" type="button" class="reset-button" @click="resetRound">
+    <button
+      v-if="quizStore.isEditMode"
+      type="button"
+      class="reset-button btn btn-sm"
+      @click="resetRound"
+    >
       Runde zurücksetzen
     </button>
   </aside>
@@ -58,6 +63,7 @@
 import { nextTick, ref } from 'vue'
 import { MAX_PLAYER_NAME_LENGTH } from '@/constants'
 import { useQuizStore } from '@/stores/quiz.store'
+import { confirmAction } from '@/utils/dialogs'
 
 const quizStore = useQuizStore()
 
@@ -93,7 +99,7 @@ const cancelName = (): void => {
 }
 
 const resetRound = (): void => {
-  if (confirm('Punkte aller Spieler auf 0 setzen und alle Karten wieder freigeben?')) {
+  if (confirmAction('Punkte aller Spieler auf 0 setzen und alle Karten wieder freigeben?')) {
     quizStore.resetRound()
   }
 }
@@ -199,45 +205,5 @@ const resetRound = (): void => {
 .delete-button:focus-visible {
   outline: none;
   box-shadow: var(--focus-ring);
-}
-.add-form button,
-.reset-button {
-  font: inherit;
-  font-weight: 600;
-  padding: 0.35rem 0.7rem;
-  color: var(--color-text);
-  background: var(--color-background-soft);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  transition:
-    background-color var(--transition-fast),
-    border-color var(--transition-fast),
-    color var(--transition-fast);
-}
-.add-form button:hover,
-.reset-button:hover {
-  border-color: var(--color-primary);
-  color: var(--color-primary);
-  background: var(--color-primary-soft);
-}
-.add-form button:focus-visible,
-.reset-button:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
-}
-.add-form .primary {
-  color: var(--color-on-primary);
-  background: var(--color-primary);
-  border-color: transparent;
-  box-shadow: var(--shadow-sm);
-}
-.add-form .primary:hover {
-  color: var(--color-on-primary);
-  background: var(--color-primary-hover);
-  border-color: transparent;
-}
-.reset-button {
-  font-size: 0.85rem;
 }
 </style>

@@ -114,8 +114,7 @@ describe('network store', () => {
       sent = []
 
       const themeId = quiz.themes[0].id
-      quiz.updateQuestionFull(themeId, 100, {
-        points: 100,
+      quiz.updateQuestionContent(themeId, 100, {
         question: 'secret',
         answer: 'a',
         image: 'data:image/png;base64,AAAA',
@@ -128,8 +127,7 @@ describe('network store', () => {
     it('ships the card content only when a card is opened', async () => {
       quiz.addColumn()
       const themeId = quiz.themes[0].id
-      quiz.updateQuestionFull(themeId, 100, {
-        points: 100,
+      quiz.updateQuestionContent(themeId, 100, {
         question: 'q',
         answer: 'a',
         image: 'data:image/png;base64,AAAA',
@@ -157,7 +155,10 @@ describe('network store', () => {
     it('ships the answer only once it is revealed and hides it again', async () => {
       quiz.addColumn()
       const themeId = quiz.themes[0].id
-      quiz.updateQuestionFull(themeId, 100, { points: 100, question: 'q', answer: 'a' })
+      quiz.updateQuestionContent(themeId, 100, {
+        question: 'q',
+        answer: 'a',
+      })
       network.startHosting()
       hostHandlers!.onOpen()
       quiz.openQuestion(themeId, 100)
@@ -187,7 +188,10 @@ describe('network store', () => {
     it('resends the open card when a viewer joins', async () => {
       quiz.addColumn()
       const themeId = quiz.themes[0].id
-      quiz.updateQuestionFull(themeId, 100, { points: 100, question: 'q', answer: 'a' })
+      quiz.updateQuestionContent(themeId, 100, {
+        question: 'q',
+        answer: 'a',
+      })
       network.startHosting()
       hostHandlers!.onOpen()
       quiz.openQuestion(themeId, 100)

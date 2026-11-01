@@ -26,7 +26,7 @@ import ThemeColumn from './ThemeColumn.vue'
 import QuestionModal from './QuestionModal.vue'
 import { findQuestion, findTheme } from '@/quiz/card'
 import { useQuizStore } from '@/stores/quiz.store'
-import type { OpenCard, Question } from '@/types/quiz'
+import type { OpenCard, QuestionContent } from '@/types/quiz'
 import { usePermissions } from '@/composables/usePermissions'
 
 const quizStore = useQuizStore()
@@ -78,14 +78,10 @@ const closeCard = (): void => {
   }
 }
 
-const saveCard = (data: Question): void => {
+const saveCard = (content: QuestionContent): void => {
   const current = editingCard.value
   if (!current) return
-  const ok = quizStore.updateQuestionFull(current.themeId, current.points, data)
-  if (!ok) {
-    alert('Diese Punktzahl existiert in dieser Spalte bereits.')
-    return
-  }
+  quizStore.updateQuestionContent(current.themeId, current.points, content)
   editingCard.value = null
 }
 

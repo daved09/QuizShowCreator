@@ -93,6 +93,15 @@ describe('multiplayer UI', () => {
 
       expect(wrapper.emitted('close')).toHaveLength(1)
     })
+
+    it('closes on Escape', () => {
+      const wrapper = mount(LobbyModal, { global: { plugins: [pinia] } })
+
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
+
+      expect(wrapper.emitted('close')).toHaveLength(1)
+      wrapper.unmount()
+    })
   })
 
   describe('QuestionModal for viewers', () => {

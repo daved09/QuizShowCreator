@@ -134,7 +134,7 @@ src/
   constants.ts        # default point values and input length limits
   types/quiz.ts       # shared domain types (Theme, Question, Player, OpenCard)
   quiz/               # card lookup, player names, quiz file format
-  composables/        # usePermissions (canControl / canEdit)
+  composables/        # usePermissions, useQuizFile, useMediaDrop
   components/         # board, cards, modals, connection status, player panel
   net/protocol.ts     # wire protocol, snapshot creation and validation
   net/transport.ts    # PeerJS host/client transport and room codes
