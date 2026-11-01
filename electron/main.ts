@@ -2,6 +2,7 @@ import { app, BrowserWindow, dialog, ipcMain } from 'electron'
 import { readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { IPC_CHANNELS, type QuizFileResult } from '../shared/ipc'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -41,7 +42,7 @@ app.on('activate', () => {
 })
 
 const registerIpcHandlers = () => {
-  ipcMain.handle('quiz:export', async (_event, json: string) => {
+  ipcMain.handle(IPC_CHANNELS.exportQuiz, async (_event, json: string): Promise<QuizFileResult> => {
     const result = await dialog.showSaveDialog({
       title: 'Quiz exportieren',
       defaultPath: 'quizshow.json',
@@ -58,7 +59,7 @@ const registerIpcHandlers = () => {
     }
   })
 
-  ipcMain.handle('quiz:import', async () => {
+  ipcMain.handle(IPC_CHANNELS.importQuiz, async (): Promise<QuizFileResult> => {
     const result = await dialog.showOpenDialog({
       title: 'Quiz importieren',
       properties: ['openFile'],

@@ -14,6 +14,8 @@ Electron 44 · Vue 3.5 · Pinia 4 · TypeScript 5.9 · Vite 8 · vite-plugin-ele
 electron/
   main.ts                    # BrowserWindow, app lifecycle, quiz import/export IPC
   preload.ts                 # contextBridge API (window.electronAPI)
+shared/
+  ipc.ts                     # IPC_CHANNELS, QuizFileResult, ElectronAPI
 src/
   App.vue                    # header, mode toggle, lobby, board and player panel
   main.ts                    # createApp + Pinia
@@ -55,7 +57,7 @@ src/
     guards.ts                # isRecord, isFiniteNumber (import + protocol validation)
     dialogs.ts               # showError / confirmAction (wrap alert / confirm)
   test/                      # Vitest specs mirroring the source tree
-  vite-env.d.ts              # Window.electronAPI typing
+  vite-env.d.ts              # Window.electronAPI typing (from shared/ipc.ts)
 docs/                        # architecture, backend and GUI documentation
 index.html                   # Vite HTML entry
 vite.config.ts               # Vue + vite-plugin-electron build
@@ -116,6 +118,8 @@ Host: quiz store change
 | --- | --- | --- |
 | `quiz:export` | renderer → main | `json: string` → `{ success, canceled, path?, error? }` |
 | `quiz:import` | renderer → main | — → `{ success, canceled, data?, error? }` |
+
+Channel names (`IPC_CHANNELS`), the result type `QuizFileResult` and the bridge type `ElectronAPI` are defined once in `shared/ipc.ts` and used by `electron/main.ts`, `electron/preload.ts` and the renderer (`window.electronAPI` in `src/vite-env.d.ts`).
 
 The renderer never receives a general filesystem API; both handlers open a native dialog and operate only on the selected path.
 

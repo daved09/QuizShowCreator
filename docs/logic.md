@@ -1,6 +1,6 @@
 # Backend logic — QuizShowCreator
 
-Covers `src/stores/*`, `src/net/*`, `src/quiz/*`, `src/composables/*`, `src/types/*`, `src/constants.ts`, `src/utils/*`, `electron/main.ts` and `electron/preload.ts`.
+Covers `src/stores/*`, `src/net/*`, `src/quiz/*`, `src/composables/*`, `src/types/*`, `src/constants.ts`, `src/utils/*`, `electron/main.ts`, `electron/preload.ts` and `shared/ipc.ts`.
 
 ## Shared modules
 
@@ -196,6 +196,8 @@ Only signalling uses the PeerJS cloud; game data flows over a WebRTC data channe
 - `window-all-closed` quits outside macOS; `activate` recreates the window.
 
 ## `electron/preload.ts` — bridge
+
+The channel names and types come from `shared/ipc.ts` (`IPC_CHANNELS`, `QuizFileResult`, `ElectronAPI`). In the renderer, `window.electronAPI` is optional: it is missing outside Electron, where import and export do nothing.
 
 `window.electronAPI` exposes exactly:
 

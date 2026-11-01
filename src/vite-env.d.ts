@@ -6,20 +6,7 @@ declare module '*.vue' {
   export default component
 }
 
-type QuizFileResult = {
-  success: boolean
-  canceled: boolean
-  path?: string
-  data?: string
-  error?: string
-}
-
-interface ElectronAPI {
-  platform: string
-  exportQuiz: (json: string) => Promise<QuizFileResult>
-  importQuiz: () => Promise<QuizFileResult>
-}
-
+// Set by the Electron preload script (see shared/ipc.ts); missing in a plain browser.
 interface Window {
-  electronAPI: ElectronAPI
+  electronAPI?: import('../shared/ipc').ElectronAPI
 }
