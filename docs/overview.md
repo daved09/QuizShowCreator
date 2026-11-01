@@ -18,6 +18,8 @@ src/
   App.vue                    # header, mode toggle, lobby, board and player panel
   main.ts                    # createApp + Pinia
   constants.ts               # DEFAULT_POINTS and input length limits
+  composables/
+    usePermissions.ts        # canControl / canEdit for host, offline and viewer
   assets/                    # base.css, main.css, logo.svg
   components/
     ConnectionStatus.vue     # online state, room code, leave/join entry point
@@ -29,10 +31,13 @@ src/
     ThemeColumn.vue          # theme header and point buttons
   quiz/
     card.ts                  # cardKey, isSameCard, findTheme, findQuestion
+    quizFile.ts              # quiz JSON format: createQuizFile, parseQuizFile
     player.ts                # normalizePlayerName
   net/
     protocol.ts              # message types, snapshot creation, validation
     transport.ts             # PeerJS host/client transports, room codes
+    hostSync.ts              # host: card/answer payloads for viewers
+    viewerSync.ts            # viewer: applies snapshots, cards and answers
   stores/
     quiz.store.ts            # themes, questions, players, scoring, import/export
     network.store.ts         # role, connection state, synchronization
@@ -76,7 +81,7 @@ eslint.config.js             # ESLint flat config
 | `src/components/PlayerPanel.vue` | Player list, inline rename (max 10 characters), add/remove, reset round. |
 | `src/components/LobbyModal.vue` | Host/join sections, room code copy, connection status text. |
 | `src/components/ConnectionStatus.vue` | Header badge for offline/host/client, room code, viewer count, leave button. |
-| `src/stores/quiz.store.ts` | Board and player state, scoring, snapshots, import/export. |
+| `src/stores/quiz.store.ts` | Board and player state, scoring, import/export entry points. |
 | `src/stores/network.store.ts` | Host/client role and transport wiring. |
 | `src/net/protocol.ts` | Protocol version 2, message types, content-free snapshots, validators. |
 | `src/net/transport.ts` | PeerJS host/client wrappers, six-character room codes, error messages. |
@@ -96,7 +101,7 @@ Host: quiz store change
    -> network store watcher -> pushState()
    -> transport.broadcast(card | answer | state)
    -> viewer transport.onData()
-   -> parseMessage() -> quiz.applyCard/applyAnswer/applySnapshot()
+   -> parseMessage() -> viewerSync.applyCard/applyAnswer/applySnapshot() -> quiz store
 ```
 
 ## IPC channels

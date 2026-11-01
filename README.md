@@ -133,10 +133,12 @@ src/
   App.vue             # header, mode toggle, lobby, board and player panel
   constants.ts        # default point values and input length limits
   types/quiz.ts       # shared domain types (Theme, Question, Player, OpenCard)
-  quiz/               # card lookup helpers and player name normalization
+  quiz/               # card lookup, player names, quiz file format
+  composables/        # usePermissions (canControl / canEdit)
   components/         # board, cards, modals, connection status, player panel
   net/protocol.ts     # wire protocol, snapshot creation and validation
   net/transport.ts    # PeerJS host/client transport and room codes
+  net/hostSync.ts, net/viewerSync.ts # card/answer sync between host and viewers
   stores/quiz.store.ts    # themes, questions, players, scoring, import/export
   stores/network.store.ts # host/client role, connection, synchronization
   utils/              # image downscaling, audio data URLs, file reading, type guards
@@ -159,7 +161,7 @@ See [`docs/overview.md`](./docs/overview.md) for the complete file map.
 npm test
 ```
 
-The suite uses Vitest with `@vue/test-utils` and a jsdom environment. Specs live under `src/test/` (mirroring `src/`) and are named `*.spec.ts`. They cover the app shell, network UI, player panel, point buttons, question modal, board, theme columns, protocol validation, transport, both stores, quiz synchronization, card and player helpers, type guards, image handling and audio handling.
+The suite uses Vitest with `@vue/test-utils` and a jsdom environment. Specs live under `src/test/` (mirroring `src/`) and are named `*.spec.ts`. They cover the app shell, network UI, player panel, point buttons, question modal, board, theme columns, protocol validation, transport, host and viewer sync, both stores, permissions, the quiz file format, card and player helpers, type guards, image handling and audio handling.
 
 Global setup (jsdom stubs for `alert`/`confirm`, `crypto.randomUUID`) is in `src/test/setup.ts`; the test configuration is `vitest.config.ts`.
 

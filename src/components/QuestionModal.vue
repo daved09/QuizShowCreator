@@ -22,7 +22,7 @@
         <p class="label">Antwort:</p>
         <p v-if="isRevealed" class="view-text">{{ question.answer || '—' }}</p>
         <button
-          v-if="canReveal"
+          v-if="canControl"
           type="button"
           class="reveal-button"
           ref="revealButtonEl"
@@ -31,7 +31,7 @@
           {{ isRevealed ? 'Antwort verbergen' : 'Antwort anzeigen' }}
         </button>
 
-        <div v-if="isRevealed && !networkStore.isClient" class="award-section">
+        <div v-if="isRevealed && canControl" class="award-section">
           <p class="label">Punkte vergeben</p>
           <p v-if="answeredBy" class="award-hint">✔ Bereits beantwortet von {{ answeredBy }}</p>
           <p v-else-if="quizStore.players.length === 0" class="award-hint">
@@ -119,7 +119,7 @@ import { nextTick, onMounted, onUnmounted, reactive, ref, computed } from 'vue'
 import { MAX_ANSWER_LENGTH, MAX_QUESTION_LENGTH } from '@/constants'
 import type { Question } from '@/types/quiz'
 import { useQuizStore } from '@/stores/quiz.store'
-import { useNetworkStore } from '@/stores/network.store'
+import { usePermissions } from '@/composables/usePermissions'
 import { fileToImageDataUrl, isImageFile } from '@/utils/image'
 import { fileToAudioDataUrl, isAudioFile } from '@/utils/audio'
 
@@ -137,7 +137,7 @@ const emit = defineEmits<{
 }>()
 
 const quizStore = useQuizStore()
-const networkStore = useNetworkStore()
+const { canControl } = usePermissions()
 
 const dialogTitle = computed(() =>
   props.mode === 'edit'
@@ -166,9 +166,6 @@ const revealButtonEl = ref<HTMLButtonElement | null>(null)
 const revealed = defineModel<boolean | undefined>('revealed', { default: undefined })
 // Hide the answer in view mode by default; already answered cards show it directly.
 const isRevealed = computed(() => revealed.value ?? !!props.answeredBy)
-
-// Only the host (or an offline game) controls revealing the answer; viewers just watch.
-const canReveal = computed(() => !networkStore.isClient)
 
 const toggleReveal = (): void => {
   revealed.value = !isRevealed.value
