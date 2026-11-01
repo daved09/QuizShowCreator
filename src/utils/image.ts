@@ -1,18 +1,12 @@
 // Helpers for reading and downscaling images for questions.
 // Images are stored as Base64 data URLs so the quiz JSON stays self-contained.
 
+import { readFileAsDataUrl } from '@/utils/file'
+
 // Maximum edge length; larger images are downscaled before saving.
 const MAX_EDGE = 1280
 
 export const isImageFile = (file: File): boolean => file.type.startsWith('image/')
-
-const readAsDataURL = (file: File): Promise<string> =>
-  new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => resolve(reader.result as string)
-    reader.onerror = () => reject(reader.error ?? new Error('Bild konnte nicht gelesen werden.'))
-    reader.readAsDataURL(file)
-  })
 
 const loadImage = (src: string): Promise<HTMLImageElement> =>
   new Promise((resolve, reject) => {
@@ -27,7 +21,7 @@ export const fileToImageDataUrl = async (file: File): Promise<string> => {
   if (!isImageFile(file)) {
     throw new Error('Bitte eine Bilddatei auswählen.')
   }
-  const dataUrl = await readAsDataURL(file)
+  const dataUrl = await readFileAsDataUrl(file, 'Bild konnte nicht gelesen werden.')
   const img = await loadImage(dataUrl)
 
   const longestEdge = Math.max(img.width, img.height)

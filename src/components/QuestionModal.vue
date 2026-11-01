@@ -62,7 +62,7 @@
           <span class="label">Frage</span>
           <textarea
             v-model="draft.question"
-            maxlength="500"
+            :maxlength="MAX_QUESTION_LENGTH"
             rows="4"
             placeholder="Frage formulieren …"
             class="text-input"
@@ -93,7 +93,7 @@
           <textarea
             v-model="draft.answer"
             rows="3"
-            maxlength="250"
+            :maxlength="MAX_ANSWER_LENGTH"
             placeholder="Antwort …"
             class="text-input"
           />
@@ -116,7 +116,8 @@
 
 <script setup lang="ts">
 import { nextTick, onMounted, onUnmounted, reactive, ref, computed } from 'vue'
-import type { Question } from '@/stores/quiz.store'
+import { MAX_ANSWER_LENGTH, MAX_QUESTION_LENGTH } from '@/constants'
+import type { Question } from '@/types/quiz'
 import { useQuizStore } from '@/stores/quiz.store'
 import { useNetworkStore } from '@/stores/network.store'
 import { fileToImageDataUrl, isImageFile } from '@/utils/image'
@@ -131,10 +132,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'close'): void
-  (
-    e: 'save',
-    value: { points: number; question: string; answer: string; image?: string; audio?: string },
-  ): void
+  (e: 'save', value: Question): void
   (e: 'award', playerId: string): void
 }>()
 

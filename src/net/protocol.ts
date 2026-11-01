@@ -10,7 +10,8 @@
 // when a card is opened, and the answer only follows as an `answer` message once
 // it is revealed. That way a viewer never receives content before it is shown.
 
-import type { Player, Theme } from '@/stores/quiz.store'
+import type { OpenCard, Player, Theme } from '@/types/quiz'
+import { isFiniteNumber, isRecord } from '@/utils/guards'
 
 export const PROTOCOL_VERSION = 2
 
@@ -28,11 +29,6 @@ export type SnapshotPlayer = {
   id: string
   name: string
   score: number
-}
-
-export type OpenCard = {
-  themeId: string
-  points: number
 }
 
 export type GameSnapshot = {
@@ -100,17 +96,11 @@ export const createSnapshot = (input: {
   answerRevealed: input.answerRevealed,
 })
 
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === 'object' && value !== null
-
 const isOpenCard = (value: unknown): value is OpenCard =>
-  isRecord(value) &&
-  typeof value.themeId === 'string' &&
-  typeof value.points === 'number' &&
-  Number.isFinite(value.points)
+  isRecord(value) && typeof value.themeId === 'string' && isFiniteNumber(value.points)
 
 const isSnapshotQuestion = (value: unknown): value is SnapshotQuestion =>
-  isRecord(value) && typeof value.points === 'number' && Number.isFinite(value.points)
+  isRecord(value) && isFiniteNumber(value.points)
 
 const isSnapshotTheme = (value: unknown): value is SnapshotTheme =>
   isRecord(value) &&
@@ -123,8 +113,7 @@ const isSnapshotPlayer = (value: unknown): value is SnapshotPlayer =>
   isRecord(value) &&
   typeof value.id === 'string' &&
   typeof value.name === 'string' &&
-  typeof value.score === 'number' &&
-  Number.isFinite(value.score)
+  isFiniteNumber(value.score)
 
 const isAnsweredEntry = (value: unknown): value is [string, string] =>
   Array.isArray(value) &&
@@ -147,8 +136,7 @@ export const isGameSnapshot = (value: unknown): value is GameSnapshot =>
 const isCardPayload = (value: unknown): value is CardPayload =>
   isRecord(value) &&
   typeof value.themeId === 'string' &&
-  typeof value.points === 'number' &&
-  Number.isFinite(value.points) &&
+  isFiniteNumber(value.points) &&
   typeof value.question === 'string' &&
   (value.image === undefined || typeof value.image === 'string') &&
   (value.audio === undefined || typeof value.audio === 'string') &&
@@ -157,8 +145,7 @@ const isCardPayload = (value: unknown): value is CardPayload =>
 const isAnswerPayload = (value: unknown): value is AnswerPayload =>
   isRecord(value) &&
   typeof value.themeId === 'string' &&
-  typeof value.points === 'number' &&
-  Number.isFinite(value.points) &&
+  isFiniteNumber(value.points) &&
   (value.answer === null || typeof value.answer === 'string')
 
 // Parses and validates an incoming message. Returns null for anything that is

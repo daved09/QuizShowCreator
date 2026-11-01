@@ -1,6 +1,15 @@
 # Backend logic — QuizShowCreator
 
-Covers `src/stores/*`, `src/net/*`, `src/utils/*`, `electron/main.ts` and `electron/preload.ts`.
+Covers `src/stores/*`, `src/net/*`, `src/quiz/*`, `src/types/*`, `src/constants.ts`, `src/utils/*`, `electron/main.ts` and `electron/preload.ts`.
+
+## Shared modules
+
+- `src/types/quiz.ts` — domain types `Theme`, `Question`, `Player` and `OpenCard`, used by the stores, components and the protocol (no store ↔ protocol type cycle).
+- `src/constants.ts` — `DEFAULT_POINTS` and the input limits `MAX_PLAYER_NAME_LENGTH` (10), `MAX_THEME_NAME_LENGTH` (15), `MAX_QUESTION_LENGTH` (500), `MAX_ANSWER_LENGTH` (250).
+- `src/quiz/card.ts` — `cardKey(themeId, points)` (`"<themeId>:<points>"`), `isSameCard`, `findTheme`, `findQuestion`.
+- `src/quiz/player.ts` — `normalizePlayerName` (trim and cut to `MAX_PLAYER_NAME_LENGTH`), used by the quiz store and the network store.
+- `src/utils/guards.ts` — `isRecord`, `isFiniteNumber` for validating imported files and network messages.
+- `src/utils/file.ts` — `readFileAsDataUrl`, shared by the image and audio helpers.
 Renderer / GUI in [gui.md](./gui.md); architecture in [overview.md](./overview.md).
 
 ## `src/stores/quiz.store.ts` — quiz state
@@ -9,6 +18,8 @@ Single source of truth for themes, questions, players, scoring and the open card
 
 ### Types
 
+Domain types live in `src/types/quiz.ts`; `QuizFile` and `ImportResult` stay in the store.
+
 ```ts
 type Theme = { id: string; themeText: string; questions: Question[] }
 type Question = { points: number; question: string; answer: string; image?: string; audio?: string }
@@ -16,7 +27,7 @@ type Player = { id: string; name: string; score: number }
 type QuizFile = { app: 'QuizShowCreator'; version: number; themes: Theme[]; players: Player[] }
 ```
 
-- `DEFAULT_POINTS = [100, 200, 300, 400, 500]`
+- `DEFAULT_POINTS = [100, 200, 300, 400, 500]` (from `src/constants.ts`)
 - `QUIZ_FILE_VERSION = 4`
 - `Image` and `audio` are Base64 data URLs.
 
@@ -43,8 +54,8 @@ On the viewer side, `openCardContent` is a module-local cache for the card conte
 | `updateThemeText` | Renames a theme. |
 | `updateQuestion` | Sets a question text, creating the card if needed. |
 | `updateQuestionFull` | Updates points, question, answer, image and audio; rejects non-integer points and duplicate point values within a theme; re-sorts by points. |
-| `addPlayer` | Adds a player; empty names become `Spieler <n>`. |
-| `removePlayer` / `renamePlayer` | Removes or renames a player; empty renames keep the old name. |
+| `addPlayer` | Adds a player; names are trimmed and cut to 10 characters, empty names become `Spieler <n>`. |
+| `removePlayer` / `renamePlayer` | Removes or renames a player; renames are trimmed and cut to 10 characters, empty renames keep the old name. |
 | `awardPointsForCard` | Adds the card value to a player and records `answeredBy`. |
 | `isAnswered` / `getAnsweredBy` | Look up the answered state for a card. |
 | `openQuestion` | Opens a card and reveals the answer immediately when it was already answered. |

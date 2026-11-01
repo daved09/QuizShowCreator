@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
 import QuestionModal from '@/components/QuestionModal.vue'
-import { useQuizStore, type Question } from '@/stores/quiz.store'
+import { useQuizStore } from '@/stores/quiz.store'
+import type { Question } from '@/types/quiz'
 import { createTestPinia } from '@/test/helpers'
 
 // Image/audio processing is mocked so the drag & drop / paste paths can be

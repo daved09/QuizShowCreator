@@ -5,32 +5,17 @@ import {
   type AnswerPayload,
   type CardPayload,
   type GameSnapshot,
-  type OpenCard,
 } from '@/net/protocol'
-
-export const DEFAULT_POINTS = [100, 200, 300, 400, 500]
-
-export type Theme = {
-  id: string
-  themeText: string
-  questions: Question[]
-}
-
-export type Question = {
-  points: number
-  question: string
-  answer: string
-  // Optional question image as a Base64 data URL (e.g. "data:image/png;base64,...").
-  image?: string
-  // Optional question audio as a Base64 data URL (e.g. "data:audio/mpeg;base64,...").
-  audio?: string
-}
-
-export type Player = {
-  id: string
-  name: string
-  score: number
-}
+import { DEFAULT_POINTS } from '@/constants'
+import {
+  cardKey,
+  findQuestion as findQuestionIn,
+  findTheme as findThemeIn,
+  isSameCard,
+} from '@/quiz/card'
+import { normalizePlayerName } from '@/quiz/player'
+import type { OpenCard, Player, Question, Theme } from '@/types/quiz'
+import { isFiniteNumber, isRecord } from '@/utils/guards'
 
 export const QUIZ_FILE_VERSION = 4
 
@@ -50,8 +35,6 @@ const createTheme = (themeText: string): Theme => {
     questions: DEFAULT_POINTS.map((points) => ({ points, question: '', answer: '' })),
   }
 }
-
-const cardKey = (themeId: string, points: number): string => `${themeId}:${points}`
 
 export const useQuizStore = defineStore('quizshow', () => {
   const themes = ref<Theme[]>([])
@@ -74,6 +57,11 @@ export const useQuizStore = defineStore('quizshow', () => {
 
   const isEditMode = ref<boolean>(true)
 
+  const findTheme = (themeId: string): Theme | undefined => findThemeIn(themes.value, themeId)
+
+  const findQuestion = (themeId: string, points: number): Question | undefined =>
+    findQuestionIn(themes.value, themeId, points)
+
   const setEditMode = (value: boolean) => {
     isEditMode.value = value
   }
@@ -91,14 +79,14 @@ export const useQuizStore = defineStore('quizshow', () => {
   }
 
   const updateThemeText = (id: string, themeText: string) => {
-    const theme = themes.value.find((t) => t.id === id)
+    const theme = findTheme(id)
     if (theme) {
       theme.themeText = themeText
     }
   }
 
   const updateQuestion = (themeId: string, points: number, question: string) => {
-    const theme = themes.value.find((t) => t.id === themeId)
+    const theme = findTheme(themeId)
     if (!theme) return
     const existing = theme.questions.find((q) => q.points === points)
     if (existing) {
@@ -108,12 +96,8 @@ export const useQuizStore = defineStore('quizshow', () => {
     }
   }
 
-  const updateQuestionFull = (
-    themeId: string,
-    oldPoints: number,
-    data: { points: number; question: string; answer: string; image?: string; audio?: string },
-  ): boolean => {
-    const theme = themes.value.find((t) => t.id === themeId)
+  const updateQuestionFull = (themeId: string, oldPoints: number, data: Question): boolean => {
+    const theme = findTheme(themeId)
     if (!theme) return false
     const target = theme.questions.find((q) => q.points === oldPoints)
     if (!target) return false
@@ -131,10 +115,9 @@ export const useQuizStore = defineStore('quizshow', () => {
   }
 
   const addPlayer = (name?: string): Player => {
-    const trimmed = (name ?? '').trim()
     const player: Player = {
       id: crypto.randomUUID(),
-      name: trimmed || `Spieler ${players.value.length + 1}`,
+      name: normalizePlayerName(name) || `Spieler ${players.value.length + 1}`,
       score: 0,
     }
     players.value.push(player)
@@ -148,7 +131,7 @@ export const useQuizStore = defineStore('quizshow', () => {
   const renamePlayer = (id: string, name: string) => {
     const player = players.value.find((p) => p.id === id)
     if (player) {
-      player.name = name.trim() || player.name
+      player.name = normalizePlayerName(name) || player.name
     }
   }
 
@@ -207,11 +190,6 @@ export const useQuizStore = defineStore('quizshow', () => {
     })
   }
 
-  // Looks up a single question inside the local themes.
-  const findQuestion = (themeId: string, points: number): Question | undefined => {
-    return themes.value.find((t) => t.id === themeId)?.questions.find((q) => q.points === points)
-  }
-
   // Host: the content of a card, used to ship it when the card is opened.
   // The answer is only included when it is already revealed.
   const getQuestionCard = (themeId: string, points: number): CardPayload | null => {
@@ -268,8 +246,7 @@ export const useQuizStore = defineStore('quizshow', () => {
   // Applies the content of a card shipped by the host when it is opened.
   const applyCard = (card: CardPayload) => {
     openCardContent = { ...card, key: cardKey(card.themeId, card.points) }
-    const open = openCard.value
-    if (!open || open.themeId !== card.themeId || open.points !== card.points) return
+    if (!isSameCard(openCard.value, card)) return
     const question = findQuestion(card.themeId, card.points)
     if (!question) return
     question.question = card.question
@@ -282,8 +259,7 @@ export const useQuizStore = defineStore('quizshow', () => {
 
   // Applies a reveal (or hide, with `answer: null`) for the open card.
   const applyAnswer = (payload: AnswerPayload) => {
-    const open = openCard.value
-    if (!open || open.themeId !== payload.themeId || open.points !== payload.points) return
+    if (!isSameCard(openCard.value, payload)) return
     const key = cardKey(payload.themeId, payload.points)
     const question = findQuestion(payload.themeId, payload.points)
     if (payload.answer === null) {
@@ -309,33 +285,33 @@ export const useQuizStore = defineStore('quizshow', () => {
   }
 
   const importQuiz = (data: unknown): ImportResult => {
-    if (typeof data !== 'object' || data === null) {
+    if (!isRecord(data)) {
       return { ok: false, error: 'Ungültiges Dateiformat.' }
     }
-    const rawThemes = (data as { themes?: unknown }).themes
+    const rawThemes = data.themes
     if (!Array.isArray(rawThemes)) {
       return { ok: false, error: 'Keine Themen in der Datei gefunden.' }
     }
     const parsed: Theme[] = []
     for (const rawTheme of rawThemes) {
-      if (typeof rawTheme !== 'object' || rawTheme === null) {
+      if (!isRecord(rawTheme)) {
         return { ok: false, error: 'Ungültiges Thema in der Datei.' }
       }
-      const themeText = (rawTheme as { themeText?: unknown }).themeText
+      const themeText = rawTheme.themeText
       if (typeof themeText !== 'string') {
         return { ok: false, error: 'Ein Thema hat keinen gültigen Namen.' }
       }
-      const rawQuestions = (rawTheme as { questions?: unknown }).questions
+      const rawQuestions = rawTheme.questions
       if (!Array.isArray(rawQuestions)) {
         return { ok: false, error: 'Ein Thema enthält keine gültigen Fragen.' }
       }
       const questions: Question[] = []
       for (const rawQuestion of rawQuestions) {
-        if (typeof rawQuestion !== 'object' || rawQuestion === null) {
+        if (!isRecord(rawQuestion)) {
           return { ok: false, error: 'Ungültige Frage in der Datei.' }
         }
-        const { points, question, answer, image, audio } = rawQuestion as Record<string, unknown>
-        if (typeof points !== 'number' || !Number.isFinite(points)) {
+        const { points, question, answer, image, audio } = rawQuestion
+        if (!isFiniteNumber(points)) {
           return { ok: false, error: 'Eine Frage hat eine ungültige Punktzahl.' }
         }
         if (typeof question !== 'string' || typeof answer !== 'string') {
@@ -354,21 +330,21 @@ export const useQuizStore = defineStore('quizshow', () => {
     }
 
     // Players are optional (older files without players stay readable).
-    const rawPlayers = (data as { players?: unknown }).players
+    const rawPlayers = data.players
     const parsedPlayers: Player[] = []
     if (rawPlayers !== undefined) {
       if (!Array.isArray(rawPlayers)) {
         return { ok: false, error: 'Ungültige Spielerliste in der Datei.' }
       }
       for (const rawPlayer of rawPlayers) {
-        if (typeof rawPlayer !== 'object' || rawPlayer === null) {
+        if (!isRecord(rawPlayer)) {
           return { ok: false, error: 'Ein Spieler in der Datei ist ungültig.' }
         }
-        const { name, score } = rawPlayer as Record<string, unknown>
+        const { name, score } = rawPlayer
         if (typeof name !== 'string') {
           return { ok: false, error: 'Ein Spieler hat keinen gültigen Namen.' }
         }
-        const playerScore = typeof score === 'number' && Number.isFinite(score) ? score : 0
+        const playerScore = isFiniteNumber(score) ? score : 0
         parsedPlayers.push({ id: crypto.randomUUID(), name, score: playerScore })
       }
     }

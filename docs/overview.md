@@ -17,6 +17,7 @@ electron/
 src/
   App.vue                    # header, mode toggle, lobby, board and player panel
   main.ts                    # createApp + Pinia
+  constants.ts               # DEFAULT_POINTS and input length limits
   assets/                    # base.css, main.css, logo.svg
   components/
     ConnectionStatus.vue     # online state, room code, leave/join entry point
@@ -26,16 +27,22 @@ src/
     QuestionModal.vue        # view/edit card, media, reveal and award
     QuizshowTable.vue        # theme columns and selected-card routing
     ThemeColumn.vue          # theme header and point buttons
+  quiz/
+    card.ts                  # cardKey, isSameCard, findTheme, findQuestion
+    player.ts                # normalizePlayerName
   net/
     protocol.ts              # message types, snapshot creation, validation
     transport.ts             # PeerJS host/client transports, room codes
   stores/
     quiz.store.ts            # themes, questions, players, scoring, import/export
     network.store.ts         # role, connection state, synchronization
-    index.ts                 # Pinia instance/export
+  types/
+    quiz.ts                  # Theme, Question, Player, OpenCard
   utils/
     image.ts                 # image validation and downscaling
     audio.ts                 # audio validation and data URLs
+    file.ts                  # readFileAsDataUrl (shared by image and audio)
+    guards.ts                # isRecord, isFiniteNumber (import + protocol validation)
   test/                      # Vitest specs mirroring the source tree
   vite-env.d.ts              # Window.electronAPI typing
 docs/                        # architecture, backend and GUI documentation

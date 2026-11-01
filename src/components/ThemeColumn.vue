@@ -25,7 +25,7 @@
       @keydown.enter="saveHeader"
       @keydown.esc="cancelHeader"
       @blur="saveHeader"
-      maxlength="15"
+      :maxlength="MAX_THEME_NAME_LENGTH"
     />
     <div v-for="q in theme.questions" :key="q.points" class="column-container">
       <point-button
@@ -43,7 +43,9 @@
 <script setup lang="ts">
 import { nextTick, ref, watch } from 'vue'
 import PointButton from './PointButton.vue'
-import { useQuizStore, type Theme } from '@/stores/quiz.store'
+import { MAX_THEME_NAME_LENGTH } from '@/constants'
+import { useQuizStore } from '@/stores/quiz.store'
+import type { Theme } from '@/types/quiz'
 const props = defineProps<{ theme: Theme }>()
 
 const emit = defineEmits<{

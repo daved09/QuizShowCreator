@@ -10,7 +10,7 @@
           <input
             :ref="setNameInput"
             v-model="nameDraft"
-            maxlength="10"
+            :maxlength="MAX_PLAYER_NAME_LENGTH"
             class="name-input"
             @keydown.enter="saveName(player.id)"
             @keydown.esc="cancelName"
@@ -39,7 +39,12 @@
     </ul>
 
     <form v-if="quizStore.isEditMode" class="add-form" @submit.prevent="addPlayer">
-      <input v-model="newName" class="name-input" maxlength="10" placeholder="Neuer Spieler …" />
+      <input
+        v-model="newName"
+        class="name-input"
+        :maxlength="MAX_PLAYER_NAME_LENGTH"
+        placeholder="Neuer Spieler …"
+      />
       <button type="submit" class="primary">Hinzufügen</button>
     </form>
 
@@ -51,6 +56,7 @@
 
 <script setup lang="ts">
 import { nextTick, ref } from 'vue'
+import { MAX_PLAYER_NAME_LENGTH } from '@/constants'
 import { useQuizStore } from '@/stores/quiz.store'
 
 const quizStore = useQuizStore()
