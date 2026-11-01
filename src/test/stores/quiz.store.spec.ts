@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
-import { DEFAULT_POINTS, QUIZ_FILE_VERSION, useQuizStore, type QuizFile } from '@/stores/quiz.store'
+import { DEFAULT_POINTS } from '@/constants'
+import { QUIZ_FILE_VERSION, useQuizStore, type QuizFile } from '@/stores/quiz.store'
 
 describe('quiz store', () => {
   let store: ReturnType<typeof useQuizStore>
@@ -199,6 +200,14 @@ describe('quiz store', () => {
     it('trims given names', () => {
       store.addPlayer('  Anna  ')
       expect(store.players[0].name).toBe('Anna')
+    })
+
+    it('cuts names to the maximum length when adding and renaming', () => {
+      store.addPlayer('Maximiliane Mustermann')
+      expect(store.players[0].name).toBe('Maximilian')
+
+      store.renamePlayer(store.players[0].id, 'Bartholomäus')
+      expect(store.players[0].name).toBe('Bartholomä')
     })
 
     it('derives default names from the current player count', () => {

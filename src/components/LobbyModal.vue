@@ -71,7 +71,8 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { MAX_PLAYER_NAME_LENGTH, useNetworkStore } from '@/stores/network.store'
+import { MAX_PLAYER_NAME_LENGTH } from '@/constants'
+import { useNetworkStore } from '@/stores/network.store'
 
 const emit = defineEmits<{ (e: 'close'): void }>()
 

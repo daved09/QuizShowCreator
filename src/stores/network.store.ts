@@ -10,6 +10,9 @@
 
 import { computed, ref, watch } from 'vue'
 import { defineStore } from 'pinia'
+import { MAX_PLAYER_NAME_LENGTH } from '@/constants'
+import { cardKey } from '@/quiz/card'
+import { normalizePlayerName } from '@/quiz/player'
 import { useQuizStore } from '@/stores/quiz.store'
 import { parseMessage } from '@/net/protocol'
 import {
@@ -21,12 +24,6 @@ import {
 
 export type NetworkRole = 'offline' | 'host' | 'client'
 export type NetworkStatus = 'idle' | 'connecting' | 'connected' | 'error'
-
-// Matches the max length of the player name inputs in the player panel.
-export const MAX_PLAYER_NAME_LENGTH = 10
-
-export const normalizePlayerName = (name: string | undefined): string =>
-  (name ?? '').trim().slice(0, MAX_PLAYER_NAME_LENGTH)
 
 export const useNetworkStore = defineStore('network', () => {
   const quiz = useQuizStore()
@@ -61,7 +58,7 @@ export const useNetworkStore = defineStore('network', () => {
     if (!transport || role.value !== 'host' || status.value !== 'connected') return
     const card = quiz.openCard
     if (card) {
-      const key = `${card.themeId}:${card.points}`
+      const key = cardKey(card.themeId, card.points)
       if (key !== lastCardKey) {
         const payload = quiz.getQuestionCard(card.themeId, card.points)
         if (payload) transport.broadcast({ type: 'card', card: payload })

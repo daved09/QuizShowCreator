@@ -6,7 +6,7 @@ import {
   parseMessage,
   type GameSnapshot,
 } from '@/net/protocol'
-import type { Player, Theme } from '@/stores/quiz.store'
+import type { Player, Theme } from '@/types/quiz'
 
 const themes: Theme[] = [
   {

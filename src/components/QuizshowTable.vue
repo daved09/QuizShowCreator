@@ -24,7 +24,9 @@
 import { computed } from 'vue'
 import ThemeColumn from './ThemeColumn.vue'
 import QuestionModal from './QuestionModal.vue'
+import { findQuestion, findTheme } from '@/quiz/card'
 import { useQuizStore } from '@/stores/quiz.store'
+import type { Question } from '@/types/quiz'
 import { useNetworkStore } from '@/stores/network.store'
 
 const quizStore = useQuizStore()
@@ -35,10 +37,9 @@ const mode = computed(() => (quizStore.isEditMode && !networkStore.isClient ? 'e
 const selected = computed(() => {
   const current = quizStore.openCard
   if (!current) return null
-  const theme = quizStore.themes.find((t) => t.id === current.themeId)
-  if (!theme) return null
-  const question = theme.questions.find((q) => q.points === current.points)
-  if (!question) return null
+  const theme = findTheme(quizStore.themes, current.themeId)
+  const question = findQuestion(quizStore.themes, current.themeId, current.points)
+  if (!theme || !question) return null
   return { theme, question }
 })
 
@@ -59,13 +60,7 @@ const closeCard = (): void => {
   quizStore.closeQuestion()
 }
 
-const saveCard = (data: {
-  points: number
-  question: string
-  answer: string
-  image?: string
-  audio?: string
-}): void => {
+const saveCard = (data: Question): void => {
   const current = quizStore.openCard
   if (!current) return
   const ok = quizStore.updateQuestionFull(current.themeId, current.points, data)

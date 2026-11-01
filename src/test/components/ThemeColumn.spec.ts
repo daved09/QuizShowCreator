@@ -3,7 +3,8 @@ import { mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import ThemeColumn from '@/components/ThemeColumn.vue'
 import PointButton from '@/components/PointButton.vue'
-import { useQuizStore, type Theme } from '@/stores/quiz.store'
+import { useQuizStore } from '@/stores/quiz.store'
+import type { Theme } from '@/types/quiz'
 import { createTestPinia } from '@/test/helpers'
 
 describe('ThemeColumn', () => {
