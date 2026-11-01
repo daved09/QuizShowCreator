@@ -17,7 +17,8 @@
     "dist:dir": "npm run build && electron-builder --dir",
     "dist:win": "npm run build && electron-builder --win portable",
     "lint": "eslint . --fix",
-    "format": "prettier --write src/"
+    "format": "prettier --write src electron vite.config.ts vitest.config.ts eslint.config.js",
+    "format:check": "prettier --check src electron vite.config.ts vitest.config.ts eslint.config.js"
   },
   "dependencies": {
     "bootstrap": "^5.3.8",

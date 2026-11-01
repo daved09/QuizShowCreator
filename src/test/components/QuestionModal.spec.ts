@@ -8,11 +8,11 @@ import { createTestPinia } from '@/test/helpers'
 // tested without a real FileReader / canvas implementation.
 const { fileToImageDataUrl, isImageFile } = vi.hoisted(() => ({
   fileToImageDataUrl: vi.fn(),
-  isImageFile: vi.fn()
+  isImageFile: vi.fn(),
 }))
 const { fileToAudioDataUrl, isAudioFile } = vi.hoisted(() => ({
   fileToAudioDataUrl: vi.fn(),
-  isAudioFile: vi.fn()
+  isAudioFile: vi.fn(),
 }))
 vi.mock('@/utils/image', () => ({ fileToImageDataUrl, isImageFile }))
 vi.mock('@/utils/audio', () => ({ fileToAudioDataUrl, isAudioFile }))
@@ -38,9 +38,9 @@ describe('QuestionModal', () => {
         props: {
           mode: 'edit' as const,
           themeText: 'Thema',
-          question: { ...question, ...overrides }
+          question: { ...question, ...overrides },
         },
-        global: { plugins: [pinia] }
+        global: { plugins: [pinia] },
       })
 
     it('shows a matching dialog title', () => {
@@ -62,9 +62,9 @@ describe('QuestionModal', () => {
             question: 'Neue Frage',
             answer: 'Neue Antwort',
             image: undefined,
-            audio: undefined
-          }
-        ]
+            audio: undefined,
+          },
+        ],
       ])
     })
 
@@ -117,7 +117,11 @@ describe('QuestionModal', () => {
   })
 
   describe('View mode', () => {
-    const question: Question = { points: 300, question: 'Hauptstadt von Frankreich?', answer: 'Paris' }
+    const question: Question = {
+      points: 300,
+      question: 'Hauptstadt von Frankreich?',
+      answer: 'Paris',
+    }
 
     const mountView = (props: Record<string, unknown> = {}) =>
       mount(QuestionModal, {
@@ -126,9 +130,9 @@ describe('QuestionModal', () => {
           themeText: 'Geografie',
           question,
           answeredBy: null,
-          ...props
+          ...props,
         },
-        global: { plugins: [pinia] }
+        global: { plugins: [pinia] },
       })
 
     it('shows the dialog title with points', () => {
@@ -215,7 +219,7 @@ describe('QuestionModal', () => {
 
     it('shows the question audio for playback', () => {
       const wrapper = mountView({
-        question: { ...question, audio: 'data:audio/mpeg;base64,AAAA' }
+        question: { ...question, audio: 'data:audio/mpeg;base64,AAAA' },
       })
 
       const audio = wrapper.find('.view-audio')
@@ -234,7 +238,7 @@ describe('QuestionModal', () => {
     const mountEdit = () =>
       mount(QuestionModal, {
         props: { mode: 'edit' as const, themeText: 'Thema', question },
-        global: { plugins: [pinia] }
+        global: { plugins: [pinia] },
       })
 
     const makeFile = () => new File(['x'], 'bild.png', { type: 'image/png' })
@@ -287,8 +291,8 @@ describe('QuestionModal', () => {
 
       await wrapper.find('textarea').trigger('paste', {
         clipboardData: {
-          items: [{ kind: 'file', type: 'image/png', getAsFile: () => makeFile() }]
-        }
+          items: [{ kind: 'file', type: 'image/png', getAsFile: () => makeFile() }],
+        },
       })
       await flushPromises()
 
@@ -301,8 +305,8 @@ describe('QuestionModal', () => {
 
       await wrapper.find('textarea').trigger('paste', {
         clipboardData: {
-          items: [{ kind: 'string', type: 'text/plain', getAsFile: () => null }]
-        }
+          items: [{ kind: 'string', type: 'text/plain', getAsFile: () => null }],
+        },
       })
       await flushPromises()
 
@@ -325,8 +329,12 @@ describe('QuestionModal', () => {
 
     const mountEdit = (overrides: Partial<Question> = {}) =>
       mount(QuestionModal, {
-        props: { mode: 'edit' as const, themeText: 'Thema', question: { ...question, ...overrides } },
-        global: { plugins: [pinia] }
+        props: {
+          mode: 'edit' as const,
+          themeText: 'Thema',
+          question: { ...question, ...overrides },
+        },
+        global: { plugins: [pinia] },
       })
 
     const makeFile = () => new File(['x'], 'song.mp3', { type: 'audio/mpeg' })
@@ -352,8 +360,8 @@ describe('QuestionModal', () => {
 
       await wrapper.find('textarea').trigger('paste', {
         clipboardData: {
-          items: [{ kind: 'file', type: 'audio/mpeg', getAsFile: () => makeFile() }]
-        }
+          items: [{ kind: 'file', type: 'audio/mpeg', getAsFile: () => makeFile() }],
+        },
       })
       await flushPromises()
 
@@ -383,9 +391,9 @@ describe('QuestionModal', () => {
             question: 'Frage',
             answer: 'Antwort',
             image: undefined,
-            audio: 'data:audio/mpeg;base64,AAAA'
-          }
-        ]
+            audio: 'data:audio/mpeg;base64,AAAA',
+          },
+        ],
       ])
     })
 
@@ -403,7 +411,7 @@ describe('QuestionModal', () => {
       const wrapper = mountEdit()
 
       await wrapper.find('textarea').trigger('drop', {
-        dataTransfer: { files: [new File(['x'], 'text.txt', { type: 'text/plain' })] }
+        dataTransfer: { files: [new File(['x'], 'text.txt', { type: 'text/plain' })] },
       })
       await flushPromises()
 

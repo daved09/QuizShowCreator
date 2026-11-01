@@ -7,9 +7,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 // dist/ is the Vite renderer output, dist-electron/ holds main + preload
 process.env.DIST = path.join(__dirname, '../dist')
-process.env.PUBLIC = app.isPackaged
-  ? process.env.DIST
-  : path.join(process.env.DIST, '../public')
+process.env.PUBLIC = app.isPackaged ? process.env.DIST : path.join(process.env.DIST, '../public')
 
 let win: BrowserWindow | null = null
 // Set by vite-plugin-electron during dev

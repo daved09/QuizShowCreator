@@ -14,7 +14,7 @@ const setElectronApi = (overrides: Partial<ElectronApi> = {}): void => {
     platform: 'linux',
     exportQuiz,
     importQuiz,
-    ...overrides
+    ...overrides,
   } as ElectronApi
 }
 
@@ -39,7 +39,7 @@ describe('App', () => {
   const mountApp = (): VueWrapper => mount(App, { global: { plugins: [pinia] } })
 
   const buttonByText = (wrapper: VueWrapper, text: string) =>
-    wrapper.findAll('button').find(button => button.text() === text)!
+    wrapper.findAll('button').find((button) => button.text() === text)!
 
   it('shows the title and the game mode toggle', () => {
     const wrapper = mountApp()
@@ -128,7 +128,7 @@ describe('App', () => {
   describe('Import', () => {
     const validFile = JSON.stringify({
       themes: [{ themeText: 'Import', questions: [{ points: 100, question: 'q', answer: 'a' }] }],
-      players: [{ name: 'Anna', score: 0 }]
+      players: [{ name: 'Anna', score: 0 }],
     })
 
     it('imports a valid file', async () => {
@@ -178,7 +178,7 @@ describe('App', () => {
       await flushPromises()
 
       expect(window.alert).toHaveBeenCalledWith(
-        'Import fehlgeschlagen: Die Datei enthält kein gültiges JSON.'
+        'Import fehlgeschlagen: Die Datei enthält kein gültiges JSON.',
       )
     })
 
@@ -186,7 +186,7 @@ describe('App', () => {
       importQuiz.mockResolvedValue({
         success: true,
         canceled: false,
-        data: JSON.stringify({ themes: 'nope' })
+        data: JSON.stringify({ themes: 'nope' }),
       })
       const wrapper = mountApp()
 
@@ -194,7 +194,7 @@ describe('App', () => {
       await flushPromises()
 
       expect(window.alert).toHaveBeenCalledWith(
-        'Import fehlgeschlagen: Keine Themen in der Datei gefunden.'
+        'Import fehlgeschlagen: Keine Themen in der Datei gefunden.',
       )
     })
 

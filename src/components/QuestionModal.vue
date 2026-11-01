@@ -9,7 +9,7 @@
       <!-- View mode (playing): question + answer + awarding points -->
       <div v-if="mode === 'view'" class="modal-body">
         <p class="label">Frage:</p>
-        <p class="view-text">{{ question.question || "—" }}</p>
+        <p class="view-text">{{ question.question || '—' }}</p>
         <img
           v-if="question.image"
           :src="question.image"
@@ -18,14 +18,9 @@
           title="Zum Vergrößern klicken"
           @click="showLightbox = true"
         />
-        <audio
-          v-if="question.audio"
-          :src="question.audio"
-          controls
-          class="view-audio"
-        ></audio>
+        <audio v-if="question.audio" :src="question.audio" controls class="view-audio"></audio>
         <p class="label">Antwort:</p>
-        <p v-if="isRevealed" class="view-text">{{ question.answer || "—" }}</p>
+        <p v-if="isRevealed" class="view-text">{{ question.answer || '—' }}</p>
         <button
           v-if="isHost"
           type="button"
@@ -85,17 +80,13 @@
         <div v-if="draft.image" class="field">
           <span class="label">Bild</span>
           <img :src="draft.image" alt="Bildvorschau" class="image-preview" />
-          <button type="button" class="remove-image" @click="removeImage">
-            Bild entfernen
-          </button>
+          <button type="button" class="remove-image" @click="removeImage">Bild entfernen</button>
         </div>
         <p v-if="audioError" class="error">{{ audioError }}</p>
         <div v-if="draft.audio" class="field">
           <span class="label">Audio</span>
           <audio :src="draft.audio" controls class="audio-preview"></audio>
-          <button type="button" class="remove-audio" @click="removeAudio">
-            Audio entfernen
-          </button>
+          <button type="button" class="remove-audio" @click="removeAudio">Audio entfernen</button>
         </div>
         <label class="field">
           <span class="label">Antwort</span>
@@ -116,15 +107,9 @@
     </div>
 
     <!-- Fullscreen view of the question image -->
-    <div
-      v-if="showLightbox && question.image"
-      class="lightbox"
-      @click="showLightbox = false"
-    >
+    <div v-if="showLightbox && question.image" class="lightbox" @click="showLightbox = false">
       <img :src="question.image" alt="Frage-Bild groß" class="lightbox-image" />
-      <button class="lightbox-close" @click.stop="showLightbox = false" title="Schließen">
-        ✖
-      </button>
+      <button class="lightbox-close" @click.stop="showLightbox = false" title="Schließen">✖</button>
     </div>
   </div>
 </template>
@@ -146,7 +131,10 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'close'): void
-  (e: 'save', value: { points: number; question: string; answer: string; image?: string; audio?: string }): void
+  (
+    e: 'save',
+    value: { points: number; question: string; answer: string; image?: string; audio?: string },
+  ): void
   (e: 'award', playerId: string): void
 }>()
 
@@ -163,12 +151,12 @@ const draft = reactive({
   points: props.question.points,
   question: props.question.question,
   answer: props.question.answer,
-  image: props.question.image ?? "",
-  audio: props.question.audio ?? "",
+  image: props.question.image ?? '',
+  audio: props.question.audio ?? '',
 })
-const error = ref<string>("")
-const imageError = ref<string>("")
-const audioError = ref<string>("")
+const error = ref<string>('')
+const imageError = ref<string>('')
+const audioError = ref<string>('')
 const isDragging = ref<boolean>(false)
 const showLightbox = ref<boolean>(false)
 const firstFieldEl = ref<HTMLInputElement | null>(null)
@@ -183,13 +171,13 @@ const isRevealed = computed(() => revealed.value ?? !!props.answeredBy)
 
 // Checks if the client is host or client
 const isHost = computed(() => {
-  if(networkStore.isOnline && networkStore.isHost){
-    return true;
+  if (networkStore.isOnline && networkStore.isHost) {
+    return true
   }
-  if(networkStore.isOnline && networkStore.isClient){
-    return false;
+  if (networkStore.isOnline && networkStore.isClient) {
+    return false
   }
-  return true;
+  return true
 })
 
 const toggleReveal = (): void => {
@@ -198,21 +186,22 @@ const toggleReveal = (): void => {
 
 const setImageFromFile = async (file: File | undefined): Promise<void> => {
   if (!file) return
-  imageError.value = ""
+  imageError.value = ''
   try {
     draft.image = await fileToImageDataUrl(file)
   } catch (err) {
-    imageError.value = err instanceof Error ? err.message : "Bild konnte nicht geladen werden."
+    imageError.value = err instanceof Error ? err.message : 'Bild konnte nicht geladen werden.'
   }
 }
 
 const setAudioFromFile = async (file: File | undefined): Promise<void> => {
   if (!file) return
-  audioError.value = ""
+  audioError.value = ''
   try {
     draft.audio = await fileToAudioDataUrl(file)
   } catch (err) {
-    audioError.value = err instanceof Error ? err.message : "Audiodatei konnte nicht geladen werden."
+    audioError.value =
+      err instanceof Error ? err.message : 'Audiodatei konnte nicht geladen werden.'
   }
 }
 
@@ -223,7 +212,7 @@ const applyFile = (file: File): void => {
   } else if (isAudioFile(file)) {
     void setAudioFromFile(file)
   } else {
-    imageError.value = "Bitte eine Bild- oder Audiodatei auswählen."
+    imageError.value = 'Bitte eine Bild- oder Audiodatei auswählen.'
   }
 }
 
@@ -270,19 +259,19 @@ const onPaste = (event: ClipboardEvent): void => {
 }
 
 const removeImage = (): void => {
-  draft.image = ""
-  imageError.value = ""
+  draft.image = ''
+  imageError.value = ''
 }
 
 const removeAudio = (): void => {
-  draft.audio = ""
-  audioError.value = ""
+  draft.audio = ''
+  audioError.value = ''
 }
 
 const onSave = (): void => {
-  error.value = ""
+  error.value = ''
   if (!Number.isInteger(draft.points)) {
-    error.value = "Bitte eine ganze Punktzahl eingeben."
+    error.value = 'Bitte eine ganze Punktzahl eingeben.'
     return
   }
   emit('save', {

@@ -59,7 +59,8 @@
               <button type="submit" class="primary" :disabled="!code.trim()">Beitreten</button>
             </div>
             <p class="hint">
-              Mit Namen erscheinst du automatisch in der Spielerliste. Ohne Namen trägt dich der Host ein.
+              Mit Namen erscheinst du automatisch in der Spielerliste. Ohne Namen trägt dich der
+              Host ein.
             </p>
           </form>
         </section>

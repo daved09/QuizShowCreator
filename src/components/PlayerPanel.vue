@@ -2,9 +2,7 @@
   <aside class="player-panel">
     <h2 class="panel-title">Spieler</h2>
 
-    <p v-if="quizStore.players.length === 0" class="empty-hint">
-      Noch keine Spieler.
-    </p>
+    <p v-if="quizStore.players.length === 0" class="empty-hint">Noch keine Spieler.</p>
 
     <ul v-else class="player-list">
       <li v-for="player in quizStore.players" :key="player.id" class="player-item">
@@ -25,34 +23,29 @@
             :class="{ editable: quizStore.isEditMode }"
             :title="quizStore.isEditMode ? 'Zum Umbenennen klicken' : undefined"
             @click="startEditing(player.id, player.name)"
-          >{{ player.name }}</span>
+            >{{ player.name }}</span
+          >
           <button
             v-if="quizStore.isEditMode"
             class="delete-button"
             title="Spieler entfernen"
             @click="quizStore.removePlayer(player.id)"
-          >✖</button>
+          >
+            ✖
+          </button>
         </template>
         <span class="player-score">{{ player.score }}</span>
       </li>
     </ul>
 
     <form v-if="quizStore.isEditMode" class="add-form" @submit.prevent="addPlayer">
-      <input
-        v-model="newName"
-        class="name-input"
-        maxlength="10"
-        placeholder="Neuer Spieler …"
-      />
+      <input v-model="newName" class="name-input" maxlength="10" placeholder="Neuer Spieler …" />
       <button type="submit" class="primary">Hinzufügen</button>
     </form>
 
-    <button
-      v-if="quizStore.isEditMode"
-      type="button"
-      class="reset-button"
-      @click="resetRound"
-    >Runde zurücksetzen</button>
+    <button v-if="quizStore.isEditMode" type="button" class="reset-button" @click="resetRound">
+      Runde zurücksetzen
+    </button>
   </aside>
 </template>
 
@@ -68,7 +61,7 @@ const nameDraft = ref('')
 const nameInputEl = ref<HTMLInputElement | null>(null)
 
 const setNameInput = (el: unknown): void => {
-  nameInputEl.value = (el as HTMLInputElement | null)
+  nameInputEl.value = el as HTMLInputElement | null
 }
 
 const addPlayer = (): void => {

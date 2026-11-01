@@ -55,7 +55,7 @@ describe('fileToAudioDataUrl', () => {
 
   it('throws for non-audio files', async () => {
     await expect(fileToAudioDataUrl(makeFile('image/png'))).rejects.toThrow(
-      'Bitte eine Audiodatei auswählen.'
+      'Bitte eine Audiodatei auswählen.',
     )
   })
 
@@ -72,9 +72,9 @@ describe('fileToAudioDataUrl', () => {
   })
 
   it('throws for files that are too large', async () => {
-    await expect(
-      fileToAudioDataUrl(makeFile('audio/mpeg', MAX_AUDIO_BYTES + 1))
-    ).rejects.toThrow('Die Audiodatei ist zu groß (max. 10 MB).')
+    await expect(fileToAudioDataUrl(makeFile('audio/mpeg', MAX_AUDIO_BYTES + 1))).rejects.toThrow(
+      'Die Audiodatei ist zu groß (max. 10 MB).',
+    )
   })
 
   it('throws when the reader fails', async () => {

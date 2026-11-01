@@ -6,9 +6,7 @@
         Host · {{ networkStore.roomCode }}
       </span>
       <span class="viewer-count">{{ networkStore.viewerCount }} Zuschauer</span>
-      <button class="connection-button" type="button" @click="networkStore.leave()">
-        Beenden
-      </button>
+      <button class="connection-button" type="button" @click="networkStore.leave()">Beenden</button>
     </template>
 
     <template v-else-if="networkStore.isClient">

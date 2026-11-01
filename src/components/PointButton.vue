@@ -99,8 +99,7 @@ button.is-answered:disabled:hover {
   font-size: 0.75em;
   line-height: 1;
 }
-.audio-badge
-.image-badge {
+.audio-badge .image-badge {
   font-size: 0.75em;
   line-height: 1;
 }
