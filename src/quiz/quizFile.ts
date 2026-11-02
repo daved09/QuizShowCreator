@@ -1,5 +1,6 @@
 // The quiz JSON file format: building it for export and validating it on import.
 
+import { MIN_CHOICES } from '@/constants'
 import type { Player, Question, Theme } from '@/types/quiz'
 import { isFiniteNumber, isRecord } from '@/utils/guards'
 
@@ -50,7 +51,7 @@ export const parseQuizFile = (data: unknown): ParseResult => {
       if (!isRecord(rawQuestion)) {
         return { ok: false, error: 'Ungültige Frage in der Datei.' }
       }
-      const { points, question, answer, image, audio, buzzEnabled } = rawQuestion
+      const { points, question, answer, image, audio, buzzEnabled, choices } = rawQuestion
       if (!isFiniteNumber(points)) {
         return { ok: false, error: 'Eine Frage hat eine ungültige Punktzahl.' }
       }
@@ -72,6 +73,14 @@ export const parseQuizFile = (data: unknown): ParseResult => {
       }
       // Buzzing is optional (older files without the flag allow it).
       if (buzzEnabled === false) parsedQuestion.buzzEnabled = false
+      // Choices are optional (older files only contain open questions).
+      if (
+        Array.isArray(choices) &&
+        choices.length >= MIN_CHOICES &&
+        choices.every((choice) => typeof choice === 'string')
+      ) {
+        parsedQuestion.choices = choices
+      }
       questions.push(parsedQuestion)
     }
     questions.sort((a, b) => a.points - b.points)

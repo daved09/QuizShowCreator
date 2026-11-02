@@ -10,6 +10,9 @@ export type Question = {
   audio?: string
   // Whether players may buzz on this question; only `false` is stored, absent means allowed.
   buzzEnabled?: false
+  // Answer options of a multiple-choice question; absent for open questions.
+  // The correct option is the one whose text equals `answer`.
+  choices?: string[]
 }
 
 export type Theme = {

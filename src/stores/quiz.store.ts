@@ -89,6 +89,7 @@ export const useQuizStore = defineStore('quizshow', () => {
     target.image = content.image || undefined
     target.audio = content.audio || undefined
     target.buzzEnabled = content.buzzEnabled === false ? false : undefined
+    target.choices = content.choices?.length ? [...content.choices] : undefined
     return true
   }
 

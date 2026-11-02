@@ -52,6 +52,8 @@ export type CardPayload = {
   audio?: string
   // Only set when buzzing is disabled for the card.
   buzzEnabled?: false
+  // Only set for multiple-choice cards; the correct option follows with the answer.
+  choices?: string[]
   // Only set when the answer is already visible when the card is opened.
   answer?: string
 }
@@ -148,6 +150,9 @@ const isCardPayload = (value: unknown): value is CardPayload =>
   (value.image === undefined || typeof value.image === 'string') &&
   (value.audio === undefined || typeof value.audio === 'string') &&
   (value.buzzEnabled === undefined || value.buzzEnabled === false) &&
+  (value.choices === undefined ||
+    (Array.isArray(value.choices) &&
+      value.choices.every((choice) => typeof choice === 'string'))) &&
   (value.answer === undefined || typeof value.answer === 'string')
 
 const isAnswerPayload = (value: unknown): value is AnswerPayload =>

@@ -68,6 +68,47 @@ describe('QuestionModal', () => {
       ])
     })
 
+    it('emits the choices with the marked one as answer in multiple-choice mode', async () => {
+      const wrapper = mountEdit()
+
+      await wrapper.find('input.switch').setValue(true)
+      const inputs = wrapper.findAll('.choice-input')
+      expect(inputs).toHaveLength(4)
+      expect((inputs[0].element as HTMLInputElement).value).toBe('Alte Antwort')
+      await inputs[1].setValue('  Zweite  ')
+      await inputs[2].setValue('Dritte')
+      await wrapper.find('.add-choice').trigger('click')
+      await wrapper.findAll('.choice-input')[4].setValue('Fünfte')
+      await wrapper.findAll('.choice-correct')[2].setValue(true)
+      await wrapper.find('form').trigger('submit')
+
+      expect(wrapper.emitted('save')?.[0][0]).toMatchObject({
+        answer: 'Dritte',
+        choices: ['Alte Antwort', 'Zweite', 'Dritte', 'Fünfte'],
+      })
+    })
+
+    it('removes a choice and keeps the correct one marked', async () => {
+      const wrapper = mountEdit({ answer: 'C', choices: ['A', 'B', 'C'] })
+
+      expect(wrapper.find('.choices').exists()).toBe(true)
+      await wrapper.findAll('.remove-choice')[0].trigger('click')
+      await wrapper.find('form').trigger('submit')
+
+      expect(wrapper.emitted('save')?.[0][0]).toMatchObject({ answer: 'C', choices: ['B', 'C'] })
+    })
+
+    it('refuses to save invalid choices', async () => {
+      const wrapper = mountEdit({ answer: 'A', choices: ['A', 'A'] })
+
+      await wrapper.find('form').trigger('submit')
+
+      expect(wrapper.emitted('save')).toBeUndefined()
+      expect(wrapper.find('.error').text()).toBe(
+        'Die Antwortmöglichkeiten müssen sich unterscheiden.',
+      )
+    })
+
     it('focuses the question field when opened', async () => {
       const wrapper = mount(QuestionModal, {
         props: { mode: 'edit' as const, themeText: 'Thema', question },
@@ -155,6 +196,23 @@ describe('QuestionModal', () => {
       expect(wrapper.text()).toContain('Paris')
       expect(wrapper.find('.reveal-button').text()).toBe('Antwort verbergen')
       expect(wrapper.find('.award-section').exists()).toBe(true)
+    })
+
+    it('shows the choices and highlights the correct one after revealing', async () => {
+      const wrapper = mountView({
+        question: { ...question, choices: ['Berlin', 'Paris', 'Rom'] },
+      })
+
+      expect(wrapper.findAll('.choice').map((c) => c.find('.choice-text').text())).toEqual([
+        'Berlin',
+        'Paris',
+        'Rom',
+      ])
+      expect(wrapper.find('.choice.is-correct').exists()).toBe(false)
+
+      await wrapper.find('.reveal-button').trigger('click')
+
+      expect(wrapper.find('.choice.is-correct .choice-text').text()).toBe('Paris')
     })
 
     it('shows a hint when no players exist yet', async () => {

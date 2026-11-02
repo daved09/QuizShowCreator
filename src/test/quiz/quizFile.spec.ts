@@ -34,6 +34,29 @@ describe('quiz file', () => {
     expect(result.players[0]).toMatchObject({ name: 'Anna', score: 0 })
   })
 
+  it('keeps valid multiple-choice options and drops invalid ones', () => {
+    const result = parseQuizFile({
+      themes: [
+        {
+          themeText: 'Quiz',
+          questions: [
+            { points: 100, question: 'a', answer: 'B', choices: ['A', 'B', 'C'] },
+            { points: 200, question: 'b', answer: 'A', choices: ['A'] },
+            { points: 300, question: 'c', answer: 'A', choices: ['A', 2] },
+          ],
+        },
+      ],
+    })
+
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.themes[0].questions.map((q) => q.choices)).toEqual([
+      ['A', 'B', 'C'],
+      undefined,
+      undefined,
+    ])
+  })
+
   it('reports the first problem as an error', () => {
     expect(parseQuizFile(null)).toEqual({ ok: false, error: 'Ungültiges Dateiformat.' })
     expect(parseQuizFile({ themes: [{ themeText: 1, questions: [] }] })).toEqual({

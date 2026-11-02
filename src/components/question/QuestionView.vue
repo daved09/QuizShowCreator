@@ -11,6 +11,18 @@
       @click="emit('zoomImage')"
     />
     <audio v-if="question.audio" :src="question.audio" controls class="view-audio"></audio>
+    <ol v-if="question.choices" class="choice-list">
+      <li
+        v-for="(choice, index) in question.choices"
+        :key="index"
+        class="choice"
+        :class="{ 'is-correct': revealed && choice === question.answer }"
+      >
+        <span class="choice-letter">{{ String.fromCharCode(65 + index) }}</span>
+        <span class="choice-text">{{ choice }}</span>
+        <span v-if="revealed && choice === question.answer" class="choice-mark">✔</span>
+      </li>
+    </ol>
     <div v-if="buzzedPlayer" class="buzzer-banner" role="status">
       <span class="buzzer-banner__icon" aria-hidden="true">🔔</span>
       <span class="buzzer-banner__text">{{ buzzedPlayer.name }} hat gebuzzert!</span>
@@ -119,6 +131,40 @@ onMounted(() => {
 }
 .view-audio {
   width: 100%;
+}
+.choice-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 0.5rem;
+  margin: 0 0 0.5rem;
+  padding: 0;
+  list-style: none;
+}
+.choice {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0.85rem;
+  background: var(--color-background-soft);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+.choice.is-correct {
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+  border: 2px solid var(--color-primary);
+  font-weight: 700;
+}
+.choice-letter {
+  flex-shrink: 0;
+  font-weight: 800;
+  color: var(--color-primary);
+}
+.choice-text {
+  flex: 1;
+  min-width: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 .buzzer-banner {
   display: flex;
