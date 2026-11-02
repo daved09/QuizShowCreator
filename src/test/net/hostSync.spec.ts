@@ -34,6 +34,15 @@ describe('host sync', () => {
       expect(createCardPayload(store.themes, { themeId, points: 100 }, true)?.answer).toBe('a')
     })
 
+    it('ships the choices of a multiple-choice card', () => {
+      store.patchQuestion(themeId, 100, { choices: ['a', 'b'] })
+
+      expect(createCardPayload(store.themes, { themeId, points: 100 }, false)?.choices).toEqual([
+        'a',
+        'b',
+      ])
+    })
+
     it('returns null for unknown cards', () => {
       expect(createCardPayload(store.themes, { themeId: 'missing', points: 100 }, false)).toBeNull()
     })

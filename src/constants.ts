@@ -6,3 +6,6 @@ export const MAX_PLAYER_NAME_LENGTH = 10
 export const MAX_THEME_NAME_LENGTH = 15
 export const MAX_QUESTION_LENGTH = 500
 export const MAX_ANSWER_LENGTH = 250
+export const MIN_CHOICES = 2
+export const MAX_CHOICES = 6
+export const MAX_CHOICE_LENGTH = 100
