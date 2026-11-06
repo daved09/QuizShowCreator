@@ -172,6 +172,22 @@ describe('parseMessage', () => {
   })
 
   it.each([
+    ['a remote image URL', { image: 'https://tracker.example/p.png' }],
+    ['a javascript image URL', { image: 'javascript:alert(1)' }],
+    ['an audio file with image type', { audio: 'data:image/png;base64,AAAA' }],
+    ['an oversized question', { question: 'x'.repeat(5000) }],
+    ['too many choices', { choices: ['a', 'b', 'c', 'd', 'e', 'f', 'g'] }],
+  ])('rejects a card with %s', (_label, override) => {
+    const card = { themeId: 't1', points: 100, question: 'Q', ...override }
+    expect(parseMessage({ type: 'card', card })).toBeNull()
+  })
+
+  it('rejects a snapshot with too many players', () => {
+    const many = Array.from({ length: 201 }, (_, i) => ({ id: `p${i}`, name: 'x', score: 0 }))
+    expect(parseMessage({ type: 'state', snapshot: { ...snapshot, players: many } })).toBeNull()
+  })
+
+  it.each([
     ['a string', 'not json'],
     ['null', null],
     ['a number', 42],

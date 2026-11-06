@@ -57,6 +57,7 @@ const { FakePeer, FakeConnection } = vi.hoisted(() => {
 
 vi.mock('peerjs', () => ({ default: FakePeer }))
 
+import { MAX_VIEWERS } from '@/constants'
 import {
   createClientTransport,
   createHostTransport,
@@ -65,10 +66,10 @@ import {
 } from '@/net/transport'
 
 describe('room codes', () => {
-  it('generates a 6 character code from the safe alphabet', () => {
+  it('generates an 8 character code from the safe alphabet', () => {
     for (let i = 0; i < 25; i++) {
       const code = generateRoomCode()
-      expect(code).toMatch(/^[A-HJ-NP-Z2-9]{6}$/)
+      expect(code).toMatch(/^[A-HJ-NP-Z2-9]{8}$/)
     }
   })
 
@@ -116,6 +117,20 @@ describe('createHostTransport', () => {
 
     connection.emit('close')
     expect(onViewerLeave).toHaveBeenCalledWith('viewer-1')
+  })
+
+  it('refuses viewers beyond the room limit', () => {
+    const onViewerJoin = vi.fn()
+    createHostTransport('code', { onOpen: vi.fn(), onData: vi.fn(), onViewerJoin })
+    const peer = FakePeer.instances[0]
+    for (let i = 0; i < MAX_VIEWERS; i++) peer.emit('connection', new FakeConnection())
+
+    const extra = new FakeConnection()
+    peer.emit('connection', extra)
+    extra.emit('open')
+
+    expect(extra.close).toHaveBeenCalled()
+    expect(onViewerJoin).not.toHaveBeenCalled()
   })
 
   it('skips connections that are not open yet', () => {
