@@ -40,12 +40,12 @@ jobs:
             echo "::error::Invalid version '$VERSION' (expected e.g. 1.2.0 or 1.2.0-beta.1)"
             exit 1
           fi
-          if git ls-remote --exit-code --tags origin "refs/tags/v$VERSION" >/dev/null; then
-            echo "::error::Tag v$VERSION already exists. Choose a new version."
+          if git ls-remote --exit-code --tags origin "refs/tags/$VERSION" >/dev/null; then
+            echo "::error::Tag $VERSION already exists. Choose a new version."
             exit 1
           fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "Releasing v$VERSION"
+          echo "Releasing $VERSION"
 
   build:
     name: Build (${{ matrix.os }})
@@ -111,3 +111,49 @@ jobs:
           generate_release_notes: true
           fail_on_unmatched_files: true
           files: dist-release/*
+
+  bump-version:
+    name: Open version bump PR
+    needs: [prepare, release]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    env:
+      RELEASED: ${{ needs.prepare.outputs.version }}
+      BASE: ${{ github.ref_name }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.ref_name }}
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+
+      - name: Bump version to next patch
+        id: bump
+        run: |
+          npm version "$RELEASED" --no-git-tag-version --allow-same-version >/dev/null
+          NEXT="$(npm version patch --no-git-tag-version)"
+          NEXT="${NEXT#v}"
+          echo "next=$NEXT" >> "$GITHUB_OUTPUT"
+          echo "Released $RELEASED, next version $NEXT"
+
+      - name: Create pull request
+        env:
+          NEXT: ${{ steps.bump.outputs.next }}
+        run: |
+          BRANCH="chore/bump-version-$NEXT"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$BRANCH"
+          git add package.json package-lock.json
+          git commit -m "Bump version to $NEXT"
+          git push --force origin "$BRANCH"
+          gh pr create \
+            --base "$BASE" \
+            --head "$BRANCH" \
+            --title "Bump version to $NEXT" \
+            --body "Release $RELEASED was published. This PR bumps the version in package.json to $NEXT for the next release."
