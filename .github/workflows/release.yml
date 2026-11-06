@@ -3,10 +3,6 @@ name: Release
 on:
   workflow_dispatch:
     inputs:
-      version:
-        description: 'Version without "v" (e.g. 1.2.0). Empty = version from package.json'
-        required: false
-        type: string
       prerelease:
         description: 'Mark as pre-release'
         required: false
