@@ -30,7 +30,8 @@ jobs:
 
       - run: npm ci
 
-      - run: npm test
+      # Fails the build when coverage drops below the thresholds in vitest.config.ts.
+      - run: npm run test:coverage
 
   e2e:
     name: E2E tests (Playwright)

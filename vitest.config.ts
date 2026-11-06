@@ -20,6 +20,13 @@ export default defineConfig({
       provider: 'v8',
       include: ['src/**/*.{ts,vue}'],
       exclude: ['src/main.ts', 'src/vite-env.d.ts', 'src/test/**'],
+      // The CI run fails when coverage drops below these values.
+      thresholds: {
+        statements: 80,
+        branches: 80,
+        functions: 80,
+        lines: 80,
+      },
     },
   },
 })
