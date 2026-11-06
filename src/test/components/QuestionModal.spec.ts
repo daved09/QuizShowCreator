@@ -2,6 +2,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
 import QuestionModal from '@/components/QuestionModal.vue'
 import { useQuizStore } from '@/stores/quiz.store'
+import { useNetworkStore } from '@/stores/network.store'
+import type { TransportHandlers } from '@/net/transport'
 import type { Question } from '@/types/quiz'
 import { createTestPinia } from '@/test/helpers'
 
@@ -17,6 +19,12 @@ const { fileToAudioDataUrl, isAudioFile } = vi.hoisted(() => ({
 }))
 vi.mock('@/utils/image', () => ({ fileToImageDataUrl, isImageFile }))
 vi.mock('@/utils/audio', () => ({ fileToAudioDataUrl, isAudioFile }))
+const mockTransport = vi.hoisted(() => ({
+  createHostTransport: vi.fn(() => ({ broadcast: vi.fn(), close: vi.fn() })),
+  createClientTransport: vi.fn(() => ({ send: vi.fn(), close: vi.fn() })),
+  generateRoomCode: vi.fn(() => 'ABCDEF'),
+}))
+vi.mock('@/net/transport', () => mockTransport)
 
 const dispatchEscape = () => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
 
@@ -178,6 +186,45 @@ describe('QuestionModal', () => {
         },
         global: { plugins: [pinia] },
       })
+
+    it('shows who buzzed and lets the host release the buzzer', async () => {
+      const player = store.addPlayer('Anna')
+      store.buzzedBy = player.id
+      const wrapper = mountView()
+
+      expect(wrapper.find('.buzzer-banner').text()).toContain('Anna hat gebuzzert!')
+
+      await wrapper.find('.buzzer-banner button').trigger('click')
+
+      expect(store.buzzedBy).toBeNull()
+      expect(wrapper.find('.buzzer-banner').exists()).toBe(false)
+    })
+
+    it('offers the buzzer to connected viewers with a name', async () => {
+      const network = useNetworkStore()
+      network.join('AB12CD', 'Anna')
+      const handlers = (
+        mockTransport.createClientTransport.mock.lastCall as unknown as [string, TransportHandlers]
+      )[1]
+      handlers.onOpen()
+      const buzz = vi.spyOn(network, 'buzz')
+      const wrapper = mountView()
+
+      await wrapper.find('.buzzer-button').trigger('click')
+
+      expect(buzz).toHaveBeenCalledTimes(1)
+    })
+
+    it('hides the buzzer when it is disabled for the card', () => {
+      const network = useNetworkStore()
+      network.join('AB12CD', 'Anna')
+      ;(
+        mockTransport.createClientTransport.mock.lastCall as unknown as [string, TransportHandlers]
+      )[1].onOpen()
+      const wrapper = mountView({ question: { ...question, buzzEnabled: false } })
+
+      expect(wrapper.find('.buzzer-button').exists()).toBe(false)
+    })
 
     it('shows the dialog title with points', () => {
       expect(mountView().find('.modal-header h2').text()).toBe('Geografie – 300 Punkte')

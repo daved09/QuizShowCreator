@@ -5,6 +5,9 @@ import { useQuizStore } from '@/stores/quiz.store'
 import { createTestPinia } from '@/test/helpers'
 import type { ElectronAPI } from '../../shared/ipc'
 
+const { playBuzzerSound } = vi.hoisted(() => ({ playBuzzerSound: vi.fn() }))
+vi.mock('@/utils/buzzer', () => ({ playBuzzerSound }))
+
 const exportQuiz = vi.fn()
 const importQuiz = vi.fn()
 
@@ -67,6 +70,31 @@ describe('App', () => {
     expect(wrapper.text()).not.toContain('Importieren')
     expect(wrapper.text()).not.toContain('Exportieren')
     expect(wrapper.text()).not.toContain('Spalte hinzufügen')
+  })
+
+  it('opens and closes the lobby', async () => {
+    const wrapper = mountApp()
+    expect(wrapper.find('.lobby-body').exists()).toBe(false)
+
+    await buttonByText(wrapper, 'Online spielen').trigger('click')
+    expect(wrapper.find('.lobby-body').exists()).toBe(true)
+
+    await wrapper.find('.modal-backdrop').trigger('click')
+    expect(wrapper.find('.lobby-body').exists()).toBe(false)
+  })
+
+  it('plays the buzzer sound when a player buzzes', async () => {
+    playBuzzerSound.mockClear()
+    const player = store.addPlayer('Anna')
+    mountApp()
+
+    store.buzzedBy = player.id
+    await flushPromises()
+    expect(playBuzzerSound).toHaveBeenCalledTimes(1)
+
+    store.buzzedBy = null
+    await flushPromises()
+    expect(playBuzzerSound).toHaveBeenCalledTimes(1)
   })
 
   it('adds a column via the button', async () => {
