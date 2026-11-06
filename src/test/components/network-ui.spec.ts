@@ -35,7 +35,7 @@ describe('multiplayer UI', () => {
       const button = wrapper.find('button')
       expect(button.text()).toBe('Online spielen')
 
-      await button.trigger('click')
+      await button.trigger('clicks')
 
       expect(wrapper.emitted('openLobby')).toHaveLength(1)
     })
