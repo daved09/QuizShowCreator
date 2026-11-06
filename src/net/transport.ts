@@ -8,11 +8,13 @@
 // data flows over a WebRTC data channel (relayed via TURN when needed).
 
 import Peer, { type DataConnection } from 'peerjs'
+import { MAX_VIEWERS } from '@/constants'
 
 const ID_PREFIX = 'quizshow-'
 // Ambiguous characters (0/O, 1/I) are left out to keep codes easy to read out.
 const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
-const CODE_LENGTH = 6
+// 8 characters from 32 symbols = 40 bits, which makes guessing codes impractical.
+const CODE_LENGTH = 8
 
 export type TransportHandlers = {
   // The peer is ready (host: room is live, client: connected to host).
@@ -79,6 +81,11 @@ export const createHostTransport = (code: string, handlers: TransportHandlers): 
   peer.on('open', () => handlers.onOpen())
 
   peer.on('connection', (connection: DataConnection) => {
+    // Refuse further viewers once the room is full.
+    if (connections.size >= MAX_VIEWERS) {
+      connection.on('open', () => connection.close())
+      return
+    }
     connections.add(connection)
     // Fire on open (not on connect) so the initial state broadcast can reach it.
     connection.on('open', () => handlers.onViewerJoin?.(connection.peer))

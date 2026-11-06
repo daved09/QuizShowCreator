@@ -11,7 +11,27 @@
 // it is revealed. That way a viewer never receives content before it is shown.
 
 import type { OpenCard, Player, Theme } from '@/types/quiz'
+import {
+  MAX_CHOICES,
+  MAX_NET_AUDIO_LENGTH,
+  MAX_NET_IMAGE_LENGTH,
+  MAX_NET_ID_LENGTH,
+  MAX_NET_PLAYERS,
+  MAX_NET_QUESTIONS_PER_THEME,
+  MAX_NET_TEXT_LENGTH,
+  MAX_NET_THEMES,
+} from '@/constants'
 import { isFiniteNumber, isRecord } from '@/utils/guards'
+
+// Strings of bounded length, so a peer cannot flood the receiver.
+const isBoundedString = (value: unknown, max: number): value is string =>
+  typeof value === 'string' && value.length <= max
+
+// Media must be an embedded data URL of the right type. Remote URLs are
+// refused, otherwise a host could make viewers' browsers contact arbitrary
+// servers (IP leak / tracking).
+const isMediaDataUrl = (value: unknown, prefix: string, max: number): value is string =>
+  isBoundedString(value, max) && value.startsWith(prefix)
 
 export const PROTOCOL_VERSION = 3
 
@@ -105,61 +125,68 @@ export const createSnapshot = (input: {
 })
 
 const isOpenCard = (value: unknown): value is OpenCard =>
-  isRecord(value) && typeof value.themeId === 'string' && isFiniteNumber(value.points)
+  isRecord(value) &&
+  isBoundedString(value.themeId, MAX_NET_ID_LENGTH) &&
+  isFiniteNumber(value.points)
 
 const isSnapshotQuestion = (value: unknown): value is SnapshotQuestion =>
   isRecord(value) && isFiniteNumber(value.points)
 
 const isSnapshotTheme = (value: unknown): value is SnapshotTheme =>
   isRecord(value) &&
-  typeof value.id === 'string' &&
-  typeof value.themeText === 'string' &&
+  isBoundedString(value.id, MAX_NET_ID_LENGTH) &&
+  isBoundedString(value.themeText, MAX_NET_TEXT_LENGTH) &&
   Array.isArray(value.questions) &&
+  value.questions.length <= MAX_NET_QUESTIONS_PER_THEME &&
   value.questions.every(isSnapshotQuestion)
 
 const isSnapshotPlayer = (value: unknown): value is SnapshotPlayer =>
   isRecord(value) &&
-  typeof value.id === 'string' &&
-  typeof value.name === 'string' &&
+  isBoundedString(value.id, MAX_NET_ID_LENGTH) &&
+  isBoundedString(value.name, MAX_NET_TEXT_LENGTH) &&
   isFiniteNumber(value.score)
 
 const isAnsweredEntry = (value: unknown): value is [string, string] =>
   Array.isArray(value) &&
   value.length === 2 &&
-  typeof value[0] === 'string' &&
-  typeof value[1] === 'string'
+  isBoundedString(value[0], MAX_NET_ID_LENGTH * 2) &&
+  isBoundedString(value[1], MAX_NET_ID_LENGTH)
 
 export const isGameSnapshot = (value: unknown): value is GameSnapshot =>
   isRecord(value) &&
   typeof value.v === 'number' &&
   Array.isArray(value.themes) &&
+  value.themes.length <= MAX_NET_THEMES &&
   value.themes.every(isSnapshotTheme) &&
   Array.isArray(value.players) &&
+  value.players.length <= MAX_NET_PLAYERS &&
   value.players.every(isSnapshotPlayer) &&
   Array.isArray(value.answeredBy) &&
+  value.answeredBy.length <= MAX_NET_THEMES * MAX_NET_QUESTIONS_PER_THEME &&
   value.answeredBy.every(isAnsweredEntry) &&
   (value.openCard === null || isOpenCard(value.openCard)) &&
   typeof value.answerRevealed === 'boolean' &&
-  (value.buzzedBy === null || typeof value.buzzedBy === 'string')
+  (value.buzzedBy === null || isBoundedString(value.buzzedBy, MAX_NET_ID_LENGTH))
 
 const isCardPayload = (value: unknown): value is CardPayload =>
   isRecord(value) &&
-  typeof value.themeId === 'string' &&
+  isBoundedString(value.themeId, MAX_NET_ID_LENGTH) &&
   isFiniteNumber(value.points) &&
-  typeof value.question === 'string' &&
-  (value.image === undefined || typeof value.image === 'string') &&
-  (value.audio === undefined || typeof value.audio === 'string') &&
+  isBoundedString(value.question, MAX_NET_TEXT_LENGTH) &&
+  (value.image === undefined || isMediaDataUrl(value.image, 'data:image/', MAX_NET_IMAGE_LENGTH)) &&
+  (value.audio === undefined || isMediaDataUrl(value.audio, 'data:audio/', MAX_NET_AUDIO_LENGTH)) &&
   (value.buzzEnabled === undefined || value.buzzEnabled === false) &&
   (value.choices === undefined ||
     (Array.isArray(value.choices) &&
-      value.choices.every((choice) => typeof choice === 'string'))) &&
-  (value.answer === undefined || typeof value.answer === 'string')
+      value.choices.length <= MAX_CHOICES &&
+      value.choices.every((choice) => isBoundedString(choice, MAX_NET_TEXT_LENGTH)))) &&
+  (value.answer === undefined || isBoundedString(value.answer, MAX_NET_TEXT_LENGTH))
 
 const isAnswerPayload = (value: unknown): value is AnswerPayload =>
   isRecord(value) &&
-  typeof value.themeId === 'string' &&
+  isBoundedString(value.themeId, MAX_NET_ID_LENGTH) &&
   isFiniteNumber(value.points) &&
-  (value.answer === null || typeof value.answer === 'string')
+  (value.answer === null || isBoundedString(value.answer, MAX_NET_TEXT_LENGTH))
 
 // Parses and validates an incoming message. Returns null for anything that is
 // not a known, well-formed message so callers can simply ignore it.
