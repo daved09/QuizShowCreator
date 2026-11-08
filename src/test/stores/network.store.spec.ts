@@ -314,27 +314,21 @@ describe('network store', () => {
       expect(quiz.buzzedBy).toBeNull()
     })
 
-    it('gives connected viewers a player again after the players were replaced', () => {
+    it('gives connected viewers a player again after the board was cleared', () => {
       network.startHosting()
       hostHandlers!.onOpen()
       hostHandlers!.onData({ type: 'hello', name: 'Anna' }, 'viewer-1')
       hostHandlers!.onData({ type: 'hello', name: 'Ben' }, 'viewer-2')
-      // An import replaces the players with the ones from the file.
-      quiz.importQuiz({
-        app: 'QuizShowCreator',
-        version: 4,
-        themes: [],
-        players: [{ id: 'x', name: 'Ben', score: 300 }],
-      })
+      // Clearing the board drops all players.
+      quiz.clearAll()
 
       network.restorePlayers()
       quiz.addColumn()
       quiz.openQuestion(quiz.themes[0].id, 100)
       hostHandlers!.onData({ type: 'buzz' }, 'viewer-1')
 
-      expect(quiz.players.map((player) => player.name)).toEqual(['Ben', 'Anna'])
-      expect(quiz.players[0].score).toBe(300)
-      expect(quiz.buzzedBy).toBe(quiz.players[1].id)
+      expect(quiz.players.map((player) => player.name)).toEqual(['Anna', 'Ben'])
+      expect(quiz.buzzedBy).toBe(quiz.players[0].id)
     })
 
     it('ignores events from a previous session after leaving', () => {

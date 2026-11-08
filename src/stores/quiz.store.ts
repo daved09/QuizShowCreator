@@ -62,7 +62,7 @@ export const useQuizStore = defineStore('quizshow', () => {
   }
 
   const addColumn = () => {
-    if(themes.value.length >= MAX_THEME_COLUMNS) return
+    if (themes.value.length >= MAX_THEME_COLUMNS) return
     themes.value.push(createTheme('New Theme'))
   }
 
@@ -195,13 +195,20 @@ export const useQuizStore = defineStore('quizshow', () => {
     if (question) Object.assign(question, patch)
   }
 
-  const exportQuiz = (): QuizFile => createQuizFile(themes.value, players.value)
+  // Empties the whole board: themes, players and all runtime state.
+  const clearAll = () => {
+    themes.value = []
+    players.value = []
+    answeredBy.value = new Map()
+    closeQuestion()
+  }
+
+  const exportQuiz = (): QuizFile => createQuizFile(themes.value)
 
   const importQuiz = (data: unknown): ImportResult => {
     const result = parseQuizFile(data)
     if (!result.ok) return result
     themes.value = result.themes
-    players.value = result.players
     answeredBy.value = new Map()
     closeQuestion()
     return { ok: true }
@@ -229,6 +236,7 @@ export const useQuizStore = defineStore('quizshow', () => {
     patchQuestion,
     exportQuiz,
     importQuiz,
+    clearAll,
     themes,
     players,
     answeredBy,

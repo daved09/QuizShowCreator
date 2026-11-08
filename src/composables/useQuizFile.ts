@@ -1,4 +1,3 @@
-import { useNetworkStore } from '@/stores/network.store'
 import { useQuizStore } from '@/stores/quiz.store'
 import { confirmAction, showError } from '@/utils/dialogs'
 
@@ -6,7 +5,6 @@ import { confirmAction, showError } from '@/utils/dialogs'
 // Outside of Electron (no `window.electronAPI`) both are no-ops.
 export const useQuizFile = () => {
   const quiz = useQuizStore()
-  const network = useNetworkStore()
 
   const exportQuiz = async (): Promise<void> => {
     const api = window.electronAPI
@@ -43,8 +41,6 @@ export const useQuizFile = () => {
       showError(`Import fehlgeschlagen: ${importResult.error}`)
       return
     }
-    // The import replaced the players; connected viewers keep theirs.
-    network.restorePlayers()
   }
 
   return { exportQuiz, importQuiz }

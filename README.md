@@ -86,7 +86,7 @@ There is no application settings file. Quizzes are imported and exported as JSON
 ```json
 {
   "app": "QuizShowCreator",
-  "version": 4,
+  "version": 1,
   "themes": [
     {
       "id": "uuid",
@@ -95,16 +95,16 @@ There is no application settings file. Quizzes are imported and exported as JSON
         { "points": 100, "question": "…", "answer": "…", "image": "data:image/…", "audio": "data:audio/…" }
       ]
     }
-  ],
-  "players": [{ "id": "uuid", "name": "Player", "score": 0 }]
+  ]
 }
 ```
 
 - Images and audio are embedded as Base64 data URLs, so the JSON is self-contained.
 - Images are downscaled to a maximum edge length of 1280 px before saving.
 - Audio files are limited to 10 MB.
-- Older files without images, audio or players remain readable.
-- On import, existing themes are replaced after confirmation and the answered state is reset.
+- Players are not stored in the file or in the autosave. Older files that still contain players remain readable; the players are ignored.
+- On close the quiz (without players) is autosaved to `localStorage` and restored on the next start; the "Autosave löschen" button removes it and clears the board.
+- On import, existing themes are replaced after confirmation and the answered state is reset; current players are kept.
 
 ## Architecture & security
 

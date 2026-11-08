@@ -6,6 +6,7 @@
         <button class="btn btn-primary" @click="importQuiz">Importieren</button>
         <button class="btn btn-primary" @click="exportQuiz">Exportieren</button>
         <button class="btn btn-primary" @click="addColumn">Spalte hinzufügen</button>
+        <button class="btn btn-primary" @click="clearEverything">Autosave löschen</button>
       </template>
       <ConnectionStatus @open-lobby="showLobby = true" />
       <button
@@ -42,13 +43,28 @@ import LobbyModal from './components/LobbyModal.vue'
 import { useQuizStore } from '@/stores/quiz.store'
 import { usePermissions } from '@/composables/usePermissions'
 import { useQuizFile } from '@/composables/useQuizFile'
+import { useAutosave } from '@/composables/useAutosave'
 import { playBuzzerSound } from '@/utils/buzzer'
+import { confirmAction } from '@/utils/dialogs'
 
 const quizStore = useQuizStore()
 const { canControl, canEdit } = usePermissions()
 const { exportQuiz, importQuiz } = useQuizFile()
 
+const { clearAll } = useAutosave()
+
 const showLobby = ref(false)
+
+const clearEverything = (): void => {
+  if (
+    !confirmAction(
+      'Autosave löschen und alles zurücksetzen? Nicht exportierte Änderungen gehen verloren.',
+    )
+  ) {
+    return
+  }
+  clearAll()
+}
 
 const modeLabel = computed(() => (quizStore.isEditMode ? 'Spielen' : 'Bearbeiten'))
 const modeIcon = computed(() => (quizStore.isEditMode ? '▶' : '✏️'))

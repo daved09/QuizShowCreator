@@ -271,7 +271,7 @@ describe('quiz store', () => {
       expect(exported.app).toBe('QuizShowCreator')
       expect(exported.version).toBe(QUIZ_FILE_VERSION)
       expect(exported.themes).toEqual(store.themes)
-      expect(exported.players).toEqual(store.players)
+      expect('players' in exported).toBe(false)
     })
   })
 
@@ -289,7 +289,6 @@ describe('quiz store', () => {
           ],
         },
       ],
-      players: [{ id: 'ignored', name: 'Anna', score: 50 }],
     }
 
     it('imports a valid file and sorts questions', () => {
@@ -304,9 +303,15 @@ describe('quiz store', () => {
       expect(theme.questions.map((q) => q.points)).toEqual([100, 300])
       expect(theme.questions[0].image).toBe('data:image/png;base64,AAAA')
       expect(theme.questions[1].image).toBeUndefined()
-      expect(store.players).toHaveLength(1)
-      expect(store.players[0].name).toBe('Anna')
-      expect(store.players[0].score).toBe(50)
+    })
+
+    it('ignores players in older files and keeps the current ones', () => {
+      store.addPlayer('Ben')
+
+      const result = store.importQuiz({ ...validFile, players: [{ name: 'Anna', score: 50 }] })
+
+      expect(result).toEqual({ ok: true })
+      expect(store.players.map((p) => p.name)).toEqual(['Ben'])
     })
 
     it('resets the answered state on import', () => {
@@ -373,9 +378,6 @@ describe('quiz store', () => {
         { themes: [{ themeText: 'T', questions: [{ points: 100, question: 'q', answer: null }] }] },
         'Eine Frage hat ungültigen Text.',
       ],
-      [{ themes: [], players: 'nope' }, 'Ungültige Spielerliste in der Datei.'],
-      [{ themes: [], players: [null] }, 'Ein Spieler in der Datei ist ungültig.'],
-      [{ themes: [], players: [{ name: 123 }] }, 'Ein Spieler hat keinen gültigen Namen.'],
     ])('rejects invalid data: %j', (data, error) => {
       expect(store.importQuiz(data)).toEqual({ ok: false, error })
     })
@@ -408,15 +410,6 @@ describe('quiz store', () => {
 
       expect(store.themes[0].questions[0].audio).toBe('data:audio/mpeg;base64,AAAA')
       expect(store.themes[0].questions[1].audio).toBeUndefined()
-    })
-
-    it('uses 0 as a score fallback for an invalid player score', () => {
-      store.importQuiz({
-        themes: [],
-        players: [{ name: 'Ohne' }, { name: 'Kaputt', score: 'viel' }],
-      })
-
-      expect(store.players.map((p) => p.score)).toEqual([0, 0])
     })
 
     it('does not modify existing data on a failed import', () => {
