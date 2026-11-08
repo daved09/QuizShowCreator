@@ -1,29 +1,26 @@
 // The quiz JSON file format: building it for export and validating it on import.
 
 import { MIN_CHOICES } from '@/constants'
-import type { Player, Question, Theme } from '@/types/quiz'
+import type { Question, Theme } from '@/types/quiz'
 import { isFiniteNumber, isRecord } from '@/utils/guards'
 
-export const QUIZ_FILE_VERSION = 4
+export const QUIZ_FILE_VERSION = 1
 
 export type QuizFile = {
   app: 'QuizShowCreator'
   version: number
   themes: Theme[]
-  players: Player[]
 }
 
-export type ParseResult =
-  { ok: true; themes: Theme[]; players: Player[] } | { ok: false; error: string }
+export type ParseResult = { ok: true; themes: Theme[] } | { ok: false; error: string }
 
-export const createQuizFile = (themes: Theme[], players: Player[]): QuizFile => ({
+export const createQuizFile = (themes: Theme[]): QuizFile => ({
   app: 'QuizShowCreator',
   version: QUIZ_FILE_VERSION,
   themes,
-  players,
 })
 
-// Validates untrusted file content. Themes and players get fresh IDs; questions
+// Validates untrusted file content. Themes get fresh IDs; questions
 // are sorted by points. Returns a German error message for the first problem found.
 export const parseQuizFile = (data: unknown): ParseResult => {
   if (!isRecord(data)) {
@@ -87,24 +84,7 @@ export const parseQuizFile = (data: unknown): ParseResult => {
     themes.push({ id: crypto.randomUUID(), themeText, questions })
   }
 
-  // Players are optional (older files without players stay readable).
-  const rawPlayers = data.players
-  const players: Player[] = []
-  if (rawPlayers !== undefined) {
-    if (!Array.isArray(rawPlayers)) {
-      return { ok: false, error: 'Ungültige Spielerliste in der Datei.' }
-    }
-    for (const rawPlayer of rawPlayers) {
-      if (!isRecord(rawPlayer)) {
-        return { ok: false, error: 'Ein Spieler in der Datei ist ungültig.' }
-      }
-      const { name, score } = rawPlayer
-      if (typeof name !== 'string') {
-        return { ok: false, error: 'Ein Spieler hat keinen gültigen Namen.' }
-      }
-      players.push({ id: crypto.randomUUID(), name, score: isFiniteNumber(score) ? score : 0 })
-    }
-  }
-
-  return { ok: true, themes, players }
+  // Players are not part of the file; older files containing them are still
+  // readable, the players are ignored.
+  return { ok: true, themes }
 }

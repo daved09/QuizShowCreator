@@ -30,11 +30,11 @@ Domain types live in `src/types/quiz.ts`, `QuizFile` in `src/quiz/quizFile.ts`. 
 type Theme = { id: string; themeText: string; questions: Question[] }
 type Question = { points: number; question: string; answer: string; image?: string; audio?: string }
 type Player = { id: string; name: string; score: number }
-type QuizFile = { app: 'QuizShowCreator'; version: number; themes: Theme[]; players: Player[] }
+type QuizFile = { app: 'QuizShowCreator'; version: number; themes: Theme[] }
 ```
 
 - `DEFAULT_POINTS = [100, 200, 300, 400, 500]` (from `src/constants.ts`)
-- `QUIZ_FILE_VERSION = 4` (from `src/quiz/quizFile.ts`)
+- `QUIZ_FILE_VERSION = 1` (from `src/quiz/quizFile.ts`)
 - `Image` and `audio` are Base64 data URLs.
 
 ### State
@@ -75,7 +75,7 @@ type QuizFile = { app: 'QuizShowCreator'; version: number; themes: Theme[]; play
 
 ### Import and export
 
-`exportQuiz()` returns `createQuizFile(themes, players)`.
+`exportQuiz()` returns `createQuizFile(themes)`.
 
 `importQuiz(data)` validates the document with `parseQuizFile()` and, on success, replaces the board. `parseQuizFile` is a pure function:
 
@@ -84,7 +84,7 @@ type QuizFile = { app: 'QuizShowCreator'; version: number; themes: Theme[]; play
 3. Every question needs finite numeric `points` and string `question`/`answer`.
 4. `image` is kept only when it starts with `data:image/`; `audio` only with `data:audio/`.
 5. Questions are sorted by points; theme ids are regenerated.
-6. `players` is optional; when present it must be an array of objects with a string `name`; invalid scores become `0`.
+6. `players` is ignored (older files may contain them); the current players stay untouched.
 7. On success, the store clears `answeredBy` and closes the open card.
 
 Errors are returned as `{ ok: false, error }` with German messages. A successful import does not validate duplicate point values in the file.

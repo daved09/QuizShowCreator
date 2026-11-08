@@ -167,7 +167,6 @@ describe('App', () => {
 
       expect(store.themes).toHaveLength(1)
       expect(store.themes[0].themeText).toBe('Import')
-      expect(store.players).toHaveLength(1)
     })
 
     it('asks before replacing existing themes', async () => {

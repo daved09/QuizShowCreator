@@ -2,12 +2,11 @@ import { describe, expect, it } from 'vitest'
 import { createQuizFile, parseQuizFile, QUIZ_FILE_VERSION } from '@/quiz/quizFile'
 
 describe('quiz file', () => {
-  it('wraps themes and players with app name and version', () => {
-    expect(createQuizFile([], [])).toEqual({
+  it('wraps themes with app name and version', () => {
+    expect(createQuizFile([])).toEqual({
       app: 'QuizShowCreator',
       version: QUIZ_FILE_VERSION,
       themes: [],
-      players: [],
     })
   })
 
@@ -31,7 +30,7 @@ describe('quiz file', () => {
     expect(result.themes[0].id).not.toBe('old')
     expect(result.themes[0].questions.map((q) => q.points)).toEqual([100, 200])
     expect(result.themes[0].questions[0].image).toBeUndefined()
-    expect(result.players[0]).toMatchObject({ name: 'Anna', score: 0 })
+    expect('players' in result).toBe(false)
   })
 
   it('keeps valid multiple-choice options and drops invalid ones', () => {
