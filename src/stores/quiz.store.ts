@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
-import { DEFAULT_POINTS } from '@/constants'
+import { DEFAULT_POINTS, MAX_THEME_COLUMNS } from '@/constants'
 import { cardKey, findQuestion as findQuestionIn, findTheme as findThemeIn } from '@/quiz/card'
 import { normalizePlayerName } from '@/quiz/player'
 import { createQuizFile, parseQuizFile, type QuizFile } from '@/quiz/quizFile'
@@ -62,6 +62,7 @@ export const useQuizStore = defineStore('quizshow', () => {
   }
 
   const addColumn = () => {
+    if(themes.value.length >= MAX_THEME_COLUMNS) return
     themes.value.push(createTheme('New Theme'))
   }
 
