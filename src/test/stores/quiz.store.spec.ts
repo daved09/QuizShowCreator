@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
-import { DEFAULT_POINTS } from '@/constants'
+import { DEFAULT_POINTS, MAX_THEME_COLUMNS } from '@/constants'
 import { QUIZ_FILE_VERSION, type QuizFile } from '@/quiz/quizFile'
 import { useQuizStore } from '@/stores/quiz.store'
 
@@ -29,6 +29,20 @@ describe('quiz store', () => {
       store.addColumn()
       store.addColumn()
       expect(store.themes[0].id).not.toBe(store.themes[1].id)
+    })
+
+    it('does not add more than MAX_THEME_COLUMNS themes', () => {
+      for (let i = 0; i < MAX_THEME_COLUMNS + 3; i++) store.addColumn()
+
+      expect(store.themes).toHaveLength(MAX_THEME_COLUMNS)
+    })
+
+    it('allows adding a column again after removing one at the limit', () => {
+      for (let i = 0; i < MAX_THEME_COLUMNS; i++) store.addColumn()
+      store.removeTheme(store.themes[0].id)
+      store.addColumn()
+
+      expect(store.themes).toHaveLength(MAX_THEME_COLUMNS)
     })
 
     it('removes a theme by its ID', () => {
