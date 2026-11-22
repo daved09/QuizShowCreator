@@ -70,7 +70,7 @@ test('Punkte mehrerer Karten summieren sich', async ({ page }) => {
 test('Schließen ohne Vergabe lässt die Karte offen für später', async ({ page }) => {
   await setupBoard(page)
   await card(page, 0, 100).click()
-  await page.getByRole('button', { name: 'Schließen' }).click()
+  await page.locator('.modal-actions').getByRole('button', { name: 'Schließen' }).click()
   await expect(card(page, 0, 100)).not.toHaveClass(/is-answered/)
 })
 
