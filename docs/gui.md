@@ -134,8 +134,12 @@ Viewer mode is enforced in the components: board clicks, closing cards, import/e
 
 ## Styling
 
-- Global CSS variables live in `src/assets/base.css` and `main.css`: colours, radii, shadows, transitions and a dark default theme.
-- `src/assets/ui.css` holds shared building blocks: buttons (`btn`, `btn-primary`, `btn-danger`, `btn-sm`), form fields (`field`, `label`, `text-input`, `error`, `hint`) and dialog content (`modal-body`, `modal-actions`).
-- Component styles are scoped and only add what is specific to the component.
-- The board is a horizontal flex row with theme columns; the player panel is sticky on the right.
-- Dialogs use a fixed backdrop, rounded panels and the same focus-ring treatment as buttons.
+The UI follows [Material 3](https://m3.material.io/) (baseline purple scheme, light and dark via `prefers-color-scheme`).
+
+- `src/assets/base.css` defines the M3 tokens: colour roles (`--md-sys-color-*`), shape (`--md-sys-shape-*`), elevation, motion and the type scale font. Short project aliases (`--color-primary`, `--radius-md`, …) map onto these tokens.
+- `src/assets/ui.css` holds shared building blocks: buttons (`btn` outlined, `btn-primary` filled, `btn-danger` error tonal, `btn-sm`), outlined text fields (`field`, `label`, `text-input`, `error`, `hint`), the M3 `switch` and dialog content (`modal-body`, `modal-actions`).
+- Component styles are scoped and use the tokens: top app bar in `App.vue`, filter chip for the mode toggle, filled tonal point buttons, a filled card for the player panel and a basic dialog (28 px radius, `surface-container-high`) in `BaseModal`.
+- Hover/focus/pressed feedback uses M3 state layers (`::before` overlay with `currentColor`).
+- No web fonts are loaded (CSP); Roboto is used when installed, otherwise the system font.
+- Icons are inline Material SVGs (`components/base/AppIcon.vue`, no icon font because of the CSP); add new ones to its `ICONS` map.
+- Motion follows the M3 easing/duration tokens (`--md-sys-motion-*`): dialogs fade and scale in, lightbox cross-fades, player list and theme columns animate in/out, choices stagger, the answered check and mode icon pop, the buzzer pulses. Buttons, chips and point cards show a ripple (`src/utils/ripple.ts`, installed in `main.ts`; opt in with `.btn`, `.mode-toggle` or `data-ripple`). `prefers-reduced-motion` disables all animation.

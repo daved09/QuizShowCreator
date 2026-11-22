@@ -1,64 +1,142 @@
-/* Shared UI building blocks: buttons, form fields and dialog content. */
+/* Shared UI building blocks (Material 3): buttons, form fields and dialog content. */
+
+/* --- Motion helpers ------------------------------------------------------ */
+
+@keyframes md-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes md-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.85) translateY(12px);
+  }
+}
+@keyframes md-pop {
+  0% {
+    transform: scale(0);
+  }
+  70% {
+    transform: scale(1.25);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@keyframes md-ripple {
+  from {
+    transform: scale(0);
+    opacity: 0.16;
+  }
+  to {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+/* Ripple element appended by the v-ripple directive. */
+.md-ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: currentColor;
+  pointer-events: none;
+  animation: md-ripple 800ms var(--md-sys-motion-easing-decelerate) forwards;
+}
 
 /* --- Buttons ------------------------------------------------------------ */
+/* .btn            outlined button
+ * .btn-primary    filled button
+ * .btn-danger     tonal button in the error role
+ * .btn-sm         compact size                                              */
 
 .btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 40px;
+  padding: 0 24px;
   font: inherit;
-  font-weight: 600;
-  padding: 0.5rem 1rem;
-  color: var(--color-text);
-  background: var(--color-background-soft);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: 0.1px;
+  color: var(--md-sys-color-primary);
+  background: transparent;
+  border: 1px solid var(--md-sys-color-outline);
+  border-radius: var(--md-sys-shape-full);
   cursor: pointer;
+  user-select: none;
+  overflow: hidden;
   transition:
     background-color var(--transition-fast),
+    box-shadow var(--transition-fast),
     border-color var(--transition-fast),
-    color var(--transition-fast),
-    transform var(--transition-fast),
-    box-shadow var(--transition-fast);
+    transform var(--transition-fast);
 }
-.btn:hover {
-  border-color: var(--color-primary);
-  color: var(--color-primary);
-  background: var(--color-primary-soft);
+.btn:active:not(:disabled) {
+  transform: scale(0.97);
 }
-.btn:active {
-  transform: translateY(1px) scale(0.99);
+/* State layer */
+.btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-fast);
+}
+.btn:hover:not(:disabled)::before {
+  opacity: var(--md-state-hover);
 }
 .btn:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
+  outline: 2px solid var(--md-sys-color-primary);
+  outline-offset: 2px;
+}
+.btn:focus-visible:not(:disabled)::before,
+.btn:active:not(:disabled)::before {
+  opacity: var(--md-state-pressed);
 }
 .btn:disabled {
-  opacity: 0.5;
   cursor: not-allowed;
+  color: color-mix(in srgb, var(--md-sys-color-on-surface) 38%, transparent);
+  border-color: color-mix(in srgb, var(--md-sys-color-on-surface) 12%, transparent);
 }
+
 .btn-primary {
-  color: var(--color-on-primary);
-  background: var(--color-primary);
+  color: var(--md-sys-color-on-primary);
+  background: var(--md-sys-color-primary);
   border-color: transparent;
-  box-shadow: var(--shadow-sm);
 }
-.btn-primary:hover {
-  color: var(--color-on-primary);
-  background: var(--color-primary-hover);
-  border-color: transparent;
-  box-shadow: var(--shadow-md);
+.btn-primary:hover:not(:disabled) {
+  box-shadow: var(--md-sys-elevation-1);
 }
+.btn-primary:disabled {
+  background: color-mix(in srgb, var(--md-sys-color-on-surface) 12%, transparent);
+}
+
 .btn-danger {
-  color: var(--color-danger);
-  background: var(--color-danger-soft);
+  color: var(--md-sys-color-on-error-container);
+  background: var(--md-sys-color-error-container);
   border-color: transparent;
 }
-.btn-danger:hover {
-  color: var(--color-danger);
-  background: var(--color-danger-soft);
-  border-color: var(--color-danger);
+.btn-danger:disabled {
+  background: color-mix(in srgb, var(--md-sys-color-on-surface) 12%, transparent);
 }
+.btn-danger:focus-visible {
+  outline-color: var(--md-sys-color-error);
+}
+
 .btn-sm {
-  padding: 0.35rem 0.7rem;
-  font-size: 0.85rem;
+  min-height: 32px;
+  padding: 0 16px;
+  font-size: 13px;
+}
+
+.btn .app-icon {
+  font-size: 18px;
 }
 
 /* --- Form fields --------------------------------------------------------- */
@@ -69,85 +147,105 @@
   gap: 0.25rem;
 }
 .label {
-  font-weight: bold;
-  font-size: 0.9rem;
   margin: 0;
+  /* label-large */
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.1px;
+  color: var(--md-sys-color-on-surface-variant);
 }
+/* Outlined text field */
 .text-input {
-  font: inherit;
-  padding: 0.5rem;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  background: var(--color-background-soft);
-  color: var(--color-text);
   width: 100%;
+  min-height: 40px;
+  padding: 0.6rem 0.9rem;
+  font: inherit;
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: 0.5px;
+  color: var(--md-sys-color-on-surface);
+  background: transparent;
+  border: 1px solid var(--md-sys-color-outline);
+  border-radius: var(--md-sys-shape-xs);
   resize: vertical;
+  transition: border-color var(--transition-fast);
+}
+.text-input::placeholder {
+  color: var(--md-sys-color-on-surface-variant);
+  opacity: 0.8;
+}
+.text-input:hover {
+  border-color: var(--md-sys-color-on-surface);
 }
 .text-input:focus,
 .text-input:focus-visible {
   outline: none;
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 2px var(--color-primary-soft);
+  border-color: var(--md-sys-color-primary);
+  box-shadow: inset 0 0 0 1px var(--md-sys-color-primary);
 }
 .error {
   margin: 0;
-  color: var(--color-danger);
-  font-size: 0.9rem;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 0.4px;
+  color: var(--md-sys-color-error);
 }
 .hint {
   margin: 0;
-  font-size: 0.9rem;
-  opacity: 0.8;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 0.4px;
+  color: var(--md-sys-color-on-surface-variant);
 }
 
-/* Toggle switch: a styled checkbox (<input type="checkbox" class="switch">). */
+/* Switch: a styled checkbox (<input type="checkbox" class="switch">). */
 .switch {
   appearance: none;
   flex: none;
   position: relative;
-  width: 2.4rem;
-  height: 1.3rem;
+  width: 52px;
+  height: 32px;
   margin: 0;
-  background: var(--color-background-soft);
-  border: 1px solid var(--color-border);
-  border-radius: 999px;
+  background: var(--md-sys-color-surface-container-highest);
+  border: 2px solid var(--md-sys-color-outline);
+  border-radius: var(--md-sys-shape-full);
   cursor: pointer;
   transition:
     background-color var(--transition-fast),
-    border-color var(--transition-fast),
-    box-shadow var(--transition-fast);
+    border-color var(--transition-fast);
 }
 .switch::after {
   content: '';
   position: absolute;
   top: 50%;
-  left: 0.2rem;
-  width: 0.9rem;
-  height: 0.9rem;
-  background: var(--color-text);
+  left: 6px;
+  width: 16px;
+  height: 16px;
+  background: var(--md-sys-color-outline);
   border-radius: 50%;
-  opacity: 0.6;
   transform: translateY(-50%);
   transition:
     left var(--transition-fast),
-    background-color var(--transition-fast),
-    opacity var(--transition-fast);
+    width var(--transition-fast),
+    height var(--transition-fast),
+    background-color var(--transition-fast);
 }
-.switch:hover {
-  border-color: var(--color-primary);
+.switch:hover::after {
+  background: var(--md-sys-color-on-surface-variant);
 }
 .switch:checked {
-  background: var(--color-primary);
-  border-color: transparent;
+  background: var(--md-sys-color-primary);
+  border-color: var(--md-sys-color-primary);
 }
 .switch:checked::after {
-  left: 1.2rem;
-  background: var(--color-on-primary);
-  opacity: 1;
+  left: 22px;
+  width: 24px;
+  height: 24px;
+  background: var(--md-sys-color-on-primary);
 }
 .switch:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
+  outline: 2px solid var(--md-sys-color-primary);
+  outline-offset: 2px;
 }
 
 /* --- Dialog content (see BaseModal) --------------------------------------- */
@@ -156,7 +254,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  padding: 1.25rem;
+  padding: 0 24px 24px;
 }
 .modal-actions {
   display: flex;

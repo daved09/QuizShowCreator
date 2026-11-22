@@ -14,17 +14,20 @@
     <ol v-if="question.choices" class="choice-list">
       <li
         v-for="(choice, index) in question.choices"
+        :style="{ '--i': index }"
         :key="index"
         class="choice"
         :class="{ 'is-correct': revealed && choice === question.answer }"
       >
         <span class="choice-letter">{{ String.fromCharCode(65 + index) }}</span>
         <span class="choice-text">{{ choice }}</span>
-        <span v-if="revealed && choice === question.answer" class="choice-mark">✔</span>
+        <span v-if="revealed && choice === question.answer" class="choice-mark"
+          ><AppIcon name="check"
+        /></span>
       </li>
     </ol>
     <div v-if="buzzedPlayer" class="buzzer-banner" role="status">
-      <span class="buzzer-banner__icon" aria-hidden="true">🔔</span>
+      <span class="buzzer-banner__icon" aria-hidden="true"><AppIcon name="notifications" /></span>
       <span class="buzzer-banner__text">{{ buzzedPlayer.name }} hat gebuzzert!</span>
       <button v-if="canControl" type="button" class="btn btn-sm" @click="quizStore.clearBuzz()">
         Buzzer freigeben
@@ -48,7 +51,9 @@
 
     <div v-if="revealed && canControl" class="award-section">
       <p class="label">Punkte vergeben</p>
-      <p v-if="answeredBy" class="award-hint">✔ Bereits beantwortet von {{ answeredBy }}</p>
+      <p v-if="answeredBy" class="award-hint">
+        <AppIcon name="check" /> Bereits beantwortet von {{ answeredBy }}
+      </p>
       <p v-else-if="quizStore.players.length === 0" class="award-hint">
         Noch keine Spieler angelegt.
       </p>
@@ -73,6 +78,7 @@
 </template>
 
 <script setup lang="ts">
+import AppIcon from '@/components/base/AppIcon.vue'
 import { computed, nextTick, onMounted, ref } from 'vue'
 import { usePermissions } from '@/composables/usePermissions'
 import { useNetworkStore } from '@/stores/network.store'
@@ -126,7 +132,7 @@ onMounted(() => {
   max-width: 100%;
   max-height: 45vh;
   object-fit: contain;
-  border-radius: 0.25rem;
+  border-radius: var(--md-sys-shape-md);
   cursor: zoom-in;
 }
 .view-audio {
@@ -145,20 +151,20 @@ onMounted(() => {
   align-items: center;
   gap: 0.6rem;
   padding: 0.55rem 0.85rem;
-  background: var(--color-background-soft);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  color: var(--md-sys-color-on-surface);
+  background: var(--md-sys-color-surface-container-highest);
+  border-radius: var(--md-sys-shape-md);
 }
 .choice.is-correct {
-  color: var(--color-primary);
-  background: var(--color-primary-soft);
-  border: 2px solid var(--color-primary);
-  font-weight: 700;
+  color: var(--md-sys-color-on-primary-container);
+  background: var(--md-sys-color-primary-container);
+  box-shadow: inset 0 0 0 2px var(--md-sys-color-primary);
+  font-weight: 500;
 }
 .choice-letter {
   flex-shrink: 0;
-  font-weight: 800;
-  color: var(--color-primary);
+  font-weight: 500;
+  color: var(--md-sys-color-primary);
 }
 .choice-text {
   flex: 1;
@@ -171,11 +177,10 @@ onMounted(() => {
   align-items: center;
   gap: 0.6rem;
   padding: 0.6rem 0.85rem;
-  font-weight: 700;
-  color: var(--color-primary);
-  background: var(--color-background-soft);
-  border: 2px solid var(--color-primary);
-  border-radius: var(--radius-md);
+  font-weight: 500;
+  color: var(--md-sys-color-on-tertiary-container);
+  background: var(--md-sys-color-tertiary-container);
+  border-radius: var(--md-sys-shape-lg);
 }
 .buzzer-banner__text {
   flex: 1;
@@ -191,18 +196,20 @@ onMounted(() => {
   font-size: 1.3rem;
   font-weight: 800;
   letter-spacing: 0.05em;
-  color: #fff;
-  background: var(--color-danger);
-  border: 0.4rem solid rgba(0, 0, 0, 0.2);
+  color: var(--md-sys-color-on-error);
+  background: var(--md-sys-color-error);
+  border: none;
   border-radius: 50%;
+  box-shadow: var(--md-sys-elevation-3);
   cursor: pointer;
+  transition: transform var(--transition-fast);
 }
 .buzzer-button:active {
   transform: scale(0.95);
 }
 .buzzer-button:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
+  outline: 3px solid var(--md-sys-color-primary);
+  outline-offset: 3px;
 }
 .reveal-button {
   align-self: flex-start;
@@ -212,13 +219,12 @@ onMounted(() => {
   flex-direction: column;
   gap: 0.4rem;
   padding-top: 0.75rem;
-  border-top: 1px solid var(--color-border);
+  border-top: 1px solid var(--md-sys-color-outline-variant);
 }
 .award-hint {
   margin: 0;
   font-size: 0.9rem;
-  color: var(--color-text);
-  opacity: 0.8;
+  color: var(--md-sys-color-on-surface-variant);
 }
 .award-list {
   display: flex;
@@ -239,7 +245,42 @@ onMounted(() => {
   white-space: nowrap;
 }
 .award-points {
-  color: var(--color-primary);
+  color: var(--md-sys-color-primary);
   font-variant-numeric: tabular-nums;
+}
+.choice {
+  animation: md-scale-in var(--md-sys-motion-duration-long) var(--md-sys-motion-easing-emphasized)
+    calc(var(--i, 0) * 80ms) both;
+  transition:
+    background-color var(--md-sys-motion-duration-medium) var(--md-sys-motion-easing),
+    box-shadow var(--md-sys-motion-duration-medium) var(--md-sys-motion-easing);
+}
+.choice-mark {
+  animation: md-pop var(--md-sys-motion-duration-long) var(--md-sys-motion-easing) both;
+}
+.buzzer-banner {
+  animation: md-scale-in var(--md-sys-motion-duration-long) var(--md-sys-motion-easing-emphasized)
+    both;
+}
+.award-section {
+  animation: md-fade-in var(--md-sys-motion-duration-medium) var(--md-sys-motion-easing) both;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .buzzer-button {
+    animation: buzzer-pulse 2s ease-in-out infinite;
+  }
+}
+@keyframes buzzer-pulse {
+  0%,
+  100% {
+    box-shadow:
+      var(--md-sys-elevation-3),
+      0 0 0 0 color-mix(in srgb, var(--md-sys-color-error) 45%, transparent);
+  }
+  50% {
+    box-shadow:
+      var(--md-sys-elevation-3),
+      0 0 0 14px color-mix(in srgb, var(--md-sys-color-error) 0%, transparent);
+  }
 }
 </style>

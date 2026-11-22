@@ -3,10 +3,18 @@
     <h1 class="app-title">Quizshow Creator</h1>
     <div class="header-actions">
       <template v-if="canEdit">
-        <button class="btn btn-primary" @click="importQuiz">Importieren</button>
-        <button class="btn btn-primary" @click="exportQuiz">Exportieren</button>
-        <button class="btn btn-primary" @click="addColumn">Spalte hinzufügen</button>
-        <button class="btn btn-primary" @click="clearEverything">Autosave löschen</button>
+        <button class="btn btn-primary" @click="importQuiz">
+          <AppIcon name="file_upload" />Importieren
+        </button>
+        <button class="btn btn-primary" @click="exportQuiz">
+          <AppIcon name="file_download" />Exportieren
+        </button>
+        <button class="btn btn-primary" @click="addColumn">
+          <AppIcon name="add" />Spalte hinzufügen
+        </button>
+        <button class="btn btn-primary" @click="clearEverything">
+          <AppIcon name="delete" />Autosave löschen
+        </button>
       </template>
       <ConnectionStatus @open-lobby="showLobby = true" />
       <button
@@ -18,7 +26,7 @@
         :aria-checked="quizStore.isEditMode"
         @click="quizStore.toggleEditMode()"
       >
-        <span class="mode-toggle__icon" aria-hidden="true">{{ modeIcon }}</span>
+        <AppIcon :key="modeIcon" :name="modeIcon" class="mode-toggle__icon" />
         <span>{{ modeLabel }}</span>
       </button>
     </div>
@@ -38,6 +46,7 @@
 import { computed, ref, watch } from 'vue'
 import QuizshowTable from './components/QuizshowTable.vue'
 import PlayerPanel from './components/PlayerPanel.vue'
+import AppIcon, { type IconName } from './components/base/AppIcon.vue'
 import ConnectionStatus from './components/ConnectionStatus.vue'
 import LobbyModal from './components/LobbyModal.vue'
 import { useQuizStore } from '@/stores/quiz.store'
@@ -67,7 +76,7 @@ const clearEverything = (): void => {
 }
 
 const modeLabel = computed(() => (quizStore.isEditMode ? 'Spielen' : 'Bearbeiten'))
-const modeIcon = computed(() => (quizStore.isEditMode ? '▶' : '✏️'))
+const modeIcon = computed<IconName>(() => (quizStore.isEditMode ? 'play_arrow' : 'edit'))
 
 // Everyone hears the buzzer, host and viewers alike.
 watch(
@@ -88,75 +97,90 @@ const addColumn = (): void => {
   align-items: flex-start;
   gap: 1.5rem;
   width: 100%;
-  padding: 0 1.5rem;
+  padding: 0 1.5rem 1.5rem;
 }
 .app-body main {
   flex: 1;
   min-width: 0;
 }
+/* Top app bar */
 .app-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
   width: 100%;
-  padding: 0.75rem 1.5rem;
-  border-bottom: 1px solid var(--color-border);
-  margin-bottom: 1rem;
+  min-height: 64px;
+  padding: 8px 16px 8px 24px;
+  background: var(--md-sys-color-surface-container);
+  color: var(--md-sys-color-on-surface);
+  margin-bottom: 1.5rem;
 }
 .app-title {
-  font-size: 1.25rem;
   margin: 0;
+  /* title-large */
+  font-size: 22px;
+  line-height: 28px;
+  font-weight: 400;
 }
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
+/* Filter chip acting as a mode switch */
 .mode-toggle {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.5rem 1.1rem;
+  min-height: 32px;
+  padding: 0 16px;
   font: inherit;
-  font-weight: 600;
-  color: var(--color-text);
-  background: var(--color-background-soft);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-pill);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.1px;
+  color: var(--md-sys-color-on-surface-variant);
+  background: transparent;
+  border: 1px solid var(--md-sys-color-outline);
+  border-radius: var(--md-sys-shape-sm);
   cursor: pointer;
   user-select: none;
+  overflow: hidden;
   transition:
     background-color var(--transition-fast),
-    color var(--transition-fast),
-    border-color var(--transition-fast),
-    box-shadow var(--transition-fast),
-    transform var(--transition-fast);
+    border-color var(--transition-fast);
 }
-.mode-toggle:hover {
-  border-color: var(--color-primary);
-  color: var(--color-primary);
-  transform: translateY(-1px);
+.mode-toggle::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-fast);
 }
-.mode-toggle:active {
-  transform: translateY(0) scale(0.98);
+.mode-toggle:hover::before {
+  opacity: var(--md-state-hover);
+}
+.mode-toggle:active::before {
+  opacity: var(--md-state-pressed);
 }
 .mode-toggle:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
+  outline: 2px solid var(--md-sys-color-primary);
+  outline-offset: 2px;
 }
 .mode-toggle.is-edit {
-  color: var(--color-on-primary);
-  background: var(--color-primary);
-  border-color: transparent;
-  box-shadow: var(--shadow-sm);
-}
-.mode-toggle.is-edit:hover {
-  color: var(--color-on-primary);
-  background: var(--color-primary-hover);
+  color: var(--md-sys-color-on-secondary-container);
+  background: var(--md-sys-color-secondary-container);
   border-color: transparent;
 }
 .mode-toggle__icon {
+  font-size: 18px;
+  display: inline-block;
+  animation: md-pop var(--md-sys-motion-duration-medium) var(--md-sys-motion-easing) both;
   font-size: 0.9em;
   line-height: 1;
 }

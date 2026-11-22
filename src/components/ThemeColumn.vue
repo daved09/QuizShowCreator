@@ -14,7 +14,7 @@
         @click="deleteTheme"
         title="Thema löschen"
       >
-        ✖
+        <AppIcon name="close" />
       </button>
     </div>
     <input
@@ -41,6 +41,7 @@
   </div>
 </template>
 <script setup lang="ts">
+import AppIcon from '@/components/base/AppIcon.vue'
 import { nextTick, ref, watch } from 'vue'
 import PointButton from './PointButton.vue'
 import { MAX_THEME_NAME_LENGTH } from '@/constants'
@@ -112,46 +113,60 @@ const deleteTheme = (): void => {
 }
 .theme-header {
   margin-bottom: 0.75rem;
+  /* title-large */
+  font-size: 22px;
+  line-height: 28px;
+  font-weight: 500;
+  color: var(--md-sys-color-on-surface);
 }
 .theme-header.editable {
   cursor: pointer;
 }
+.theme-header.editable:hover {
+  text-decoration: underline;
+}
 .delete-button {
+  width: 32px;
+  height: 32px;
+  margin-bottom: 0.75rem;
+  font-size: 14px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 1.6rem;
-  height: 1.6rem;
-  border: none;
-  border-radius: var(--radius-pill);
-  background: transparent;
-  cursor: pointer;
-  font-size: 0.8rem;
+  flex: none;
   padding: 0;
-  margin-bottom: 0.75rem;
-  color: var(--color-text);
+  border: none;
+  border-radius: var(--md-sys-shape-full);
+  background: transparent;
+  color: var(--md-sys-color-on-surface-variant);
+  cursor: pointer;
   transition:
     background-color var(--transition-fast),
     color var(--transition-fast);
 }
 .delete-button:hover {
-  color: var(--color-danger);
-  background: var(--color-danger-soft);
+  color: var(--md-sys-color-on-error-container);
+  background: var(--md-sys-color-error-container);
 }
 .delete-button:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
-}
-.theme-header.editable:hover {
-  text-decoration: underline;
+  outline: 2px solid var(--md-sys-color-primary);
 }
 .theme-header-input {
   width: 100%;
-  font-size: 1.17em;
-  font-weight: bold;
+  margin-bottom: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  font: inherit;
+  font-size: 18px;
+  font-weight: 500;
   text-align: center;
-  color: var(--color-text);
-  background: var(--color-background-mute);
-  border: 1px solid var(--color-border);
+  color: var(--md-sys-color-on-surface);
+  background: transparent;
+  border: 1px solid var(--md-sys-color-outline);
+  border-radius: var(--md-sys-shape-xs);
+}
+.theme-header-input:focus {
+  outline: none;
+  border-color: var(--md-sys-color-primary);
+  box-shadow: inset 0 0 0 1px var(--md-sys-color-primary);
 }
 </style>

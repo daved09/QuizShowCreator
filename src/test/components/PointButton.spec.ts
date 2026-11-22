@@ -24,14 +24,14 @@ describe('PointButton', () => {
     const wrapper = mountButton({ editMode: true })
 
     expect(wrapper.classes()).toContain('edit-mode')
-    expect(wrapper.text()).toContain('✏️')
+    expect(wrapper.find('[data-icon="edit"]').exists()).toBe(true)
   })
 
   it('marks answered cards and names the player', () => {
     const wrapper = mountButton({ answered: true, answeredBy: 'Anna', editMode: true })
 
     expect(wrapper.classes()).toContain('is-answered')
-    expect(wrapper.text()).toContain('✔')
+    expect(wrapper.find('[data-icon="check"]').exists()).toBe(true)
     expect(wrapper.attributes('title')).toBe('Beantwortet von Anna')
   })
 
@@ -44,14 +44,14 @@ describe('PointButton', () => {
   it('marks cards with an image in edit mode', () => {
     const wrapper = mountButton({ editMode: true, hasImage: true })
 
-    expect(wrapper.text()).toContain('🖼')
+    expect(wrapper.find('[data-icon="image"]').exists()).toBe(true)
     expect(wrapper.find('.image-badge').attributes('title')).toBe('Mit Bild')
   })
 
   it('marks cards with audio in edit mode', () => {
     const wrapper = mountButton({ editMode: true, hasAudio: true })
 
-    expect(wrapper.text()).toContain('🔊')
+    expect(wrapper.find('[data-icon="volume_up"]').exists()).toBe(true)
     expect(wrapper.find('.audio-badge').attributes('title')).toBe('Mit Audio')
   })
 

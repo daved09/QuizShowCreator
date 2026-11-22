@@ -290,7 +290,8 @@ describe('QuestionModal', () => {
       const wrapper = mountView({ answeredBy: 'Anna' })
 
       expect(wrapper.text()).toContain('Paris')
-      expect(wrapper.find('.award-hint').text()).toBe('✔ Bereits beantwortet von Anna')
+      expect(wrapper.find('.award-hint').text()).toBe('Bereits beantwortet von Anna')
+      expect(wrapper.find('.award-hint [data-icon="check"]').exists()).toBe(true)
     })
 
     it('opens and closes the image fullscreen view', async () => {

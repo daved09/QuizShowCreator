@@ -4,7 +4,7 @@
 
     <p v-if="quizStore.players.length === 0" class="empty-hint">Noch keine Spieler.</p>
 
-    <ul v-else class="player-list">
+    <TransitionGroup v-else name="list" tag="ul" class="player-list">
       <li
         v-for="player in quizStore.players"
         :key="player.id"
@@ -36,15 +36,15 @@
             title="Spieler entfernen"
             @click="quizStore.removePlayer(player.id)"
           >
-            ✖
+            <AppIcon name="close" />
           </button>
         </template>
         <span v-if="quizStore.buzzedBy === player.id" class="buzzed-icon" title="Hat gebuzzert">
-          🔔
+          <AppIcon name="notifications" />
         </span>
         <span class="player-score">{{ player.score }}</span>
       </li>
-    </ul>
+    </TransitionGroup>
 
     <form v-if="quizStore.isEditMode" class="add-form" @submit.prevent="addPlayer">
       <input
@@ -62,12 +62,13 @@
       class="reset-button btn btn-sm"
       @click="resetRound"
     >
-      Runde zurücksetzen
+      <AppIcon name="restart_alt" />Runde zurücksetzen
     </button>
   </aside>
 </template>
 
 <script setup lang="ts">
+import AppIcon from '@/components/base/AppIcon.vue'
 import { nextTick, ref } from 'vue'
 import { MAX_PLAYER_NAME_LENGTH } from '@/constants'
 import { useQuizStore } from '@/stores/quiz.store'
@@ -114,6 +115,7 @@ const resetRound = (): void => {
 </script>
 
 <style scoped>
+/* Card (filled) */
 .player-panel {
   position: sticky;
   top: 1rem;
@@ -123,21 +125,19 @@ const resetRound = (): void => {
   gap: 0.75rem;
   width: 15rem;
   flex-shrink: 0;
-  padding: 1rem;
-  background: var(--color-background-soft);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
+  padding: 16px;
+  background: var(--md-sys-color-surface-container-highest);
+  border-radius: var(--md-sys-shape-md);
 }
 .panel-title {
   margin: 0;
-  font-size: 1.05rem;
+  /* title-large */
+  font-size: 22px;
+  line-height: 28px;
 }
 .empty-hint {
   margin: 0;
-  font-size: 0.9rem;
-  color: var(--color-text);
-  opacity: 0.7;
+  color: var(--md-sys-color-on-surface-variant);
 }
 .player-list {
   list-style: none;
@@ -151,14 +151,16 @@ const resetRound = (): void => {
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.4rem 0.55rem;
-  background: var(--color-background);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  min-height: 48px;
+  padding: 4px 8px 4px 16px;
+  background: var(--md-sys-color-surface-container-low);
+  border-radius: var(--md-sys-shape-sm);
+  transition: background-color var(--transition-fast);
 }
 .player-item.is-buzzed {
-  border-color: var(--color-primary);
-  box-shadow: var(--focus-ring);
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+  box-shadow: inset 0 0 0 2px var(--md-sys-color-primary);
 }
 .player-name {
   flex: 1;
@@ -166,7 +168,7 @@ const resetRound = (): void => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-weight: 600;
+  font-weight: 500;
 }
 .player-name.editable {
   cursor: pointer;
@@ -176,46 +178,94 @@ const resetRound = (): void => {
 }
 .player-score {
   font-variant-numeric: tabular-nums;
-  font-weight: 700;
-  color: var(--color-primary);
+  font-weight: 500;
+  color: var(--md-sys-color-primary);
 }
 .name-input {
   flex: 1;
   min-width: 0;
   font: inherit;
   padding: 0.35rem 0.5rem;
-  color: var(--color-text);
-  background: var(--color-background-mute);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
+  color: var(--md-sys-color-on-surface);
+  background: transparent;
+  border: 1px solid var(--md-sys-color-outline);
+  border-radius: var(--md-sys-shape-xs);
+}
+.name-input:focus {
+  outline: none;
+  border-color: var(--md-sys-color-primary);
+  box-shadow: inset 0 0 0 1px var(--md-sys-color-primary);
 }
 .add-form {
   display: flex;
   gap: 0.4rem;
 }
 .delete-button {
+  width: 32px;
+  height: 32px;
+  font-size: 14px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 1.4rem;
-  height: 1.4rem;
+  flex: none;
   padding: 0;
   border: none;
-  border-radius: var(--radius-pill);
+  border-radius: var(--md-sys-shape-full);
   background: transparent;
-  color: var(--color-text);
+  color: var(--md-sys-color-on-surface-variant);
   cursor: pointer;
-  font-size: 0.75rem;
   transition:
     background-color var(--transition-fast),
     color var(--transition-fast);
 }
 .delete-button:hover {
-  color: var(--color-danger);
-  background: var(--color-danger-soft);
+  color: var(--md-sys-color-on-error-container);
+  background: var(--md-sys-color-error-container);
 }
 .delete-button:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
+  outline: 2px solid var(--md-sys-color-primary);
+}
+.list-enter-active,
+.list-leave-active {
+  transition:
+    opacity var(--md-sys-motion-duration-medium) var(--md-sys-motion-easing),
+    transform var(--md-sys-motion-duration-medium) var(--md-sys-motion-easing);
+}
+.list-enter-from,
+.list-leave-to {
+  opacity: 0;
+  transform: translateX(16px);
+}
+.list-leave-active {
+  position: absolute;
+  width: calc(100% - 32px);
+}
+.list-move {
+  transition: transform var(--md-sys-motion-duration-medium) var(--md-sys-motion-easing);
+}
+.player-list {
+  position: relative;
+}
+.buzzed-icon {
+  display: inline-block;
+  animation: bell-ring 900ms var(--md-sys-motion-easing) both;
+}
+@keyframes bell-ring {
+  0%,
+  100% {
+    transform: rotate(0);
+  }
+  20% {
+    transform: rotate(-20deg);
+  }
+  40% {
+    transform: rotate(18deg);
+  }
+  60% {
+    transform: rotate(-12deg);
+  }
+  80% {
+    transform: rotate(8deg);
+  }
 }
 </style>

@@ -50,7 +50,7 @@ test('vergibt Punkte, markiert die Karte und sperrt erneute Vergabe', async ({ p
   // Reopening shows the answer and no award buttons.
   await card(page, 0, 100).click()
   await expect(page.getByText('Paris')).toBeVisible()
-  await expect(page.getByText('✔ Bereits beantwortet von Anna')).toBeVisible()
+  await expect(page.getByText('Bereits beantwortet von Anna')).toBeVisible()
   await expect(page.getByRole('button', { name: /\+100/ })).toHaveCount(0)
 })
 
