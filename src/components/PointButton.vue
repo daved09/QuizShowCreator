@@ -1,20 +1,26 @@
 <template>
   <button
+    data-ripple
     :class="{ 'edit-mode': editMode, 'is-answered': answered }"
     :title="answered && answeredBy ? `Beantwortet von ${answeredBy}` : undefined"
     @click="onClick"
   >
     <span>{{ points }}</span>
-    <span v-if="answered" class="answered-badge" aria-hidden="true">✔</span>
-    <span v-else-if="editMode" class="edit-badge" aria-hidden="true">✏️</span>
+    <span v-if="answered" class="answered-badge" aria-hidden="true"><AppIcon name="check" /></span>
+    <span v-else-if="editMode" class="edit-badge" aria-hidden="true"><AppIcon name="edit" /></span>
     <template v-if="editMode">
-      <span v-if="hasImage" class="image-badge" aria-hidden="true" title="Mit Bild">🖼</span>
-      <span v-if="hasAudio" class="audio-badge" aria-hidden="true" title="Mit Audio">🔊</span>
+      <span v-if="hasImage" class="image-badge" aria-hidden="true" title="Mit Bild"
+        ><AppIcon name="image"
+      /></span>
+      <span v-if="hasAudio" class="audio-badge" aria-hidden="true" title="Mit Audio"
+        ><AppIcon name="volume_up"
+      /></span>
     </template>
   </button>
 </template>
 
 <script setup lang="ts">
+import AppIcon from '@/components/base/AppIcon.vue'
 const props = defineProps<{
   points: number
   editMode?: boolean
@@ -34,7 +40,9 @@ const onClick = (): void => {
 </script>
 
 <style scoped>
+/* Filled tonal button */
 button {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -43,64 +51,69 @@ button {
   height: 3.5rem;
   margin: 0.5rem;
   font: inherit;
-  font-size: 1.15rem;
-  font-weight: 600;
-  color: var(--color-text);
-  background: var(--color-background-soft);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
+  /* title-large */
+  font-size: 22px;
+  font-weight: 500;
+  color: var(--md-sys-color-on-secondary-container);
+  background: var(--md-sys-color-secondary-container);
+  border: none;
+  border-radius: var(--md-sys-shape-lg);
   cursor: pointer;
+  overflow: hidden;
   transition:
-    transform var(--transition-fast),
     box-shadow var(--transition-fast),
-    background-color var(--transition-fast),
-    border-color var(--transition-fast),
-    color var(--transition-fast);
+    border-radius var(--transition-fast),
+    transform var(--transition-fast),
+    background-color var(--md-sys-motion-duration-medium) var(--md-sys-motion-easing);
 }
-button:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-  border-color: var(--color-primary);
-  background: var(--color-primary-soft);
-  color: var(--color-primary);
+button::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-fast);
 }
-button:active {
-  transform: translateY(0) scale(0.98);
+button:hover:not(:disabled) {
+  box-shadow: var(--md-sys-elevation-1);
+}
+button:hover:not(:disabled)::before {
+  opacity: var(--md-state-hover);
+}
+button:active:not(:disabled) {
+  border-radius: var(--md-sys-shape-md);
+  transform: scale(0.96);
+}
+button:active:not(:disabled)::before,
+button:focus-visible::before {
+  opacity: var(--md-state-pressed);
 }
 button:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
+  outline: 2px solid var(--md-sys-color-primary);
+  outline-offset: 2px;
 }
 button.edit-mode {
-  border: 1.5px dashed var(--color-primary);
-  background: var(--color-primary-soft);
+  color: var(--md-sys-color-on-primary-container);
+  background: var(--md-sys-color-primary-container);
 }
 button.is-answered:disabled {
-  opacity: 0.5;
   cursor: not-allowed;
-  border-style: solid;
-  background: var(--color-background-mute);
-  color: var(--color-text);
-}
-button.is-answered:disabled:hover {
-  transform: none;
-  box-shadow: var(--shadow-sm);
-  border-color: var(--color-border);
-  background: var(--color-background-mute);
-  color: var(--color-text);
+  color: color-mix(in srgb, var(--md-sys-color-on-surface) 38%, transparent);
+  background: color-mix(in srgb, var(--md-sys-color-on-surface) 12%, transparent);
 }
 .answered-badge {
-  font-size: 0.85em;
+  animation: md-pop var(--md-sys-motion-duration-long) var(--md-sys-motion-easing) both;
+  font-size: 0.7em;
   line-height: 1;
-  color: var(--color-primary);
 }
 .edit-badge {
-  font-size: 0.75em;
+  font-size: 0.6em;
   line-height: 1;
 }
-.audio-badge .image-badge {
-  font-size: 0.75em;
+.image-badge,
+.audio-badge {
+  font-size: 0.6em;
   line-height: 1;
 }
 </style>

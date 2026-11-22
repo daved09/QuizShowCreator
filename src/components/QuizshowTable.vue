@@ -96,9 +96,12 @@ const awardCard = (playerId: string): void => {
 </script>
 
 <style scoped>
+.row-container > div {
+  animation: md-scale-in var(--md-sys-motion-duration-long) var(--md-sys-motion-easing-emphasized)
+    both;
+}
 .row-container {
   text-align: center;
-  /* width: 100%; */
   display: flex;
   flex-direction: row;
   justify-content: space-around;

@@ -67,7 +67,7 @@
           :aria-label="`Antwort ${choiceLetter(index)} entfernen`"
           @click="removeChoice(index)"
         >
-          ✕
+          <AppIcon name="close" />
         </button>
       </div>
       <button
@@ -76,7 +76,7 @@
         class="add-choice btn btn-sm"
         @click="addChoice"
       >
-        + Antwortmöglichkeit hinzufügen
+        <AppIcon name="add" /> Antwortmöglichkeit hinzufügen
       </button>
     </fieldset>
     <p v-if="choiceError" class="error">{{ choiceError }}</p>
@@ -102,6 +102,7 @@
 </template>
 
 <script setup lang="ts">
+import AppIcon from '@/components/base/AppIcon.vue'
 import { nextTick, onMounted, reactive, ref } from 'vue'
 import { useMediaDrop } from '@/composables/useMediaDrop'
 import {
@@ -246,21 +247,21 @@ onMounted(() => {
   cursor: pointer;
 }
 .text-input.is-dragging {
-  border-color: var(--color-primary);
-  background: var(--color-primary-soft);
-  box-shadow: 0 0 0 2px var(--color-primary-soft);
+  border-color: var(--md-sys-color-primary);
+  background: var(--md-sys-color-primary-container);
+  box-shadow: inset 0 0 0 1px var(--md-sys-color-primary);
 }
 .image-preview {
   max-width: 100%;
   max-height: 12rem;
   object-fit: contain;
-  border-radius: 0.25rem;
+  border-radius: var(--md-sys-shape-md);
 }
 .image-hint {
   display: block;
   margin-top: 0.25rem;
-  font-size: 0.8rem;
-  opacity: 0.7;
+  font-size: 12px;
+  color: var(--md-sys-color-on-surface-variant);
 }
 .remove-image,
 .remove-audio {

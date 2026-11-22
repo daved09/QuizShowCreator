@@ -9,7 +9,9 @@
           <p class="hint">Teile diesen Raumcode mit deinen Mitspielern:</p>
           <div class="code-row">
             <code class="room-code">{{ networkStore.roomCode }}</code>
-            <button type="button" class="btn" @click="copyCode">Kopieren</button>
+            <button type="button" class="btn" @click="copyCode">
+              <AppIcon name="content_copy" />Kopieren
+            </button>
           </div>
           <p class="hint">{{ hostStatusText }}</p>
           <button type="button" class="btn btn-danger" @click="networkStore.leave()">
@@ -65,6 +67,7 @@
 </template>
 
 <script setup lang="ts">
+import AppIcon from '@/components/base/AppIcon.vue'
 import { computed, ref } from 'vue'
 import BaseModal from '@/components/base/BaseModal.vue'
 import { MAX_PLAYER_NAME_LENGTH } from '@/constants'
@@ -148,7 +151,12 @@ const clientStatusText = computed(() => {
 }
 .lobby-section h3 {
   margin: 0;
-  font-size: 1rem;
+  /* title-medium */
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 500;
+  letter-spacing: 0.15px;
+  color: var(--md-sys-color-on-surface);
 }
 .code-row {
   display: flex;
@@ -162,10 +170,10 @@ const clientStatusText = computed(() => {
   font-weight: 700;
   letter-spacing: 0.2em;
   text-align: center;
-  color: var(--color-primary);
-  background: var(--color-background-soft);
-  border: 1px dashed var(--color-primary);
-  border-radius: var(--radius-md);
+  color: var(--md-sys-color-on-primary-container);
+  background: var(--md-sys-color-primary-container);
+  border: none;
+  border-radius: var(--md-sys-shape-md);
 }
 .join-form {
   display: flex;
@@ -181,11 +189,13 @@ const clientStatusText = computed(() => {
   flex: 1;
   min-width: 0;
   font: inherit;
-  padding: 0.5rem;
-  color: var(--color-text);
-  background: var(--color-background-soft);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  min-height: 40px;
+  padding: 0.5rem 0.9rem;
+  font-size: 16px;
+  color: var(--md-sys-color-on-surface);
+  background: transparent;
+  border: 1px solid var(--md-sys-color-outline);
+  border-radius: var(--md-sys-shape-xs);
 }
 .code-input {
   text-transform: uppercase;
@@ -193,12 +203,12 @@ const clientStatusText = computed(() => {
 .name-input:focus,
 .code-input:focus {
   outline: none;
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 2px var(--color-primary-soft);
+  border-color: var(--md-sys-color-primary);
+  box-shadow: inset 0 0 0 1px var(--md-sys-color-primary);
 }
 .divider {
   border: none;
-  border-top: 1px solid var(--color-border);
+  border-top: 1px solid var(--md-sys-color-outline-variant);
   margin: 0;
 }
 </style>

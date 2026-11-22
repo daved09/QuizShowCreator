@@ -9,7 +9,9 @@
     >
       <header class="modal-header">
         <h2>{{ title }}</h2>
-        <button class="modal-close" title="Schließen" @click="emit('close')">✖</button>
+        <button class="modal-close" title="Schließen" @click="emit('close')">
+          <AppIcon name="close" />
+        </button>
       </header>
       <slot />
     </div>
@@ -19,6 +21,7 @@
 </template>
 
 <script setup lang="ts">
+import AppIcon from '@/components/base/AppIcon.vue'
 import { onMounted, onUnmounted } from 'vue'
 
 // Dialog frame: backdrop, title bar with close button and Escape handling.
@@ -39,56 +42,59 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: color-mix(in srgb, var(--md-sys-color-scrim) 32%, transparent);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 100;
   padding: 1rem;
+  animation: md-fade-in var(--md-sys-motion-duration-medium) var(--md-sys-motion-easing) both;
 }
 .modal-dialog {
-  background: var(--color-background);
-  color: var(--color-text);
-  border: 1px solid var(--color-border);
-  border-radius: 0.5rem;
+  background: var(--md-sys-color-surface-container-high);
+  color: var(--md-sys-color-on-surface-variant);
+  border-radius: var(--md-sys-shape-xl);
   max-height: 90vh;
   overflow: auto;
-  box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.3);
+  box-shadow: var(--md-sys-elevation-3);
+  animation: md-scale-in var(--md-sys-motion-duration-long) var(--md-sys-motion-easing-emphasized)
+    both;
 }
 .modal-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 1rem 1.25rem;
-  border-bottom: 1px solid var(--color-border);
+  padding: 24px 24px 16px;
 }
 .modal-header h2 {
-  font-size: 1.1rem;
   margin: 0;
+  /* headline-small */
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 400;
+  color: var(--md-sys-color-on-surface);
 }
 .modal-close {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 1.9rem;
-  height: 1.9rem;
+  flex: none;
+  width: 40px;
+  height: 40px;
   border: none;
-  border-radius: var(--radius-pill);
+  border-radius: var(--md-sys-shape-full);
   background: transparent;
   cursor: pointer;
-  font-size: 0.95rem;
-  color: var(--color-text);
-  transition:
-    background-color var(--transition-fast),
-    color var(--transition-fast);
+  font-size: 18px;
+  color: var(--md-sys-color-on-surface-variant);
+  transition: background-color var(--transition-fast);
 }
 .modal-close:hover {
-  background: var(--color-danger-soft);
-  color: var(--color-danger);
+  background: color-mix(in srgb, var(--md-sys-color-on-surface-variant) 8%, transparent);
 }
 .modal-close:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
+  outline: 2px solid var(--md-sys-color-primary);
 }
 </style>

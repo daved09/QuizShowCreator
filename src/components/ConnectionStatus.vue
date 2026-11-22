@@ -33,13 +33,14 @@
       type="button"
       @click="emit('openLobby')"
     >
-      Online spielen
+      <AppIcon name="public" />Online spielen
     </button>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import AppIcon from '@/components/base/AppIcon.vue'
 import { useNetworkStore } from '@/stores/network.store'
 
 const emit = defineEmits<{ (e: 'openLobby'): void }>()
@@ -64,44 +65,44 @@ const clientLabel = computed(() => {
 .connection-status {
   display: inline-flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 0.5rem;
 }
+/* Assist-chip style badge */
 .status-badge {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.4rem 0.75rem;
-  font-weight: 600;
-  color: var(--color-text);
-  background: var(--color-background-soft);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-pill);
+  min-height: 32px;
+  padding: 0 12px;
+  font-weight: 500;
+  letter-spacing: 0.1px;
+  color: var(--md-sys-color-on-surface-variant);
+  background: transparent;
+  border: 1px solid var(--md-sys-color-outline);
+  border-radius: var(--md-sys-shape-sm);
   white-space: nowrap;
 }
 .status-badge.is-online {
-  border-color: var(--color-primary);
-  color: var(--color-primary);
-  background: var(--color-primary-soft);
+  border-color: transparent;
+  color: var(--md-sys-color-on-primary-container);
+  background: var(--md-sys-color-primary-container);
 }
 .status-badge.is-error {
-  border-color: var(--color-danger);
-  color: var(--color-danger);
-  background: var(--color-danger-soft);
+  border-color: transparent;
+  color: var(--md-sys-color-on-error-container);
+  background: var(--md-sys-color-error-container);
 }
 .status-dot {
-  width: 0.55rem;
-  height: 0.55rem;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background: currentColor;
 }
 .viewer-count {
-  font-size: 0.85rem;
-  opacity: 0.75;
+  font-size: 12px;
+  letter-spacing: 0.4px;
+  color: var(--md-sys-color-on-surface-variant);
   white-space: nowrap;
-}
-.connection-button {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.4rem 0.9rem;
 }
 </style>

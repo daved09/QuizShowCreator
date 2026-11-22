@@ -50,7 +50,7 @@ test('vergibt Punkte, markiert die Karte und sperrt erneute Vergabe', async ({ p
   // Reopening shows the answer and no award buttons.
   await card(page, 0, 100).click()
   await expect(page.getByText('Paris')).toBeVisible()
-  await expect(page.getByText('✔ Bereits beantwortet von Anna')).toBeVisible()
+  await expect(page.getByText('Bereits beantwortet von Anna')).toBeVisible()
   await expect(page.getByRole('button', { name: /\+100/ })).toHaveCount(0)
 })
 
@@ -70,7 +70,7 @@ test('Punkte mehrerer Karten summieren sich', async ({ page }) => {
 test('Schließen ohne Vergabe lässt die Karte offen für später', async ({ page }) => {
   await setupBoard(page)
   await card(page, 0, 100).click()
-  await page.getByRole('button', { name: 'Schließen' }).click()
+  await page.locator('.modal-actions').getByRole('button', { name: 'Schließen' }).click()
   await expect(card(page, 0, 100)).not.toHaveClass(/is-answered/)
 })
 

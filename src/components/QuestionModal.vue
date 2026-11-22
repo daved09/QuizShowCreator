@@ -19,17 +19,20 @@
 
     <template #overlay>
       <!-- Fullscreen view of the question image -->
-      <div v-if="showLightbox && question.image" class="lightbox" @click="showLightbox = false">
-        <img :src="question.image" alt="Frage-Bild groß" class="lightbox-image" />
-        <button class="lightbox-close" title="Schließen" @click.stop="showLightbox = false">
-          ✖
-        </button>
-      </div>
+      <Transition name="fade">
+        <div v-if="showLightbox && question.image" class="lightbox" @click="showLightbox = false">
+          <img :src="question.image" alt="Frage-Bild groß" class="lightbox-image" />
+          <button class="lightbox-close" title="Schließen" @click.stop="showLightbox = false">
+            <AppIcon name="close" />
+          </button>
+        </div>
+      </Transition>
     </template>
   </BaseModal>
 </template>
 
 <script setup lang="ts">
+import AppIcon from '@/components/base/AppIcon.vue'
 import { computed, ref } from 'vue'
 import BaseModal from '@/components/base/BaseModal.vue'
 import QuestionEditor from '@/components/question/QuestionEditor.vue'
@@ -84,7 +87,7 @@ const requestClose = (): void => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.85);
+  background: color-mix(in srgb, var(--md-sys-color-scrim) 80%, transparent);
   z-index: 200;
   padding: 2rem;
   cursor: zoom-out;
@@ -93,6 +96,7 @@ const requestClose = (): void => {
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
+  border-radius: var(--md-sys-shape-md);
 }
 .lightbox-close {
   position: absolute;
@@ -101,17 +105,32 @@ const requestClose = (): void => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2.2rem;
-  height: 2.2rem;
-  font-size: 1rem;
+  width: 40px;
+  height: 40px;
+  font-size: 18px;
   color: #fff;
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.16);
   border: none;
-  border-radius: var(--radius-pill);
+  border-radius: var(--md-sys-shape-full);
   cursor: pointer;
   transition: background-color var(--transition-fast);
 }
 .lightbox-close:hover {
   background: rgba(255, 255, 255, 0.3);
+}
+.lightbox-close:focus-visible {
+  outline: 2px solid #fff;
+}
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity var(--md-sys-motion-duration-medium) var(--md-sys-motion-easing);
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+.fade-enter-active .lightbox-image {
+  animation: md-scale-in var(--md-sys-motion-duration-long) var(--md-sys-motion-easing-emphasized)
+    both;
 }
 </style>
